@@ -26,7 +26,7 @@ export default async function ContentPage() {
     db.from("unit").select("*").order("unit_number"),
     db.from("chapter").select("*").order("display_order"),
     db.from("content_package").select("*"),
-    db.from("teacher").select("id, name").eq("is_active", true),
+    db.from("teacher").select("*").eq("is_active", true).order("name"),
   ]);
 
   return (
