@@ -1,0 +1,286 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-kumbh), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius: 8px;
+
+  --color-background:           #ffffff;
+  --color-foreground:           #0f0f10;
+  --color-card:                 #ffffff;
+  --color-card-foreground:      #0f0f10;
+  --color-popover:              #ffffff;
+  --color-popover-foreground:   #0f0f10;
+  --color-primary:              #ba2032;
+  --color-primary-foreground:   #ffffff;
+  --color-secondary:            #f4f4f5;
+  --color-secondary-foreground: #0f0f10;
+  --color-muted:                #f4f4f5;
+  --color-muted-foreground:     #a1a1aa;
+  --color-accent:               #fce8ea;
+  --color-accent-foreground:    #ba2032;
+  --color-destructive:          #dc2626;
+  --color-destructive-foreground: #ffffff;
+  --color-border:               #e4e4e7;
+  --color-input:                #e4e4e7;
+  --color-ring:                 #ba2032;
+
+  --color-sidebar:                    #1c0509;
+  --color-sidebar-foreground:         #f0dede;
+  --color-sidebar-primary:            #ba2032;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent:             rgba(186,32,50,0.2);
+  --color-sidebar-accent-foreground:  #f0dede;
+  --color-sidebar-border:             rgba(255,255,255,0.07);
+  --color-sidebar-ring:               #ba2032;
+
+  --color-brand:       #ba2032;
+  --color-brand-hover: #a01b2b;
+  --color-brand-light: #fce8ea;
+
+  --color-success:       #16a34a;
+  --color-success-light: #dcfce7;
+  --color-warning:       #d97706;
+  --color-warning-light: #fef3c7;
+  --color-danger:        #dc2626;
+  --color-danger-light:  #fee2e2;
+  --color-info:          #2563eb;
+  --color-info-light:    #dbeafe;
+}
+
+* {
+  border-color: var(--color-border);
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.375rem; }
+h3 { font-size: 1.125rem; }
+h4 { font-size: 1rem; }
+
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 99px; }
+
+/* Force sidebar dark theme — shadcn reads these exact variable names */
+[data-sidebar="sidebar"] {
+  --sidebar-background: #1c0509 !important;
+  --sidebar-foreground: #f0dede !important;
+  --sidebar-primary: #ba2032 !important;
+  --sidebar-primary-foreground: #ffffff !important;
+  --sidebar-accent: rgba(186, 32, 50, 0.25) !important;
+  --sidebar-accent-foreground: #f0dede !important;
+  --sidebar-border: rgba(255, 255, 255, 0.07) !important;
+  --sidebar-ring: #ba2032 !important;
+  background-color: #1c0509 !important;
+  color: #f0dede !important;
+}
+
+/* Group labels */
+[data-sidebar="group-label"] {
+  color: rgba(240, 222, 222, 0.4) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+}
+
+/* Inactive menu items */
+[data-sidebar="menu-button"] {
+  color: rgba(240, 222, 222, 0.65) !important;
+  border-radius: 8px !important;
+}
+
+[data-sidebar="menu-button"]:hover {
+  background: rgba(186, 32, 50, 0.2) !important;
+  color: #f0dede !important;
+}
+
+/* Active menu item */
+[data-sidebar="menu-button"][data-active="true"] {
+  background: #ba2032 !important;
+  color: #ffffff !important;
+}
+
+/* Sidebar header and footer regions */
+[data-sidebar="header"],
+[data-sidebar="footer"] {
+  background: #1c0509 !important;
+}
+
+/* Sidebar content area */
+[data-sidebar="content"] {
+  background: #1c0509 !important;
+}
+
+/* Fix Shadcn Tabs content visibility in Tailwind v4 */
+[role="tabpanel"] {
+  display: block !important;
+}
+
+[role="tabpanel"][hidden] {
+  display: none !important;
+}
+
+[role="tablist"] {
+  display: flex;
+}
+
+[role="tab"] {
+  cursor: pointer;
+}
+
+/* ── Form fields ── */
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+input[type="tel"],
+input[type="password"],
+textarea {
+  height: 34px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  color: var(--color-foreground);
+  background: var(--color-background);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(186, 32, 50, 0.08);
+}
+
+textarea {
+  height: auto;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+/* Label */
+label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* Shadcn label override */
+[data-slot="label"] {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  color: var(--color-text-secondary) !important;
+}
+
+/* Buttons */
+[data-slot="button"][data-variant="default"],
+.btn-primary {
+  height: 34px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  border-radius: 8px !important;
+}
+
+/* Cards */
+[data-slot="card"] {
+  border: 0.5px solid var(--color-border) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+[data-slot="card-header"] {
+  padding: 14px 20px 12px !important;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+[data-slot="card-title"] {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+[data-slot="card-content"] {
+  padding: 16px 20px !important;
+}
+
+/* Select trigger */
+[data-slot="select-trigger"] {
+  height: 34px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+  border: 0.5px solid var(--color-border) !important;
+}
+
+[data-slot="select-trigger"]:focus {
+  border-color: var(--color-brand) !important;
+  box-shadow: 0 0 0 3px rgba(186, 32, 50, 0.08) !important;
+  outline: none !important;
+  ring: none !important;
+}
+
+/* Tabs */
+[data-slot="tabs-list"] {
+  background: var(--color-surface) !important;
+  border: 0.5px solid var(--color-border) !important;
+  border-radius: 10px !important;
+  padding: 3px !important;
+  height: auto !important;
+  width: fit-content !important;
+}
+
+[data-slot="tabs-trigger"] {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 6px 16px !important;
+  border-radius: 8px !important;
+  height: auto !important;
+  color: var(--color-text-secondary) !important;
+}
+
+[data-slot="tabs-trigger"][data-state="active"] {
+  background: var(--color-background) !important;
+  color: var(--color-brand) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+  border: 0.5px solid var(--color-border) !important;
+}
+
+/* Badge */
+[data-slot="badge"] {
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  padding: 2px 8px !important;
+  border-radius: 20px !important;
+  height: auto !important;
+}
