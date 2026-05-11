@@ -36,12 +36,24 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
+  const { data: teacher } = user
+    ? await supabase
+        .from("teacher")
+        .select("role")
+        .eq("auth_user_id", user.id)
+        .maybeSingle()
+    : { data: null };
+  const role = teacher?.role ?? null;
+  const landingRoute =
+    role === "admin" || role === "coordinator"
+      ? "/admin"
+      : "/teacher";
 
   // Allow public routes
   if (publicRoutes.some((r) => pathname.startsWith(r))) {
     // If already signed in, redirect to dashboard
     if (user) {
-      return NextResponse.redirect(new URL("/admin", request.url));
+      return NextResponse.redirect(new URL(landingRoute, request.url));
     }
     return supabaseResponse;
   }
@@ -57,17 +69,16 @@ export async function middleware(request: NextRequest) {
   );
 
   if (matchedRoute) {
-    // Get teacher role from DB
-    const { data: teacher } = await supabase
-      .from("teacher")
-      .select("role")
-      .eq("auth_user_id", user.id)
-      .single();
-
-    const role = teacher?.role ?? null;
     const allowed = routeAccess[matchedRoute];
 
-    if (!role || !allowed.includes(role)) {
+    if (!role) {
+      if (pathname.startsWith("/teacher")) {
+        return supabaseResponse;
+      }
+      return NextResponse.redirect(new URL("/teacher", request.url));
+    }
+
+    if (!allowed.includes(role)) {
       const fallback = role === "teacher" ? "/teacher" : "/admin";
       return NextResponse.redirect(new URL(fallback, request.url));
     }

@@ -29,7 +29,7 @@ export default function SignInPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push("/admin");
+      router.push("/");
       router.refresh();
     }
   }

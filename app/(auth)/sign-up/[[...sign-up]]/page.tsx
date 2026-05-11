@@ -50,7 +50,7 @@ export default function SignUpPage() {
       return;
     }
 
-    router.push("/teacher");
+    router.push("/");
     router.refresh();
   }
 
