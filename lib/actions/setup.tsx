@@ -17,6 +17,18 @@ export async function createSchoolYear(formData: FormData) {
   return { success: true };
 }
 
+export async function updateSchoolYear(id: string, formData: FormData) {
+  const name       = formData.get("name") as string;
+  const start_date = formData.get("start_date") as string;
+  const end_date   = formData.get("end_date") as string;
+  const { error }  = await db.from("school_year")
+    .update({ name, start_date, end_date, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
+
 export async function deleteSchoolYear(id: string) {
   const { error } = await db.from("school_year").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -31,39 +43,23 @@ export async function setActiveSchoolYear(id: string) {
   return { success: true };
 }
 
-// ── ACADEMIC SEGMENTS ────────────────────
-
-export async function createAcademicSegment(formData: FormData) {
-  const school_year_id  = formData.get("school_year_id") as string;
-  const standard_id     = formData.get("standard_id") as string;
-  const name            = formData.get("name") as string;
-  const segment_type    = formData.get("segment_type") as "unit" | "term";
-  const sequence_number = parseInt(formData.get("sequence_number") as string);
-  const start_date      = formData.get("start_date") as string;
-  const end_date        = formData.get("end_date") as string;
-
-  const { error } = await db.from("academic_segment").insert({
-    school_year_id, standard_id, name,
-    segment_type, sequence_number, start_date, end_date,
-  });
-  if (error) return { error: error.message };
-  revalidatePath("/setup");
-  return { success: true };
-}
-
-export async function deleteAcademicSegment(id: string) {
-  const { error } = await db.from("academic_segment").delete().eq("id", id);
-  if (error) return { error: error.message };
-  revalidatePath("/setup");
-  return { success: true };
-}
-
 // ── STANDARDS ────────────────────────────
 
 export async function createStandard(formData: FormData) {
   const name  = formData.get("name") as string;
   const grade = parseInt(formData.get("grade") as string);
   const { error } = await db.from("standard").insert({ name, grade });
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
+
+export async function updateStandard(id: string, formData: FormData) {
+  const name  = formData.get("name") as string;
+  const grade = parseInt(formData.get("grade") as string);
+  const { error } = await db.from("standard")
+    .update({ name, grade, updated_at: new Date().toISOString() })
+    .eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/setup");
   return { success: true };
@@ -87,8 +83,56 @@ export async function createDivision(formData: FormData) {
   return { success: true };
 }
 
+export async function updateDivision(id: string, formData: FormData) {
+  const name      = formData.get("name") as string;
+  const { error } = await db.from("division")
+    .update({ name, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
+
 export async function deleteDivision(id: string) {
   const { error } = await db.from("division").delete().eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
+
+// ── ACADEMIC SEGMENTS ────────────────────
+
+export async function createAcademicSegment(formData: FormData) {
+  const school_year_id  = formData.get("school_year_id") as string;
+  const standard_id     = formData.get("standard_id") as string;
+  const name            = formData.get("name") as string;
+  const segment_type    = formData.get("segment_type") as "unit" | "term";
+  const sequence_number = parseInt(formData.get("sequence_number") as string);
+  const start_date      = formData.get("start_date") as string;
+  const end_date        = formData.get("end_date") as string;
+  const { error } = await db.from("academic_segment").insert({
+    school_year_id, standard_id, name,
+    segment_type, sequence_number, start_date, end_date,
+  });
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
+
+export async function updateAcademicSegment(id: string, formData: FormData) {
+  const name        = formData.get("name") as string;
+  const start_date  = formData.get("start_date") as string;
+  const end_date    = formData.get("end_date") as string;
+  const { error }   = await db.from("academic_segment")
+    .update({ name, start_date, end_date, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
+
+export async function deleteAcademicSegment(id: string) {
+  const { error } = await db.from("academic_segment").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/setup");
   return { success: true };
@@ -102,7 +146,22 @@ export async function createSubject(formData: FormData) {
   const type             = formData.get("type") as "academic" | "non_academic";
   const periods_per_week = parseInt(formData.get("periods_per_week") as string);
   const has_chapters     = formData.get("has_chapters") === "true";
-  const { error }        = await db.from("subject").insert({ standard_id, name, type, periods_per_week, has_chapters });
+  const { error } = await db.from("subject").insert({
+    standard_id, name, type, periods_per_week, has_chapters,
+  });
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
+
+export async function updateSubject(id: string, formData: FormData) {
+  const name             = formData.get("name") as string;
+  const periods_per_week = parseInt(formData.get("periods_per_week") as string);
+  const type             = formData.get("type") as "academic" | "non_academic";
+  const has_chapters     = formData.get("has_chapters") === "true";
+  const { error } = await db.from("subject")
+    .update({ name, periods_per_week, type, has_chapters, updated_at: new Date().toISOString() })
+    .eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/setup");
   return { success: true };
@@ -128,8 +187,42 @@ export async function createTeacher(formData: FormData) {
   return { success: true };
 }
 
+export async function updateTeacher(id: string, formData: FormData) {
+  const name  = formData.get("name") as string;
+  const phone = formData.get("phone") as string;
+  const role  = formData.get("role") as "teacher" | "hod" | "coordinator" | "admin";
+  const { error } = await db.from("teacher")
+    .update({ name, phone, role, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
+
 export async function deleteTeacher(id: string) {
   const { error } = await db.from("teacher").delete().eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
+
+// ── TEACHER ASSIGNMENTS ───────────────────
+
+export async function createTeacherAssignment(formData: FormData) {
+  const teacher_id     = formData.get("teacher_id") as string;
+  const subject_id     = formData.get("subject_id") as string;
+  const division_id    = formData.get("division_id") as string;
+  const school_year_id = formData.get("school_year_id") as string;
+  const { error } = await db.from("teacher_assignment").insert({
+    teacher_id, subject_id, division_id, school_year_id,
+  });
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
+
+export async function deleteTeacherAssignment(id: string) {
+  const { error } = await db.from("teacher_assignment").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/setup");
   return { success: true };
@@ -143,14 +236,32 @@ export async function createChapter(formData: FormData) {
   const chapter_number      = parseInt(formData.get("chapter_number") as string);
   const name                = formData.get("name") as string;
   const allocated_periods   = parseInt(formData.get("allocated_periods") as string);
-  const comments            = formData.get("comments") as string || null;
+  const comments            = (formData.get("comments") as string) || null;
   const effective_periods   = Math.floor(allocated_periods * 0.8);
-
   const { error } = await db.from("chapter").insert({
     subject_id, academic_segment_id, chapter_number,
     name, allocated_periods, effective_periods,
     comments, display_order: chapter_number,
   });
+  if (error) return { error: error.message };
+  revalidatePath("/content");
+  return { success: true };
+}
+
+export async function updateChapter(id: string, formData: FormData) {
+  const name              = formData.get("name") as string;
+  const allocated_periods = parseInt(formData.get("allocated_periods") as string);
+  const comments          = (formData.get("comments") as string) || null;
+  const chapter_number    = parseInt(formData.get("chapter_number") as string);
+  const effective_periods = Math.floor(allocated_periods * 0.8);
+  const { error } = await db.from("chapter")
+    .update({
+      name, allocated_periods, effective_periods,
+      comments, chapter_number,
+      display_order: chapter_number,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/content");
   return { success: true };
@@ -168,8 +279,8 @@ export async function deleteChapter(id: string) {
 export async function saveChapterPeriod(formData: FormData) {
   const chapter_id    = formData.get("chapter_id") as string;
   const period_number = parseInt(formData.get("period_number") as string);
-  const title         = formData.get("title") as string || null;
-  const uploaded_by   = formData.get("uploaded_by") as string || null;
+  const title         = (formData.get("title") as string) || null;
+  const uploaded_by   = (formData.get("uploaded_by") as string) || null;
 
   const { data: existing } = await db
     .from("chapter_period")
@@ -229,7 +340,7 @@ export async function togglePeriodPublish(id: string, is_published: boolean) {
 
 export async function saveMcq(formData: FormData) {
   const chapter_id  = formData.get("chapter_id") as string;
-  const uploaded_by = formData.get("uploaded_by") as string || null;
+  const uploaded_by = (formData.get("uploaded_by") as string) || null;
   let mcq_set_json  = null;
   const raw = formData.get("mcq_set_json") as string;
   if (raw) { try { mcq_set_json = JSON.parse(raw); } catch {} }
@@ -261,7 +372,7 @@ export async function saveMcq(formData: FormData) {
 
 export async function saveTest(formData: FormData) {
   const chapter_id  = formData.get("chapter_id") as string;
-  const uploaded_by = formData.get("uploaded_by") as string || null;
+  const uploaded_by = (formData.get("uploaded_by") as string) || null;
   let test_json     = null;
   const raw = formData.get("test_json") as string;
   if (raw) { try { test_json = JSON.parse(raw); } catch {} }
@@ -286,28 +397,5 @@ export async function saveTest(formData: FormData) {
   }
 
   revalidatePath("/content");
-  return { success: true };
-}
-
-// ── TEACHER ASSIGNMENTS ───────────────────
-
-export async function createTeacherAssignment(formData: FormData) {
-  const teacher_id      = formData.get("teacher_id") as string;
-  const subject_id      = formData.get("subject_id") as string;
-  const division_id     = formData.get("division_id") as string;
-  const school_year_id  = formData.get("school_year_id") as string;
-
-  const { error } = await db.from("teacher_assignment").insert({
-    teacher_id, subject_id, division_id, school_year_id,
-  });
-  if (error) return { error: error.message };
-  revalidatePath("/setup");
-  return { success: true };
-}
-
-export async function deleteTeacherAssignment(id: string) {
-  const { error } = await db.from("teacher_assignment").delete().eq("id", id);
-  if (error) return { error: error.message };
-  revalidatePath("/setup");
   return { success: true };
 }

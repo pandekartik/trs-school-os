@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import { Standard, Division } from "@/lib/types";
-import { createStandard, deleteStandard, createDivision, deleteDivision } from "@/lib/actions/setup";
+import {
+  createStandard, updateStandard, deleteStandard,
+  createDivision, updateDivision, deleteDivision,
+} from "@/lib/actions/setup";
 import { useAction } from "@/lib/hooks/use-action";
+import { EditableRow } from "@/components/shared/editable-row";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,9 +16,46 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ListItem } from "@/components/shared/list-item";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
+
+function EditStandardForm({ std }: { std: Standard }) {
+  const action = useAction((fd) => updateStandard(std.id, fd), {
+    successMessage: "Standard updated",
+  });
+  return (
+    <form ref={action.formRef} action={action.execute} className="flex items-end gap-2">
+      <div className="flex flex-col gap-1 flex-1">
+        <Label>Name</Label>
+        <Input name="name" defaultValue={std.name} className="h-7 text-xs" required />
+      </div>
+      <div className="flex flex-col gap-1 w-20">
+        <Label>Grade</Label>
+        <Input name="grade" type="number" defaultValue={std.grade} className="h-7 text-xs" required />
+      </div>
+      <Button type="submit" size="sm" className="h-7 text-xs" disabled={action.loading}>
+        {action.loading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+      </Button>
+    </form>
+  );
+}
+
+function EditDivisionForm({ div }: { div: Division }) {
+  const action = useAction((fd) => updateDivision(div.id, fd), {
+    successMessage: "Division updated",
+  });
+  return (
+    <form ref={action.formRef} action={action.execute} className="flex items-end gap-2">
+      <div className="flex flex-col gap-1 flex-1">
+        <Label>Name</Label>
+        <Input name="name" defaultValue={div.name} className="h-7 text-xs" required />
+      </div>
+      <Button type="submit" size="sm" className="h-7 text-xs" disabled={action.loading}>
+        {action.loading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+      </Button>
+    </form>
+  );
+}
 
 export function StandardsTab({
   standards,
@@ -23,21 +64,26 @@ export function StandardsTab({
   standards: Standard[];
   divisions: Division[];
 }) {
-  const [selectedStandard, setSelectedStandard] = useState<string>(standards[0]?.id ?? "");
+  const [selectedStandard, setSelectedStandard] = useState(standards[0]?.id ?? "");
   const stdAction = useAction(createStandard, { successMessage: "Standard created" });
   const divAction = useAction(createDivision, { successMessage: "Division created" });
-
   const currentDivisions = divisions.filter((d) => d.standard_id === selectedStandard);
 
-  async function handleDelete(id: string, type: "standard" | "division") {
-    const fn = type === "standard" ? deleteStandard : deleteDivision;
-    const result = await fn(id);
-    if (result?.error) toast.error("Delete failed", { description: result.error });
-    else toast.success(type === "standard" ? "Standard deleted" : "Division deleted");
+  async function handleDeleteStd(id: string) {
+    const r = await deleteStandard(id);
+    if (r?.error) toast.error("Delete failed", { description: r.error });
+    else toast.success("Deleted");
+  }
+
+  async function handleDeleteDiv(id: string) {
+    const r = await deleteDivision(id);
+    if (r?.error) toast.error("Delete failed", { description: r.error });
+    else toast.success("Deleted");
   }
 
   return (
     <div className="grid grid-cols-2 gap-4">
+      {/* Standards */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -51,12 +97,12 @@ export function StandardsTab({
           <form ref={stdAction.formRef} action={stdAction.execute} className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-2.5">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="std-name">Name</Label>
-                <Input id="std-name" name="name" placeholder="e.g. Std 1" required />
+                <Label>Name</Label>
+                <Input name="name" placeholder="e.g. Std 1" required />
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="std-grade">Grade</Label>
-                <Input id="std-grade" name="grade" type="number" min="1" max="10" placeholder="1" required />
+                <Label>Grade</Label>
+                <Input name="grade" type="number" min="1" max="12" placeholder="1" required />
               </div>
             </div>
             <Button type="submit" disabled={stdAction.loading} className="w-full">
@@ -72,19 +118,27 @@ export function StandardsTab({
               <div className="h-px bg-border my-4" />
               <div className="flex flex-col gap-1.5">
                 {standards.map((std) => (
-                  <ListItem
+                  <EditableRow
                     key={std.id}
-                    title={std.name}
-                    subtitle={`Grade ${std.grade}`}
-                    highlighted={selectedStandard === std.id}
-                    onClick={() => setSelectedStandard(std.id)}
-                    badges={
-                      <Badge variant="outline" className="text-[10px] h-5 px-2 font-normal">
-                        {divisions.filter(d => d.standard_id === std.id).length} div
-                      </Badge>
-                    }
-                    onDelete={() => handleDelete(std.id, "standard")}
-                  />
+                    editForm={<EditStandardForm std={std} />}
+                    onDelete={() => handleDeleteStd(std.id)}
+                    className={selectedStandard === std.id ? "border-[color:var(--color-brand)] bg-[#fce8ea]/40" : ""}
+                  >
+                    <div
+                      className="cursor-pointer"
+                      onClick={() => setSelectedStandard(std.id)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium">{std.name}</span>
+                        <Badge variant="outline" className="text-[10px] h-4 px-1.5 font-normal">
+                          Grade {std.grade}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px] h-4 px-1.5 font-normal">
+                          {divisions.filter((d) => d.standard_id === std.id).length} div
+                        </Badge>
+                      </div>
+                    </div>
+                  </EditableRow>
                 ))}
               </div>
             </>
@@ -92,13 +146,14 @@ export function StandardsTab({
         </CardContent>
       </Card>
 
+      {/* Divisions */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
               Divisions
               {selectedStandard && (
-                <span className="text-muted-foreground font-normal ml-1.5">
+                <span className="font-normal text-muted-foreground ml-1.5">
                   — {standards.find((s) => s.id === selectedStandard)?.name}
                 </span>
               )}
@@ -114,9 +169,7 @@ export function StandardsTab({
             <div className="flex flex-col gap-1.5">
               <Label>Standard</Label>
               <Select value={selectedStandard} onValueChange={setSelectedStandard}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select standard" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select standard" /></SelectTrigger>
                 <SelectContent>
                   {standards.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
@@ -125,8 +178,8 @@ export function StandardsTab({
               </Select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="div-name">Division name</Label>
-              <Input id="div-name" name="name" placeholder="e.g. A" required />
+              <Label>Division name</Label>
+              <Input name="name" placeholder="e.g. A" required />
             </div>
             <Button type="submit" disabled={divAction.loading || !selectedStandard} className="w-full">
               {divAction.loading
@@ -141,18 +194,20 @@ export function StandardsTab({
               <div className="h-px bg-border my-4" />
               <div className="flex flex-col gap-1.5">
                 {currentDivisions.map((div) => (
-                  <ListItem
+                  <EditableRow
                     key={div.id}
-                    title={`Division ${div.name}`}
-                    onDelete={() => handleDelete(div.id, "division")}
-                  />
+                    editForm={<EditDivisionForm div={div} />}
+                    onDelete={() => handleDeleteDiv(div.id)}
+                  >
+                    <span className="text-xs font-medium">Division {div.name}</span>
+                  </EditableRow>
                 ))}
               </div>
             </>
           )}
 
           {selectedStandard && currentDivisions.length === 0 && (
-            <p className="text-xs text-muted-foreground mt-4 text-center py-4">
+            <p className="text-xs text-muted-foreground text-center py-6">
               No divisions yet. Add one above.
             </p>
           )}

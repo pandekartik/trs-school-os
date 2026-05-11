@@ -2,17 +2,47 @@
 
 import { SchoolYear } from "@/lib/types";
 import {
-  createSchoolYear, deleteSchoolYear, setActiveSchoolYear,
+  createSchoolYear, updateSchoolYear,
+  deleteSchoolYear, setActiveSchoolYear,
 } from "@/lib/actions/setup";
 import { useAction } from "@/lib/hooks/use-action";
+import { EditableRow } from "@/components/shared/editable-row";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListItem } from "@/components/shared/list-item";
 import { Loader2, Plus, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useRef } from "react";
+
+function EditYearForm({ year, onDone }: { year: SchoolYear; onDone: () => void }) {
+  const action = useAction(
+    (fd) => updateSchoolYear(year.id, fd),
+    { successMessage: "Updated", onSuccess: onDone }
+  );
+  return (
+    <form ref={action.formRef} action={action.execute} className="flex flex-col gap-2">
+      <div className="grid grid-cols-3 gap-2">
+        <div className="flex flex-col gap-1">
+          <Label>Name</Label>
+          <Input name="name" defaultValue={year.name} className="h-7 text-xs" required />
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label>Start</Label>
+          <Input name="start_date" type="date" defaultValue={year.start_date} className="h-7 text-xs" required />
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label>End</Label>
+          <Input name="end_date" type="date" defaultValue={year.end_date} className="h-7 text-xs" required />
+        </div>
+      </div>
+      <Button type="submit" size="sm" className="h-7 text-xs w-fit" disabled={action.loading}>
+        {action.loading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save changes"}
+      </Button>
+    </form>
+  );
+}
 
 export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
   const syAction = useAction(createSchoolYear, { successMessage: "School year created" });
@@ -20,7 +50,7 @@ export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
   async function handleDelete(id: string) {
     const result = await deleteSchoolYear(id);
     if (result?.error) toast.error("Delete failed", { description: result.error });
-    else toast.success("School year deleted");
+    else toast.success("Deleted");
   }
 
   return (
@@ -30,26 +60,24 @@ export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
           <div className="flex items-center justify-between">
             <CardTitle>School years</CardTitle>
             {schoolYears.length > 0 && (
-              <Badge variant="outline" className="font-normal">
-                {schoolYears.length} {schoolYears.length === 1 ? "year" : "years"}
-              </Badge>
+              <Badge variant="outline" className="font-normal">{schoolYears.length} years</Badge>
             )}
           </div>
         </CardHeader>
         <CardContent>
           <form ref={syAction.formRef} action={syAction.execute} className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="sy-name">Name</Label>
-              <Input id="sy-name" name="name" placeholder="e.g. 2026-27" required />
+              <Label>Name</Label>
+              <Input name="name" placeholder="e.g. 2026-27" required />
             </div>
             <div className="grid grid-cols-2 gap-2.5">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="sy-start">Start date</Label>
-                <Input id="sy-start" name="start_date" type="date" required />
+                <Label>Start date</Label>
+                <Input name="start_date" type="date" required />
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="sy-end">End date</Label>
-                <Input id="sy-end" name="end_date" type="date" required />
+                <Label>End date</Label>
+                <Input name="end_date" type="date" required />
               </div>
             </div>
             <Button type="submit" disabled={syAction.loading} className="w-full">
@@ -65,33 +93,34 @@ export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
               <div className="h-px bg-border my-4" />
               <div className="flex flex-col gap-1.5">
                 {schoolYears.map((year) => (
-                  <ListItem
+                  <EditableRow
                     key={year.id}
-                    title={year.name}
-                    subtitle={`${year.start_date} → ${year.end_date}`}
-                    highlighted={year.is_active}
-                    badges={
-                      <>
-                        {year.is_active
-                          ? <Badge className="text-[10px] h-5 px-2">Active</Badge>
-                          : (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 rounded-md hover:text-green-700 hover:bg-green-50"
-                              onClick={async () => {
-                                await setActiveSchoolYear(year.id);
-                                toast.success("Active year updated");
-                              }}
-                            >
-                              <CheckCircle className="h-3 w-3" />
-                            </Button>
-                          )
-                        }
-                      </>
-                    }
+                    editForm={<EditYearForm year={year} onDone={() => {}} />}
                     onDelete={() => handleDelete(year.id)}
-                  />
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium">{year.name}</span>
+                      {year.is_active
+                        ? <Badge className="text-[10px] h-5 px-2">Active</Badge>
+                        : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 hover:text-green-700"
+                            onClick={async () => {
+                              await setActiveSchoolYear(year.id);
+                              toast.success("Active year updated");
+                            }}
+                          >
+                            <CheckCircle className="h-3 w-3" />
+                          </Button>
+                        )
+                      }
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {year.start_date} → {year.end_date}
+                    </div>
+                  </EditableRow>
                 ))}
               </div>
             </>
@@ -100,28 +129,19 @@ export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>About school years</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>How it works</CardTitle></CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3 text-sm text-muted-foreground">
-            <p>
-              A school year is the top-level container for all academic activity.
-              Only one year can be active at a time.
-            </p>
-            <p>
-              After creating the school year, go to the{" "}
-              <span className="font-medium text-foreground">Segments</span> tab to define
-              Unit 1, Term 1, Unit 2, and Term 2 for each standard separately.
-            </p>
+            <p>Only one year is active at a time. Past years are archived — viewable but not editable.</p>
             <div className="rounded-lg border bg-secondary/40 p-3 text-xs">
-              <p className="font-medium text-foreground mb-1">Recommended order</p>
-              <ol className="list-decimal list-inside space-y-0.5">
-                <li>Create school year here</li>
-                <li>Add segments per standard</li>
-                <li>Add standards &amp; divisions</li>
-                <li>Add subjects per standard</li>
-                <li>Add teachers</li>
+              <p className="font-medium text-foreground mb-1.5">Complete setup in this order</p>
+              <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                <li>School year <span className="text-green-600">← you are here</span></li>
+                <li>Standards & divisions</li>
+                <li>Segments per standard</li>
+                <li>Subjects per standard</li>
+                <li>Teachers</li>
+                <li>Assignments</li>
               </ol>
             </div>
           </div>
