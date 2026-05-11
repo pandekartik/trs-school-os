@@ -29,6 +29,17 @@ export async function getTeacherProfile() {
   return data;
 }
 
+export async function getRoleByUserId(userId: string): Promise<UserRole | null> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("teacher")
+    .select("role")
+    .eq("auth_user_id", userId)
+    .maybeSingle();
+
+  return (data?.role as UserRole) ?? null;
+}
+
 export async function getRole(): Promise<UserRole | null> {
   const profile = await getTeacherProfile();
   return (profile?.role as UserRole) ?? null;

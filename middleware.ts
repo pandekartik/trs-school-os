@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { routeAccess } from "@/lib/auth";
+import { getRoleByUserId, routeAccess } from "@/lib/auth";
 
 const publicRoutes = ["/sign-in", "/reset-password"];
 
@@ -30,14 +30,7 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
-  const { data: teacher } = user
-    ? await supabase
-        .from("teacher")
-        .select("role")
-        .eq("auth_user_id", user.id)
-        .maybeSingle()
-    : { data: null };
-  const role = teacher?.role ?? null;
+  const role = user ? await getRoleByUserId(user.id) : null;
   const landingRoute =
     role === "admin" || role === "coordinator"
       ? "/admin"
