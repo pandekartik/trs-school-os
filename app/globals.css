@@ -3,6 +3,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+:root {
+  --font-poppins: ui-sans-serif, system-ui, sans-serif;
+  --font-kumbh: ui-sans-serif, system-ui, sans-serif;
+}
+
 @theme inline {
   --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-kumbh), ui-sans-serif, system-ui, sans-serif;

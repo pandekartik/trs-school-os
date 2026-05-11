@@ -1,4 +1,5 @@
 import { SignUp } from "@clerk/nextjs";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function SignUpPage() {
@@ -10,9 +11,12 @@ export default function SignUpPage() {
         style={{ background: "#1c0509" }}
       >
         <div>
-          <img
+          <Image
             src="/logo.png"
             alt="The Rosary School"
+            width={160}
+            height={48}
+            priority
             style={{ height: "48px", width: "auto", objectFit: "contain" }}
           />
         </div>

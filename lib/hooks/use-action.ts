@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 import { toast } from "sonner";
 
 type ActionResult = { success?: boolean; error?: string } | undefined;
@@ -15,9 +16,11 @@ export function useAction(
   }
 ) {
   const [loading, setLoading] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
 
-  async function execute(formData: FormData) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
     setLoading(true);
     try {
       const result = await action(formData);
@@ -27,10 +30,10 @@ export function useAction(
         });
       } else {
         toast.success(options?.successMessage ?? "Saved successfully");
-        formRef.current?.reset();
+        form.reset();
         options?.onSuccess?.();
       }
-    } catch (e) {
+    } catch {
       toast.error("Unexpected error", {
         description: "Please try again or contact support.",
       });
@@ -39,5 +42,5 @@ export function useAction(
     }
   }
 
-  return { loading, execute, formRef };
+  return { loading, handleSubmit };
 }

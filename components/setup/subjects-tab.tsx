@@ -23,7 +23,7 @@ function EditSubjectForm({ sub }: { sub: Subject }) {
     successMessage: "Subject updated",
   });
   return (
-    <form ref={action.formRef} action={action.execute} className="flex flex-col gap-2">
+    <form onSubmit={action.handleSubmit} className="flex flex-col gap-2">
       <div className="grid grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
           <Label>Name</Label>
@@ -67,7 +67,7 @@ export function SubjectsTab({
       <Card>
         <CardHeader><CardTitle>Add subject</CardTitle></CardHeader>
         <CardContent>
-          <form ref={subAction.formRef} action={subAction.execute} className="flex flex-col gap-3">
+          <form onSubmit={subAction.handleSubmit} className="flex flex-col gap-3">
             <input type="hidden" name="standard_id" value={selectedStandard} />
             <input type="hidden" name="has_chapters" value={hasChapters} />
             <input type="hidden" name="type" value={type} />

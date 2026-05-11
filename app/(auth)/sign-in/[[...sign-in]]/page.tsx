@@ -1,4 +1,5 @@
 import { SignIn } from "@clerk/nextjs";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function SignInPage() {
@@ -10,9 +11,12 @@ export default function SignInPage() {
         style={{ background: "#1c0509" }}
       >
         <div>
-          <img
+          <Image
             src="/logo.png"
             alt="The Rosary School"
+            width={160}
+            height={48}
+            priority
             style={{ height: "48px", width: "auto", objectFit: "contain" }}
           />
         </div>
@@ -145,6 +149,16 @@ export default function SignInPage() {
               },
             }}
           />
+          <p className="text-center text-xs" style={{ color: "#7a7266" }}>
+  Don't have an account?{" "}
+  
+    href="/sign-up"
+    className="font-medium hover:underline"
+    style={{ color: "#ba2032" }}
+  >
+    Create account
+  </a>
+</p>
         </div>
       </div>
     </div>

@@ -25,17 +25,12 @@ const PRESETS = [
   { name: "Term 2",  type: "term", seq: 4 },
 ];
 
-const segColors: Record<string, { color: string; border: string; bg: string }> = {
-  unit: { color: "#185FA5", border: "#b5d4f4", bg: "#e6f1fb" },
-  term: { color: "#3B6D11", border: "#c0dd97", bg: "#eaf3de" },
-};
-
 function EditSegmentForm({ seg }: { seg: AcademicSegment }) {
   const action = useAction((fd) => updateAcademicSegment(seg.id, fd), {
     successMessage: "Segment updated",
   });
   return (
-    <form ref={action.formRef} action={action.execute} className="flex flex-col gap-2">
+    <form onSubmit={action.handleSubmit} className="flex flex-col gap-2">
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col gap-1">
           <Label>Name</Label>
@@ -107,7 +102,7 @@ export function SegmentsTab({
               No active school year. Set one first.
             </div>
           )}
-          <form ref={segAction.formRef} action={segAction.execute} className="flex flex-col gap-3">
+          <form onSubmit={segAction.handleSubmit} className="flex flex-col gap-3">
             <input type="hidden" name="school_year_id" value={activeYear?.id ?? ""} />
             <input type="hidden" name="standard_id" value={selectedStandard} />
             <input type="hidden" name="segment_type" value={segmentType} />
@@ -223,7 +218,6 @@ export function SegmentsTab({
           ) : (
             <div className="flex flex-col gap-1.5">
               {currentSegments.map((seg) => {
-                const meta = segColors[seg.segment_type];
                 return (
                   <EditableRow
                     key={seg.id}
@@ -234,7 +228,11 @@ export function SegmentsTab({
                       <span className="text-xs font-medium">{seg.name}</span>
                       <Badge
                         className="text-[10px] h-5 px-2 font-normal border"
-                        style={{ color: meta.color, borderColor: meta.border, background: meta.bg }}
+                        style={{
+                          color: seg.segment_type === "unit" ? "#185FA5" : "#3B6D11",
+                          borderColor: seg.segment_type === "unit" ? "#b5d4f4" : "#c0dd97",
+                          background: seg.segment_type === "unit" ? "#e6f1fb" : "#eaf3de",
+                        }}
                       >
                         {seg.segment_type}
                       </Badge>

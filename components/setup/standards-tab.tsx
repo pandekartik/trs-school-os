@@ -24,7 +24,7 @@ function EditStandardForm({ std }: { std: Standard }) {
     successMessage: "Standard updated",
   });
   return (
-    <form ref={action.formRef} action={action.execute} className="flex items-end gap-2">
+    <form onSubmit={action.handleSubmit} className="flex items-end gap-2">
       <div className="flex flex-col gap-1 flex-1">
         <Label>Name</Label>
         <Input name="name" defaultValue={std.name} className="h-7 text-xs" required />
@@ -45,7 +45,7 @@ function EditDivisionForm({ div }: { div: Division }) {
     successMessage: "Division updated",
   });
   return (
-    <form ref={action.formRef} action={action.execute} className="flex items-end gap-2">
+    <form onSubmit={action.handleSubmit} className="flex items-end gap-2">
       <div className="flex flex-col gap-1 flex-1">
         <Label>Name</Label>
         <Input name="name" defaultValue={div.name} className="h-7 text-xs" required />
@@ -94,7 +94,7 @@ export function StandardsTab({
           </div>
         </CardHeader>
         <CardContent>
-          <form ref={stdAction.formRef} action={stdAction.execute} className="flex flex-col gap-3">
+          <form onSubmit={stdAction.handleSubmit} className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-2.5">
               <div className="flex flex-col gap-1.5">
                 <Label>Name</Label>
@@ -164,7 +164,7 @@ export function StandardsTab({
           </div>
         </CardHeader>
         <CardContent>
-          <form ref={divAction.formRef} action={divAction.execute} className="flex flex-col gap-3">
+          <form onSubmit={divAction.handleSubmit} className="flex flex-col gap-3">
             <input type="hidden" name="standard_id" value={selectedStandard} />
             <div className="flex flex-col gap-1.5">
               <Label>Standard</Label>

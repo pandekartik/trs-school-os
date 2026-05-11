@@ -29,7 +29,7 @@ function EditTeacherForm({ t }: { t: Teacher }) {
     successMessage: "Teacher updated",
   });
   return (
-    <form ref={action.formRef} action={action.execute} className="flex flex-col gap-2">
+    <form onSubmit={action.handleSubmit} className="flex flex-col gap-2">
       <input type="hidden" name="role" value={role} />
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col gap-1">
@@ -42,7 +42,7 @@ function EditTeacherForm({ t }: { t: Teacher }) {
         </div>
         <div className="flex flex-col gap-1">
           <Label>Role</Label>
-          <Select value={role} onValueChange={setRole}>
+          <Select value={role} onValueChange={(value) => setRole(value as typeof role)}>
             <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="teacher">Teacher</SelectItem>
@@ -75,7 +75,7 @@ export function TeachersTab({ teachers }: { teachers: Teacher[] }) {
       <Card>
         <CardHeader><CardTitle>Add teacher</CardTitle></CardHeader>
         <CardContent>
-          <form ref={teacherAction.formRef} action={teacherAction.execute} className="flex flex-col gap-3">
+          <form onSubmit={teacherAction.handleSubmit} className="flex flex-col gap-3">
             <input type="hidden" name="role" value={role} />
             <div className="flex flex-col gap-1.5">
               <Label>Full name</Label>
@@ -91,7 +91,7 @@ export function TeachersTab({ teachers }: { teachers: Teacher[] }) {
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>Role</Label>
-              <Select value={role} onValueChange={setRole}>
+              <Select value={role} onValueChange={(value) => setRole(value as typeof role)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="teacher">Teacher</SelectItem>

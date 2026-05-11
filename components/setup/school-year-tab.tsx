@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Plus, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import { useRef } from "react";
 
 function EditYearForm({ year, onDone }: { year: SchoolYear; onDone: () => void }) {
   const action = useAction(
@@ -22,7 +21,7 @@ function EditYearForm({ year, onDone }: { year: SchoolYear; onDone: () => void }
     { successMessage: "Updated", onSuccess: onDone }
   );
   return (
-    <form ref={action.formRef} action={action.execute} className="flex flex-col gap-2">
+    <form onSubmit={action.handleSubmit} className="flex flex-col gap-2">
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col gap-1">
           <Label>Name</Label>
@@ -65,7 +64,7 @@ export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
           </div>
         </CardHeader>
         <CardContent>
-          <form ref={syAction.formRef} action={syAction.execute} className="flex flex-col gap-3">
+          <form onSubmit={syAction.handleSubmit} className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
               <Label>Name</Label>
               <Input name="name" placeholder="e.g. 2026-27" required />

@@ -94,8 +94,7 @@ export function AssignmentsTab({
           )}
 
           <form
-            ref={assignAction.formRef}
-            action={assignAction.execute}
+            onSubmit={assignAction.handleSubmit}
             className="flex flex-col gap-3"
           >
             <input type="hidden" name="school_year_id" value={activeYear?.id ?? ""} />

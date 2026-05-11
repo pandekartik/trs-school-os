@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
@@ -103,9 +104,11 @@ export function AppSidebar() {
   return (
     <Sidebar style={sidebarStyle}>
       <SidebarHeader className="px-4 py-4">
-        <img
+        <Image
           src="/logo.png"
           alt="The Rosary School"
+          width={140}
+          height={36}
           style={{ height: "36px", width: "auto", objectFit: "contain" }}
         />
       </SidebarHeader>

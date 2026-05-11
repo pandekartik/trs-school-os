@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
   AcademicSegment, Standard, Subject, Chapter,
-  ChapterPeriod, ChapterMcq, ChapterTest, Teacher,
+  ChapterPeriod, ChapterMcq, ChapterTest,
 } from "@/lib/types";
 import {
   createChapter, updateChapter, deleteChapter,
@@ -20,7 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  ChevronRight, Plus, Pencil, Trash2, Check, X,
+  ChevronRight, Plus, Pencil, Trash2, X,
   Upload, Download, Eye, EyeOff, FileText,
   Hash, Clock, Loader2, Save, Archive,
 } from "lucide-react";
@@ -43,17 +43,11 @@ interface Props {
   chapterPeriods: ChapterPeriod[];
   mcqs: ChapterMcq[];
   tests: ChapterTest[];
-  teachers: Teacher[];
 }
-
-const segColors: Record<string, string> = {
-  unit: "#185FA5",
-  term: "#3B6D11",
-};
 
 export function ContentDrilldown({
   schoolYears, segments, standards, subjects,
-  chapters, chapterPeriods, mcqs, tests, teachers,
+  chapters, chapterPeriods, mcqs, tests,
 }: Props) {
   const { user } = useUser();
   const activeYear = schoolYears.find((y) => y.is_active);
@@ -153,8 +147,9 @@ export function ContentDrilldown({
         await updateChapterPeriodFile(period.id, data.url, data.filename, data.file_type);
       }
       toast.success(`Period ${periodNumber} — file uploaded`);
-    } catch (e: any) {
-      toast.error("Upload failed", { description: e.message });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Upload failed";
+      toast.error("Upload failed", { description: message });
     } finally {
       setUploadingPeriod(null);
     }
@@ -353,8 +348,7 @@ export function ContentDrilldown({
               {addingChapter && !isArchive && (
                 <div className="p-3 border-b bg-[#fce8ea]/50">
                   <form
-                    ref={chapterAction.formRef}
-                    action={chapterAction.execute}
+                    onSubmit={chapterAction.handleSubmit}
                     className="flex flex-col gap-2"
                   >
                     <input type="hidden" name="subject_id" value={selectedSubjectId} />
@@ -781,7 +775,7 @@ function EditChapterForm({
 
   return (
     <div className="p-3 border-b bg-[#fce8ea]/50">
-      <form ref={action.formRef} action={action.execute} className="flex flex-col gap-2">
+      <form onSubmit={action.handleSubmit} className="flex flex-col gap-2">
         <div className="flex flex-col gap-1">
           <Label>Name</Label>
           <Input name="name" defaultValue={chapter.name} className="h-7 text-xs" required />

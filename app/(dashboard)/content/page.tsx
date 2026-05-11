@@ -18,7 +18,6 @@ export default async function ContentPage() {
     { data: chapterPeriods },
     { data: mcqs },
     { data: tests },
-    { data: teachers },
   ] = await Promise.all([
     db.from("school_year").select("*").order("created_at", { ascending: false }),
     db.from("academic_segment").select("*").order("sequence_number"),
@@ -41,7 +40,6 @@ export default async function ContentPage() {
       chapterPeriods={chapterPeriods ?? []}
       mcqs={mcqs ?? []}
       tests={tests ?? []}
-      teachers={teachers ?? []}
     />
   );
 }

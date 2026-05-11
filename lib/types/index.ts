@@ -71,7 +71,7 @@ export type ChapterPeriod = {
 export type ChapterMcq = {
   id: string;
   chapter_id: string;
-  mcq_set_json: any | null;
+  mcq_set_json: JsonValue | null;
   uploaded_by: string | null;
   is_published: boolean;
   created_at: string;
@@ -81,7 +81,7 @@ export type ChapterMcq = {
 export type ChapterTest = {
   id: string;
   chapter_id: string;
-  test_json: any | null;
+  test_json: JsonValue | null;
   uploaded_by: string | null;
   is_published: boolean;
   created_at: string;
@@ -173,10 +173,5 @@ export type CoverageSummary = {
   last_refreshed_at: string;
 };
 
-export type TeacherAssignment = {
-  id: string;
-  teacher_id: string;
-  subject_id: string;
-  division_id: string;
-  school_year_id: string;
-};
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
