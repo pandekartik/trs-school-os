@@ -7,7 +7,7 @@ export default async function ContentPage() {
   const role = await getRole();
   if (role !== "admin") redirect("/admin");
 
-  const db = createServerClient();
+  const db = await createServerClient();
 
   const [
     { data: schoolYears },
@@ -27,7 +27,6 @@ export default async function ContentPage() {
     db.from("chapter_period").select("*").order("period_number"),
     db.from("chapter_mcq").select("*"),
     db.from("chapter_test").select("*"),
-    db.from("teacher").select("*").eq("is_active", true).order("name"),
   ]);
 
   return (

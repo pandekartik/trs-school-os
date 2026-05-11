@@ -1,22 +1,39 @@
-import { auth } from "@clerk/nextjs/server";
+import { createServerClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 
 export type UserRole = "admin" | "coordinator" | "teacher";
 
+export async function getSession() {
+  const supabase = await createServerClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  return session;
+}
+
+export async function getUser() {
+  const supabase = await createServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
+
+export async function getTeacherProfile() {
+  const user = await getUser();
+  if (!user) return null;
+
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("teacher")
+    .select("*")
+    .eq("auth_user_id", user.id)
+    .single();
+
+  return data;
+}
+
 export async function getRole(): Promise<UserRole | null> {
-  const { sessionClaims } = await auth();
-  const metadata = sessionClaims?.metadata as { role?: UserRole } | undefined;
-  return metadata?.role ?? null;
+  const profile = await getTeacherProfile();
+  return (profile?.role as UserRole) ?? null;
 }
 
-export async function requireRole(allowed: UserRole[]) {
-  const role = await getRole();
-  if (!role || !allowed.includes(role)) {
-    return false;
-  }
-  return true;
-}
-
-// Route access map — which roles can access which routes
 export const routeAccess: Record<string, UserRole[]> = {
   "/admin":     ["admin", "coordinator"],
   "/setup":     ["admin"],

@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useUser } from "@clerk/nextjs";
 import { useRef } from "react";
 
 type SchoolYear = {
@@ -49,7 +48,6 @@ export function ContentDrilldown({
   schoolYears, segments, standards, subjects,
   chapters, chapterPeriods, mcqs, tests,
 }: Props) {
-  const { user } = useUser();
   const activeYear = schoolYears.find((y) => y.is_active);
 
   // Breadcrumb selection state
@@ -130,7 +128,7 @@ export function ContentDrilldown({
       const fd = new FormData();
       fd.append("chapter_id", selectedChapterId!);
       fd.append("period_number", String(periodNumber));
-      fd.append("uploaded_by", user?.id ?? "");
+      fd.append("uploaded_by", "");
       await saveChapterPeriod(fd);
 
       const uploadFd = new FormData();
@@ -610,7 +608,7 @@ export function ContentDrilldown({
                                       fd.append("chapter_id", selectedChapterId!);
                                       fd.append("period_number", String(num));
                                       fd.append("title", e.target.value);
-                                      fd.append("uploaded_by", user?.id ?? "");
+                                      fd.append("uploaded_by", "");
                                       await saveChapterPeriod(fd);
                                       toast.success("Title saved");
                                     }
@@ -683,7 +681,7 @@ export function ContentDrilldown({
                   <TabsContent value="mcqs" className="flex-1 overflow-y-auto px-6 py-4">
                     <form onSubmit={handleSaveMcq} className="flex flex-col gap-3">
                       <input type="hidden" name="chapter_id" value={selectedChapterId ?? ""} />
-                      <input type="hidden" name="uploaded_by" value={user?.id ?? ""} />
+                      <input type="hidden" name="uploaded_by" value="" />
                       <div className="flex items-center justify-between">
                         <Label>MCQ set</Label>
                         <span className="text-xs text-muted-foreground">
@@ -718,7 +716,7 @@ export function ContentDrilldown({
                   <TabsContent value="test" className="flex-1 overflow-y-auto px-6 py-4">
                     <form onSubmit={handleSaveTest} className="flex flex-col gap-3">
                       <input type="hidden" name="chapter_id" value={selectedChapterId ?? ""} />
-                      <input type="hidden" name="uploaded_by" value={user?.id ?? ""} />
+                      <input type="hidden" name="uploaded_by" value="" />
                       <div className="flex items-center justify-between">
                         <Label>Chapter test</Label>
                         <span className="text-xs text-muted-foreground">

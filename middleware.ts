@@ -1,53 +1,83 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import { routeAccess, UserRole } from "@/lib/auth";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
-const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-]);
+const publicRoutes  = ["/sign-in", "/sign-up"];
+const routeAccess: Record<string, string[]> = {
+  "/admin":     ["admin", "coordinator"],
+  "/setup":     ["admin"],
+  "/content":   ["admin"],
+  "/timetable": ["admin", "coordinator"],
+  "/teacher":   ["admin", "coordinator", "teacher"],
+};
 
-export default clerkMiddleware(async (auth, request) => {
-  // Allow public routes
-  if (isPublicRoute(request)) return;
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request });
 
-  // Protect all other routes — redirect to sign-in if not authenticated
-  await auth.protect();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
 
-  // Get role from session claims
-  const { sessionClaims } = await auth();
-  const metadata = sessionClaims?.metadata as { role?: UserRole } | undefined;
-  const role = metadata?.role ?? null;
-
+  const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
-  // Find which route rule applies
+  // Allow public routes
+  if (publicRoutes.some((r) => pathname.startsWith(r))) {
+    // If already signed in, redirect to dashboard
+    if (user) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
+    return supabaseResponse;
+  }
+
+  // Not signed in — redirect to sign-in
+  if (!user) {
+    return NextResponse.redirect(new URL("/sign-in", request.url));
+  }
+
+  // Check role-based access
   const matchedRoute = Object.keys(routeAccess).find((route) =>
     pathname.startsWith(route)
   );
 
   if (matchedRoute) {
-    const allowedRoles = routeAccess[matchedRoute];
+    // Get teacher role from DB
+    const { data: teacher } = await supabase
+      .from("teacher")
+      .select("role")
+      .eq("auth_user_id", user.id)
+      .single();
 
-    // No role set at all
-    if (!role) {
-      const url = new URL("/sign-in", request.url);
-      return NextResponse.redirect(url);
-    }
+    const role = teacher?.role ?? null;
+    const allowed = routeAccess[matchedRoute];
 
-    // Role not allowed for this route
-    if (!allowedRoles.includes(role)) {
-      // Redirect teacher to their view, others to admin
+    if (!role || !allowed.includes(role)) {
       const fallback = role === "teacher" ? "/teacher" : "/admin";
-      const url = new URL(fallback, request.url);
-      return NextResponse.redirect(url);
+      return NextResponse.redirect(new URL(fallback, request.url));
     }
   }
-});
+
+  return supabaseResponse;
+}
 
 export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
+import { getUser } from "@/lib/auth";
 
-export default function Home() {
-  redirect("/admin");
+export default async function Home() {
+  const user = await getUser();
+  if (user) redirect("/admin");
+  redirect("/sign-in");
 }

@@ -2,28 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
-import { useAuth } from "@clerk/nextjs";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+  Sidebar, SidebarContent, SidebarFooter,
+  SidebarGroup, SidebarGroupLabel, SidebarHeader,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
-  Settings,
-  BookOpen,
-  CalendarDays,
-  GraduationCap,
-  LayoutDashboard,
+  Settings, BookOpen, CalendarDays,
+  GraduationCap, LayoutDashboard, LogOut,
 } from "lucide-react";
-import { UserRole } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
+
+type UserRole = "admin" | "coordinator" | "teacher";
 
 type NavItem = {
   title: string;
@@ -32,55 +24,25 @@ type NavItem = {
   roles: UserRole[];
 };
 
-type NavGroup = {
-  label: string;
-  items: NavItem[];
-};
-
-const navGroups: NavGroup[] = [
+const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: "Overview",
     items: [
-      {
-        title: "Admin Dashboard",
-        href: "/admin",
-        icon: LayoutDashboard,
-        roles: ["admin", "coordinator"],
-      },
+      { title: "Admin Dashboard", href: "/admin",    icon: LayoutDashboard, roles: ["admin", "coordinator"] },
     ],
   },
   {
     label: "Setup",
     items: [
-      {
-        title: "Academic Setup",
-        href: "/setup",
-        icon: Settings,
-        roles: ["admin"],
-      },
-      {
-        title: "Content",
-        href: "/content",
-        icon: BookOpen,
-        roles: ["admin"],
-      },
+      { title: "Academic Setup", href: "/setup",   icon: Settings,  roles: ["admin"] },
+      { title: "Content",        href: "/content", icon: BookOpen,  roles: ["admin"] },
     ],
   },
   {
     label: "Operations",
     items: [
-      {
-        title: "Timetable",
-        href: "/timetable",
-        icon: CalendarDays,
-        roles: ["admin", "coordinator"],
-      },
-      {
-        title: "Teacher View",
-        href: "/teacher",
-        icon: GraduationCap,
-        roles: ["admin", "coordinator", "teacher"],
-      },
+      { title: "Timetable",    href: "/timetable", icon: CalendarDays,   roles: ["admin", "coordinator"] },
+      { title: "Teacher View", href: "/teacher",   icon: GraduationCap,  roles: ["admin", "coordinator", "teacher"] },
     ],
   },
 ];
@@ -95,11 +57,21 @@ const sidebarStyle = {
   "--sidebar-border":             "rgba(255,255,255,0.07)",
 } as React.CSSProperties;
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  role: string | null;
+  teacherName: string;
+}
+
+export function AppSidebar({ role, teacherName }: AppSidebarProps) {
   const pathname = usePathname();
-  const { sessionClaims } = useAuth();
-  const metadata = sessionClaims?.metadata as { role?: UserRole } | undefined;
-  const role = metadata?.role ?? null;
+  const router   = useRouter();
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/sign-in");
+    router.refresh();
+  }
 
   return (
     <Sidebar style={sidebarStyle}>
@@ -117,9 +89,8 @@ export function AppSidebar() {
 
       <SidebarContent className="px-2 py-3">
         {navGroups.map((group) => {
-          // Filter items by role
           const visibleItems = group.items.filter(
-            (item) => role && item.roles.includes(role)
+            (item) => role && item.roles.includes(role as UserRole)
           );
           if (visibleItems.length === 0) return null;
 
@@ -127,13 +98,9 @@ export function AppSidebar() {
             <SidebarGroup key={group.label} className="mb-2 p-0">
               <SidebarGroupLabel
                 style={{
-                  fontSize: "10px",
-                  fontWeight: 600,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: "rgba(240,222,222,0.4)",
-                  padding: "0 12px",
-                  marginBottom: "4px",
+                  fontSize: "10px", fontWeight: 600,
+                  letterSpacing: "0.1em", textTransform: "uppercase",
+                  color: "rgba(240,222,222,0.4)", padding: "0 12px", marginBottom: "4px",
                 }}
               >
                 {group.label}
@@ -147,10 +114,8 @@ export function AppSidebar() {
                         asChild
                         isActive={isActive}
                         style={{
-                          borderRadius: "8px",
-                          height: "36px",
-                          padding: "0 12px",
-                          fontSize: "13px",
+                          borderRadius: "8px", height: "36px",
+                          padding: "0 12px", fontSize: "13px",
                           fontWeight: isActive ? 500 : 400,
                           color: isActive ? "#ffffff" : "rgba(240,222,222,0.7)",
                           background: isActive ? "#ba2032" : "transparent",
@@ -173,18 +138,27 @@ export function AppSidebar() {
       <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", margin: "0 8px" }} />
 
       <SidebarFooter className="p-4">
-        <div className="flex flex-row gap-2 justify-start items-center text-accent">
-          <UserButton showName />
-          {role && (
-            <span style={{
-              fontSize: "10px",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              paddingLeft: "2px",
-            }}>
-              {role}
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-0.5">
+            <span style={{ fontSize: "12px", fontWeight: 500, color: "rgba(240,222,222,0.9)" }}>
+              {teacherName}
             </span>
-          )}
+            {role && (
+              <span style={{ fontSize: "10px", color: "rgba(240,222,222,0.35)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                {role}
+              </span>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 h-8 px-2 text-xs"
+            style={{ color: "rgba(240,222,222,0.5)" }}
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Sign out
+          </Button>
         </div>
       </SidebarFooter>
     </Sidebar>

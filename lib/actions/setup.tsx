@@ -3,11 +3,14 @@
 import { createServerClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 
-const db = createServerClient();
+async function getDb() {
+  return await createServerClient();
+}
 
 // ── SCHOOL YEAR ──────────────────────────
 
 export async function createSchoolYear(formData: FormData) {
+  const db = await getDb();
   const name       = formData.get("name") as string;
   const start_date = formData.get("start_date") as string;
   const end_date   = formData.get("end_date") as string;
@@ -18,6 +21,7 @@ export async function createSchoolYear(formData: FormData) {
 }
 
 export async function updateSchoolYear(id: string, formData: FormData) {
+  const db = await getDb();
   const name       = formData.get("name") as string;
   const start_date = formData.get("start_date") as string;
   const end_date   = formData.get("end_date") as string;
@@ -30,6 +34,7 @@ export async function updateSchoolYear(id: string, formData: FormData) {
 }
 
 export async function deleteSchoolYear(id: string) {
+  const db = await getDb();
   const { error } = await db.from("school_year").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/setup");
@@ -37,6 +42,7 @@ export async function deleteSchoolYear(id: string) {
 }
 
 export async function setActiveSchoolYear(id: string) {
+  const db = await getDb();
   await db.from("school_year").update({ is_active: false }).neq("id", id);
   await db.from("school_year").update({ is_active: true }).eq("id", id);
   revalidatePath("/setup");
@@ -46,6 +52,7 @@ export async function setActiveSchoolYear(id: string) {
 // ── STANDARDS ────────────────────────────
 
 export async function createStandard(formData: FormData) {
+  const db = await getDb();
   const name  = formData.get("name") as string;
   const grade = parseInt(formData.get("grade") as string);
   const { error } = await db.from("standard").insert({ name, grade });
@@ -55,6 +62,7 @@ export async function createStandard(formData: FormData) {
 }
 
 export async function updateStandard(id: string, formData: FormData) {
+  const db = await getDb();
   const name  = formData.get("name") as string;
   const grade = parseInt(formData.get("grade") as string);
   const { error } = await db.from("standard")
@@ -66,6 +74,7 @@ export async function updateStandard(id: string, formData: FormData) {
 }
 
 export async function deleteStandard(id: string) {
+  const db = await getDb();
   const { error } = await db.from("standard").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/setup");
@@ -75,6 +84,7 @@ export async function deleteStandard(id: string) {
 // ── DIVISIONS ────────────────────────────
 
 export async function createDivision(formData: FormData) {
+  const db = await getDb();
   const standard_id = formData.get("standard_id") as string;
   const name        = formData.get("name") as string;
   const { error }   = await db.from("division").insert({ standard_id, name });
@@ -84,6 +94,7 @@ export async function createDivision(formData: FormData) {
 }
 
 export async function updateDivision(id: string, formData: FormData) {
+  const db = await getDb();
   const name      = formData.get("name") as string;
   const { error } = await db.from("division")
     .update({ name, updated_at: new Date().toISOString() })
@@ -94,6 +105,7 @@ export async function updateDivision(id: string, formData: FormData) {
 }
 
 export async function deleteDivision(id: string) {
+  const db = await getDb();
   const { error } = await db.from("division").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/setup");
@@ -103,6 +115,7 @@ export async function deleteDivision(id: string) {
 // ── ACADEMIC SEGMENTS ────────────────────
 
 export async function createAcademicSegment(formData: FormData) {
+  const db = await getDb();
   const school_year_id  = formData.get("school_year_id") as string;
   const standard_id     = formData.get("standard_id") as string;
   const name            = formData.get("name") as string;
@@ -120,6 +133,7 @@ export async function createAcademicSegment(formData: FormData) {
 }
 
 export async function updateAcademicSegment(id: string, formData: FormData) {
+  const db = await getDb();
   const name        = formData.get("name") as string;
   const start_date  = formData.get("start_date") as string;
   const end_date    = formData.get("end_date") as string;
@@ -132,6 +146,7 @@ export async function updateAcademicSegment(id: string, formData: FormData) {
 }
 
 export async function deleteAcademicSegment(id: string) {
+  const db = await getDb();
   const { error } = await db.from("academic_segment").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/setup");
@@ -141,6 +156,7 @@ export async function deleteAcademicSegment(id: string) {
 // ── SUBJECTS ─────────────────────────────
 
 export async function createSubject(formData: FormData) {
+  const db = await getDb();
   const standard_id      = formData.get("standard_id") as string;
   const name             = formData.get("name") as string;
   const type             = formData.get("type") as "academic" | "non_academic";
@@ -155,6 +171,7 @@ export async function createSubject(formData: FormData) {
 }
 
 export async function updateSubject(id: string, formData: FormData) {
+  const db = await getDb();
   const name             = formData.get("name") as string;
   const periods_per_week = parseInt(formData.get("periods_per_week") as string);
   const type             = formData.get("type") as "academic" | "non_academic";
@@ -168,6 +185,7 @@ export async function updateSubject(id: string, formData: FormData) {
 }
 
 export async function deleteSubject(id: string) {
+  const db = await getDb();
   const { error } = await db.from("subject").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/setup");
@@ -177,6 +195,7 @@ export async function deleteSubject(id: string) {
 // ── TEACHERS ─────────────────────────────
 
 export async function createTeacher(formData: FormData) {
+  const db = await getDb();
   const name  = formData.get("name") as string;
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
@@ -188,6 +207,7 @@ export async function createTeacher(formData: FormData) {
 }
 
 export async function updateTeacher(id: string, formData: FormData) {
+  const db = await getDb();
   const name  = formData.get("name") as string;
   const phone = formData.get("phone") as string;
   const role  = formData.get("role") as "teacher" | "hod" | "coordinator" | "admin";
@@ -200,6 +220,7 @@ export async function updateTeacher(id: string, formData: FormData) {
 }
 
 export async function deleteTeacher(id: string) {
+  const db = await getDb();
   const { error } = await db.from("teacher").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/setup");
@@ -209,6 +230,7 @@ export async function deleteTeacher(id: string) {
 // ── TEACHER ASSIGNMENTS ───────────────────
 
 export async function createTeacherAssignment(formData: FormData) {
+  const db = await getDb();
   const teacher_id     = formData.get("teacher_id") as string;
   const subject_id     = formData.get("subject_id") as string;
   const division_id    = formData.get("division_id") as string;
@@ -222,6 +244,7 @@ export async function createTeacherAssignment(formData: FormData) {
 }
 
 export async function deleteTeacherAssignment(id: string) {
+  const db = await getDb();
   const { error } = await db.from("teacher_assignment").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/setup");
@@ -231,6 +254,7 @@ export async function deleteTeacherAssignment(id: string) {
 // ── CHAPTERS ─────────────────────────────
 
 export async function createChapter(formData: FormData) {
+  const db = await getDb();
   const subject_id          = formData.get("subject_id") as string;
   const academic_segment_id = formData.get("academic_segment_id") as string;
   const chapter_number      = parseInt(formData.get("chapter_number") as string);
@@ -249,6 +273,7 @@ export async function createChapter(formData: FormData) {
 }
 
 export async function updateChapter(id: string, formData: FormData) {
+  const db = await getDb();
   const name              = formData.get("name") as string;
   const allocated_periods = parseInt(formData.get("allocated_periods") as string);
   const comments          = (formData.get("comments") as string) || null;
@@ -268,6 +293,7 @@ export async function updateChapter(id: string, formData: FormData) {
 }
 
 export async function deleteChapter(id: string) {
+  const db = await getDb();
   const { error } = await db.from("chapter").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/content");
@@ -277,6 +303,7 @@ export async function deleteChapter(id: string) {
 // ── CHAPTER PERIOD ────────────────────────
 
 export async function saveChapterPeriod(formData: FormData) {
+  const db = await getDb();
   const chapter_id    = formData.get("chapter_id") as string;
   const period_number = parseInt(formData.get("period_number") as string);
   const title         = (formData.get("title") as string) || null;
@@ -312,6 +339,7 @@ export async function updateChapterPeriodFile(
   lesson_plan_filename: string,
   file_type: string,
 ) {
+  const db = await getDb();
   const { error } = await db
     .from("chapter_period")
     .update({
@@ -327,6 +355,7 @@ export async function updateChapterPeriodFile(
 }
 
 export async function togglePeriodPublish(id: string, is_published: boolean) {
+  const db = await getDb();
   const { error } = await db
     .from("chapter_period")
     .update({ is_published })
@@ -339,6 +368,7 @@ export async function togglePeriodPublish(id: string, is_published: boolean) {
 // ── MCQ ───────────────────────────────────
 
 export async function saveMcq(formData: FormData) {
+  const db = await getDb();
   const chapter_id  = formData.get("chapter_id") as string;
   const uploaded_by = (formData.get("uploaded_by") as string) || null;
   let mcq_set_json  = null;
@@ -371,6 +401,7 @@ export async function saveMcq(formData: FormData) {
 // ── TEST ──────────────────────────────────
 
 export async function saveTest(formData: FormData) {
+  const db = await getDb();
   const chapter_id  = formData.get("chapter_id") as string;
   const uploaded_by = (formData.get("uploaded_by") as string) || null;
   let test_json     = null;

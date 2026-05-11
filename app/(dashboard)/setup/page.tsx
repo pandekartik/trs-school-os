@@ -13,7 +13,7 @@ export default async function SetupPage() {
   const role = await getRole();
   if (role !== "admin") redirect("/admin");
 
-  const db = createServerClient();
+  const db = await createServerClient();
 
   const [
     { data: schoolYears },

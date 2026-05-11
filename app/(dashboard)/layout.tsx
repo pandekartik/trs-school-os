@@ -1,22 +1,24 @@
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/layout/page-header";
 import { Toaster } from "@/components/ui/sonner";
+import { getUser, getTeacherProfile } from "@/lib/auth";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
+  const user = await getUser();
+  if (!user) redirect("/sign-in");
+
+  const profile = await getTeacherProfile();
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar role={profile?.role ?? null} teacherName={profile?.name ?? user.email ?? ""} />
       <SidebarInset>
         <header className="flex h-12 items-center gap-3 border-b px-4 shrink-0">
           <SidebarTrigger className="h-7 w-7" />
