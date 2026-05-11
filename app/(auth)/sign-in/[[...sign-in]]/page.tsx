@@ -149,16 +149,6 @@ export default function SignInPage() {
               },
             }}
           />
-          <p className="text-center text-xs" style={{ color: "#7a7266" }}>
-  Don't have an account?{" "}
-  
-    href="/sign-up"
-    className="font-medium hover:underline"
-    style={{ color: "#ba2032" }}
-  >
-    Create account
-  </a>
-</p>
         </div>
       </div>
     </div>
