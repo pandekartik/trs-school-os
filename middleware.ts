@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { routeAccess } from "@/lib/auth";
 
-const publicRoutes = ["/sign-in"];
+const publicRoutes = ["/sign-in", "/reset-password"];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -45,6 +45,9 @@ export async function middleware(request: NextRequest) {
 
   // Allow public routes
   if (publicRoutes.some((r) => pathname.startsWith(r))) {
+    if (pathname.startsWith("/reset-password")) {
+      return supabaseResponse;
+    }
     // If already signed in, redirect to dashboard
     if (user) {
       return NextResponse.redirect(new URL(landingRoute, request.url));
