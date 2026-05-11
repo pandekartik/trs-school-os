@@ -209,7 +209,7 @@ export function ContentDrilldown({
             setSelectedSegmentId(null);
             setSelectedChapterId(null);
           }}>
-            <SelectTrigger className="h-8 text-xs w-36">
+            <SelectTrigger className="h-8 text-xs w-96">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
