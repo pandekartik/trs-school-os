@@ -172,3 +172,11 @@ export type CoverageSummary = {
   coverage_pct: number;
   last_refreshed_at: string;
 };
+
+export type TeacherAssignment = {
+  id: string;
+  teacher_id: string;
+  subject_id: string;
+  division_id: string;
+  school_year_id: string;
+};

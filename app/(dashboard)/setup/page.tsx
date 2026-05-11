@@ -7,6 +7,7 @@ import { StandardsTab } from "@/components/setup/standards-tab";
 import { SubjectsTab } from "@/components/setup/subjects-tab";
 import { TeachersTab } from "@/components/setup/teachers-tab";
 import { SegmentsTab } from "@/components/setup/segments-tab";
+import { AssignmentsTab } from "@/components/setup/assignments-tab";
 
 export default async function SetupPage() {
   const role = await getRole();
@@ -21,6 +22,7 @@ export default async function SetupPage() {
     { data: divisions },
     { data: subjects },
     { data: teachers },
+    { data: assignments },
   ] = await Promise.all([
     db.from("school_year").select("*").order("created_at", { ascending: false }),
     db.from("academic_segment").select("*").order("sequence_number"),
@@ -28,6 +30,7 @@ export default async function SetupPage() {
     db.from("division").select("*").order("name"),
     db.from("subject").select("*").order("name"),
     db.from("teacher").select("*").order("name"),
+    db.from("teacher_assignment").select("*"),
   ]);
 
   return (
@@ -46,6 +49,7 @@ export default async function SetupPage() {
           <TabsTrigger value="standards">Standards & Divisions</TabsTrigger>
           <TabsTrigger value="subjects">Subjects</TabsTrigger>
           <TabsTrigger value="teachers">Teachers</TabsTrigger>
+          <TabsTrigger value="assignments">Assignments</TabsTrigger>
         </TabsList>
 
         <TabsContent value="school-year" className="mt-6">
@@ -76,6 +80,17 @@ export default async function SetupPage() {
 
         <TabsContent value="teachers" className="mt-6">
           <TeachersTab teachers={teachers ?? []} />
+        </TabsContent>
+
+        <TabsContent value="assignments" className="mt-6">
+          <AssignmentsTab
+            teachers={teachers ?? []}
+            subjects={subjects ?? []}
+            divisions={divisions ?? []}
+            standards={standards ?? []}
+            schoolYears={schoolYears ?? []}
+            assignments={assignments ?? []}
+          />
         </TabsContent>
       </Tabs>
     </div>

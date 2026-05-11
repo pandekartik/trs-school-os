@@ -290,18 +290,14 @@ export function ContentEditor({
                       </Button>
 
                       {/* Download */}
-                      {period?.lesson_plan_url && (
-                        
-                          href={period.lesson_plan_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                      {period?.lesson_plan_url ? (
+                          <a href={period.lesson_plan_url} target="_blank" rel="noopener noreferrer">
                           <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5">
                             <Download className="h-3 w-3" />
                             View
                           </Button>
                         </a>
-                      )}
+                      ) : null}
 
                       {/* Publish toggle */}
                       {period && (

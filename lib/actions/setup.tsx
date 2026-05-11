@@ -288,3 +288,26 @@ export async function saveTest(formData: FormData) {
   revalidatePath("/content");
   return { success: true };
 }
+
+// ── TEACHER ASSIGNMENTS ───────────────────
+
+export async function createTeacherAssignment(formData: FormData) {
+  const teacher_id      = formData.get("teacher_id") as string;
+  const subject_id      = formData.get("subject_id") as string;
+  const division_id     = formData.get("division_id") as string;
+  const school_year_id  = formData.get("school_year_id") as string;
+
+  const { error } = await db.from("teacher_assignment").insert({
+    teacher_id, subject_id, division_id, school_year_id,
+  });
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
+
+export async function deleteTeacherAssignment(id: string) {
+  const { error } = await db.from("teacher_assignment").delete().eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/setup");
+  return { success: true };
+}
