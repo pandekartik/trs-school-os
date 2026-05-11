@@ -1,37 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { Standard, Subject, Term, Unit, Chapter, ContentPackage, Teacher } from "@/lib/types";
+import {
+  AcademicSegment, Standard, Subject,
+  Chapter, ChapterPeriod, ChapterMcq, ChapterTest, Teacher,
+} from "@/lib/types";
 import { ContentTree } from "./content-tree";
 import { ContentEditor } from "./content-editor";
 
-type SchoolYear = { id: string; name: string };
+type SchoolYear = { id: string; name: string; start_date: string; end_date: string };
 
 interface ContentShellProps {
   schoolYear: SchoolYear | null;
-  terms: Term[];
+  segments: AcademicSegment[];
   standards: Standard[];
   subjects: Subject[];
-  units: Unit[];
   chapters: Chapter[];
-  contentPackages: ContentPackage[];
+  chapterPeriods: ChapterPeriod[];
+  mcqs: ChapterMcq[];
+  tests: ChapterTest[];
   teachers: Teacher[];
 }
 
 export function ContentShell({
-  schoolYear,
-  terms,
-  standards,
-  subjects,
-  units,
-  chapters,
-  contentPackages,
-  teachers,
+  schoolYear, segments, standards, subjects,
+  chapters, chapterPeriods, mcqs, tests, teachers,
 }: ContentShellProps) {
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
 
   const selectedChapter = chapters.find((c) => c.id === selectedChapterId) ?? null;
-  const selectedContent = contentPackages.find((cp) => cp.chapter_id === selectedChapterId) ?? null;
+  const selectedPeriods = chapterPeriods.filter((cp) => cp.chapter_id === selectedChapterId);
+  const selectedMcq     = mcqs.find((m) => m.chapter_id === selectedChapterId) ?? null;
+  const selectedTest    = tests.find((t) => t.chapter_id === selectedChapterId) ?? null;
 
   if (!schoolYear) {
     return (
@@ -49,38 +49,35 @@ export function ContentShell({
       <div>
         <h1>Content</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Manage lesson plans, MCQs and tests for {schoolYear.name}.
+          Manage lesson plans, MCQs and tests · {schoolYear.name}
         </p>
       </div>
 
-      <div
-        className="flex gap-4 flex-1"
-        style={{ minHeight: "calc(100vh - 180px)" }}
-      >
-        {/* Left tree panel */}
+      <div className="flex gap-4 flex-1" style={{ minHeight: "calc(100vh - 180px)" }}>
         <div
           className="shrink-0 overflow-y-auto rounded-xl border bg-card"
           style={{ width: "300px" }}
         >
           <ContentTree
-            terms={terms}
+            segments={segments}
             standards={standards}
             subjects={subjects}
-            units={units}
             chapters={chapters}
-            contentPackages={contentPackages}
+            chapterPeriods={chapterPeriods}
             selectedChapterId={selectedChapterId}
             onSelectChapter={setSelectedChapterId}
+            schoolYearId={schoolYear.id}
           />
         </div>
 
-        {/* Right editor panel */}
         <div className="flex-1 overflow-y-auto rounded-xl border bg-card">
           {selectedChapter ? (
             <ContentEditor
               chapter={selectedChapter}
-              content={selectedContent}
-              units={units}
+              periods={selectedPeriods}
+              mcq={selectedMcq}
+              test={selectedTest}
+              segments={segments}
               subjects={subjects}
               teachers={teachers}
             />
@@ -94,7 +91,7 @@ export function ContentShell({
               </div>
               <p className="text-sm font-medium">Select a chapter</p>
               <p className="text-xs text-muted-foreground max-w-xs">
-                Choose a chapter from the tree on the left to view or edit its content.
+                Choose a chapter from the tree on the left to manage its periods and content.
               </p>
             </div>
           )}

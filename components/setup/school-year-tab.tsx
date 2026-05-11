@@ -1,13 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { SchoolYear, Term } from "@/lib/types";
+import { SchoolYear } from "@/lib/types";
 import {
-  createSchoolYear,
-  deleteTerm,
-  createTerm,
-  setActiveSchoolYear,
-  deleteSchoolYear,
+  createSchoolYear, deleteSchoolYear, setActiveSchoolYear,
 } from "@/lib/actions/setup";
 import { useAction } from "@/lib/hooks/use-action";
 import { Button } from "@/components/ui/button";
@@ -15,47 +10,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ListItem } from "@/components/shared/list-item";
 import { Loader2, Plus, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
-export function SchoolYearTab({
-  schoolYears,
-  terms,
-}: {
-  schoolYears: SchoolYear[];
-  terms: Term[];
-}) {
-  const [selectedYear, setSelectedYear] = useState<string>(
-    schoolYears.find((y) => y.is_active)?.id ?? schoolYears[0]?.id ?? ""
-  );
-
+export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
   const syAction = useAction(createSchoolYear, { successMessage: "School year created" });
-  const termAction = useAction(createTerm, { successMessage: "Term created" });
 
-  const activeYearTerms = terms.filter((t) => t.school_year_id === selectedYear);
-
-  async function handleDelete(id: string, type: "year" | "term") {
-    const fn = type === "year" ? deleteSchoolYear : deleteTerm;
-    const result = await fn(id);
+  async function handleDelete(id: string) {
+    const result = await deleteSchoolYear(id);
     if (result?.error) toast.error("Delete failed", { description: result.error });
-    else toast.success(type === "year" ? "School year deleted" : "Term deleted");
+    else toast.success("School year deleted");
   }
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      {/* School Years */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>School year</CardTitle>
+            <CardTitle>School years</CardTitle>
             {schoolYears.length > 0 && (
               <Badge variant="outline" className="font-normal">
                 {schoolYears.length} {schoolYears.length === 1 ? "year" : "years"}
@@ -105,12 +78,11 @@ export function SchoolYearTab({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6 rounded-md text-muted-foreground hover:text-green-700 hover:bg-green-50"
+                              className="h-6 w-6 rounded-md hover:text-green-700 hover:bg-green-50"
                               onClick={async () => {
                                 await setActiveSchoolYear(year.id);
                                 toast.success("Active year updated");
                               }}
-                              title="Set as active"
                             >
                               <CheckCircle className="h-3 w-3" />
                             </Button>
@@ -118,7 +90,7 @@ export function SchoolYearTab({
                         }
                       </>
                     }
-                    onDelete={() => handleDelete(year.id, "year")}
+                    onDelete={() => handleDelete(year.id)}
                   />
                 ))}
               </div>
@@ -127,82 +99,32 @@ export function SchoolYearTab({
         </CardContent>
       </Card>
 
-      {/* Terms */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Terms</CardTitle>
-            {activeYearTerms.length > 0 && (
-              <Badge variant="outline" className="font-normal">
-                {activeYearTerms.length} terms
-              </Badge>
-            )}
-          </div>
+          <CardTitle>About school years</CardTitle>
         </CardHeader>
         <CardContent>
-          <form ref={termAction.formRef} action={termAction.execute} className="flex flex-col gap-3">
-            <input type="hidden" name="school_year_id" value={selectedYear} />
-            <div className="flex flex-col gap-1.5">
-              <Label>School year</Label>
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {schoolYears.map((y) => (
-                    <SelectItem key={y.id} value={y.id}>{y.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="flex flex-col gap-3 text-sm text-muted-foreground">
+            <p>
+              A school year is the top-level container for all academic activity.
+              Only one year can be active at a time.
+            </p>
+            <p>
+              After creating the school year, go to the{" "}
+              <span className="font-medium text-foreground">Segments</span> tab to define
+              Unit 1, Term 1, Unit 2, and Term 2 for each standard separately.
+            </p>
+            <div className="rounded-lg border bg-secondary/40 p-3 text-xs">
+              <p className="font-medium text-foreground mb-1">Recommended order</p>
+              <ol className="list-decimal list-inside space-y-0.5">
+                <li>Create school year here</li>
+                <li>Add segments per standard</li>
+                <li>Add standards &amp; divisions</li>
+                <li>Add subjects per standard</li>
+                <li>Add teachers</li>
+              </ol>
             </div>
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="t-name">Term name</Label>
-                <Input id="t-name" name="name" placeholder="Term 1" required />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="t-num">Number</Label>
-                <Input id="t-num" name="term_number" type="number" min="1" max="4" placeholder="1" required />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="t-start">Start date</Label>
-                <Input id="t-start" name="start_date" type="date" required />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="t-end">End date</Label>
-                <Input id="t-end" name="end_date" type="date" required />
-              </div>
-            </div>
-            <Button type="submit" disabled={termAction.loading || !selectedYear} className="w-full">
-              {termAction.loading
-                ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Adding...</>
-                : <><Plus className="h-3.5 w-3.5" />Add term</>
-              }
-            </Button>
-          </form>
-
-          {activeYearTerms.length > 0 && (
-            <>
-              <div className="h-px bg-border my-4" />
-              <div className="flex flex-col gap-1.5">
-                {activeYearTerms.map((term) => (
-                  <ListItem
-                    key={term.id}
-                    title={term.name}
-                    subtitle={`${term.start_date} → ${term.end_date}`}
-                    badges={
-                      <Badge variant="outline" className="text-[10px] h-5 px-2 font-normal">
-                        Term {term.term_number}
-                      </Badge>
-                    }
-                    onDelete={() => handleDelete(term.id, "term")}
-                  />
-                ))}
-              </div>
-            </>
-          )}
+          </div>
         </CardContent>
       </Card>
     </div>

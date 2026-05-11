@@ -11,33 +11,36 @@ export default async function ContentPage() {
 
   const [
     { data: schoolYears },
-    { data: terms },
+    { data: segments },
     { data: standards },
     { data: subjects },
-    { data: units },
     { data: chapters },
-    { data: contentPackages },
+    { data: chapterPeriods },
+    { data: mcqs },
+    { data: tests },
     { data: teachers },
   ] = await Promise.all([
     db.from("school_year").select("*").eq("is_active", true).limit(1),
-    db.from("term").select("*").order("term_number"),
+    db.from("academic_segment").select("*").order("sequence_number"),
     db.from("standard").select("*").order("grade"),
     db.from("subject").select("*").eq("has_chapters", true).order("name"),
-    db.from("unit").select("*").order("unit_number"),
     db.from("chapter").select("*").order("display_order"),
-    db.from("content_package").select("*"),
+    db.from("chapter_period").select("*").order("period_number"),
+    db.from("chapter_mcq").select("*"),
+    db.from("chapter_test").select("*"),
     db.from("teacher").select("*").eq("is_active", true).order("name"),
   ]);
 
   return (
     <ContentShell
       schoolYear={schoolYears?.[0] ?? null}
-      terms={terms ?? []}
+      segments={segments ?? []}
       standards={standards ?? []}
       subjects={subjects ?? []}
-      units={units ?? []}
       chapters={chapters ?? []}
-      contentPackages={contentPackages ?? []}
+      chapterPeriods={chapterPeriods ?? []}
+      mcqs={mcqs ?? []}
+      tests={tests ?? []}
       teachers={teachers ?? []}
     />
   );

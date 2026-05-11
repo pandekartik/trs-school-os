@@ -1,5 +1,5 @@
 import { SignIn } from "@clerk/nextjs";
-import Image from "next/image";
+import Link from "next/link";
 
 export default function SignInPage() {
   return (
@@ -99,6 +99,12 @@ export default function SignInPage() {
             <p className="text-sm" style={{ color: "#7a7266" }}>
               Sign in to access your dashboard
             </p>
+            <Link
+              href="/sign-up"
+              className="inline-flex w-fit items-center justify-center rounded-lg border border-[#d4cfc6] bg-white px-3.5 py-2 text-sm font-semibold text-[#1a1714] transition-colors hover:bg-[#f0ede6]"
+            >
+              Sign up
+            </Link>
           </div>
 
           <SignIn

@@ -7,13 +7,16 @@ export type SchoolYear = {
   created_at: string;
 };
 
-export type Term = {
+export type AcademicSegment = {
   id: string;
   school_year_id: string;
+  standard_id: string;
   name: string;
-  term_number: number;
+  segment_type: "unit" | "term";
+  sequence_number: number;
   start_date: string;
   end_date: string;
+  created_at: string;
 };
 
 export type Standard = {
@@ -37,17 +40,10 @@ export type Subject = {
   has_chapters: boolean;
 };
 
-export type Unit = {
-  id: string;
-  term_id: string;
-  subject_id: string;
-  name: string;
-  unit_number: number;
-};
-
 export type Chapter = {
   id: string;
-  unit_id: string;
+  subject_id: string;
+  academic_segment_id: string;
   chapter_number: number;
   name: string;
   allocated_periods: number;
@@ -55,6 +51,41 @@ export type Chapter = {
   comments: string | null;
   display_order: number;
   status: "not_started" | "in_progress" | "completed";
+  created_at: string;
+};
+
+export type ChapterPeriod = {
+  id: string;
+  chapter_id: string;
+  period_number: number;
+  title: string | null;
+  lesson_plan_url: string | null;
+  lesson_plan_filename: string | null;
+  file_type: "pdf" | "docx" | "doc" | null;
+  uploaded_by: string | null;
+  uploaded_at: string | null;
+  is_published: boolean;
+  created_at: string;
+};
+
+export type ChapterMcq = {
+  id: string;
+  chapter_id: string;
+  mcq_set_json: any | null;
+  uploaded_by: string | null;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChapterTest = {
+  id: string;
+  chapter_id: string;
+  test_json: any | null;
+  uploaded_by: string | null;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 export type Teacher = {
@@ -73,20 +104,6 @@ export type TeacherAssignment = {
   subject_id: string;
   division_id: string;
   school_year_id: string;
-};
-
-export type ContentPackage = {
-  id: string;
-  chapter_id: string;
-  lesson_plan_body: string | null;
-  lesson_plan_doc_url: string | null;
-  mcq_set_json: any | null;
-  test_json: any | null;
-  reference_notes: string | null;
-  uploaded_by: string;
-  is_published: boolean;
-  uploaded_at: string;
-  last_updated_at: string;
 };
 
 export type TimetableSlot = {
