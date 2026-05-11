@@ -35,6 +35,7 @@ export async function getRole(): Promise<UserRole | null> {
 }
 
 export const routeAccess: Record<string, UserRole[]> = {
+  "/admin/users": ["admin"],
   "/admin":     ["admin", "coordinator"],
   "/setup":     ["admin"],
   "/content":   ["admin"],

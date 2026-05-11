@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
@@ -149,10 +148,7 @@ export default function SignInPage() {
           </form>
 
           <p className="text-center text-xs" style={{ color: "#7a7266" }}>
-            Don&apos;t have an account?{" "}
-            <Link href="/sign-up" className="font-medium hover:underline" style={{ color: "#ba2032" }}>
-              Create account
-            </Link>
+            Invite only access. Contact an administrator if you need an account.
           </p>
         </div>
       </div>

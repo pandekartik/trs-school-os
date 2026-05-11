@@ -1,14 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { routeAccess } from "@/lib/auth";
 
-const publicRoutes  = ["/sign-in", "/sign-up"];
-const routeAccess: Record<string, string[]> = {
-  "/admin":     ["admin", "coordinator"],
-  "/setup":     ["admin"],
-  "/content":   ["admin"],
-  "/timetable": ["admin", "coordinator"],
-  "/teacher":   ["admin", "coordinator", "teacher"],
-};
+const publicRoutes = ["/sign-in"];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -64,9 +58,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check role-based access
-  const matchedRoute = Object.keys(routeAccess).find((route) =>
-    pathname.startsWith(route)
-  );
+  const matchedRoute = Object.keys(routeAccess)
+    .sort((a, b) => b.length - a.length)
+    .find((route) => pathname.startsWith(route));
 
   if (matchedRoute) {
     const allowed = routeAccess[matchedRoute];

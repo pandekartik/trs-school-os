@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   Settings, BookOpen, CalendarDays,
-  GraduationCap, LayoutDashboard, LogOut,
+  GraduationCap, LayoutDashboard, LogOut, Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -29,6 +29,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     label: "Overview",
     items: [
       { title: "Admin Dashboard", href: "/admin",    icon: LayoutDashboard, roles: ["admin", "coordinator"] },
+      { title: "Users", href: "/admin/users", icon: Users, roles: ["admin"] },
     ],
   },
   {
@@ -144,8 +145,8 @@ export function AppSidebar({ role, teacherName }: AppSidebarProps) {
               {teacherName}
             </span>
             {role && (
-              <span style={{ fontSize: "10px", color: "rgba(240,222,222,0.35)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                {role}
+              <span style={{ fontSize: "10px", color: "rgba(240,222,222,0.75)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                Role: {role}
               </span>
             )}
           </div>
