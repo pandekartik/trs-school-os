@@ -24,7 +24,7 @@ const roleMeta: Record<string, { color: string; border: string; bg: string }> = 
 };
 
 function EditTeacherForm({ t }: { t: Teacher }) {
-  const [role, setRole] = useState(t.role);
+  const [role, setRole] = useState<"teacher" | "hod" | "coordinator" | "admin">(t.role);
   const action = useAction((fd) => updateTeacher(t.id, fd), {
     successMessage: "Teacher updated",
   });
