@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getRoleByUserId, routeAccess } from "@/lib/auth";
+import { getRoleByUserId } from "@/lib/edge-auth";
+import { routeAccess } from "@/lib/role-access";
 
 const publicRoutes = ["/sign-in", "/reset-password"];
 

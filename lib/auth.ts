@@ -1,7 +1,7 @@
 import { createServerClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
-
-export type UserRole = "admin" | "coordinator" | "teacher";
+import type { UserRole } from "@/lib/role-access";
+export { routeAccess } from "@/lib/role-access";
 
 export async function getSession() {
   const supabase = await createServerClient();
@@ -29,27 +29,7 @@ export async function getTeacherProfile() {
   return data;
 }
 
-export async function getRoleByUserId(userId: string): Promise<UserRole | null> {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("teacher")
-    .select("role")
-    .eq("auth_user_id", userId)
-    .maybeSingle();
-
-  return (data?.role as UserRole) ?? null;
-}
-
 export async function getRole(): Promise<UserRole | null> {
   const profile = await getTeacherProfile();
   return (profile?.role as UserRole) ?? null;
 }
-
-export const routeAccess: Record<string, UserRole[]> = {
-  "/admin/users": ["admin"],
-  "/admin":     ["admin", "coordinator"],
-  "/setup":     ["admin"],
-  "/content":   ["admin"],
-  "/timetable": ["admin", "coordinator"],
-  "/teacher":   ["admin", "coordinator", "teacher"],
-};
