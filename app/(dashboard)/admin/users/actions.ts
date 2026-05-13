@@ -1,17 +1,12 @@
 "use server";
 
-import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { getRole } from "@/lib/auth";
 
 type CreateUserResult =
-  | { success: true; password: string }
+  | { success: true }
   | { error: string };
-
-function generatePassword() {
-  return `TRS-${randomBytes(10).toString("base64url")}`;
-}
 
 export async function createUserAccount(formData: FormData): Promise<CreateUserResult> {
   const role = await getRole();
@@ -21,13 +16,16 @@ export async function createUserAccount(formData: FormData): Promise<CreateUserR
 
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "").trim();
   const userRole = String(formData.get("role") ?? "teacher") as "teacher" | "coordinator" | "admin";
 
   if (!name || !email) {
     return { error: "Name and email are required" };
   }
 
-  const password = generatePassword();
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters" };
+  }
   const admin = createAdminClient();
 
   const { data: createdUser, error: createError } = await admin.auth.admin.createUser({
@@ -61,5 +59,5 @@ export async function createUserAccount(formData: FormData): Promise<CreateUserR
 
   revalidatePath("/admin/users");
   revalidatePath("/admin");
-  return { success: true, password };
+  return { success: true };
 }

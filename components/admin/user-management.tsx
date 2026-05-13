@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Copy, Loader2, Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 type UserRow = {
@@ -39,10 +39,9 @@ const roleMeta: Record<string, { label: string; border: string; bg: string; colo
 export function UserManagement({ users }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState<"admin" | "coordinator" | "teacher">("teacher");
   const [loading, setLoading] = useState(false);
-  const [generatedPassword, setGeneratedPassword] = useState("");
-  const [lastCreatedEmail, setLastCreatedEmail] = useState("");
 
   const sortedUsers = useMemo(
     () => [...users].sort((a, b) => a.name.localeCompare(b.name)),
@@ -52,8 +51,6 @@ export function UserManagement({ users }: Props) {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
-    setGeneratedPassword("");
-    setLastCreatedEmail("");
 
     const result = await createUserAccount(new FormData(event.currentTarget));
     setLoading(false);
@@ -63,19 +60,12 @@ export function UserManagement({ users }: Props) {
       return;
     }
 
-    setGeneratedPassword(result.password);
-    setLastCreatedEmail(email);
     setName("");
     setEmail("");
+    setPassword("");
     setRole("teacher");
     event.currentTarget.reset();
     toast.success("User created");
-  }
-
-  async function copyPassword() {
-    if (!generatedPassword) return;
-    await navigator.clipboard.writeText(generatedPassword);
-    toast.success("Password copied");
   }
 
   return (
@@ -111,6 +101,19 @@ export function UserManagement({ users }: Props) {
               />
             </div>
             <div className="flex flex-col gap-1.5">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Set a temporary password"
+                required
+                minLength={8}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
               <Label>Role</Label>
               <Select
                 value={role}
@@ -132,24 +135,6 @@ export function UserManagement({ users }: Props) {
             </Button>
           </form>
 
-          {generatedPassword && (
-            <div className="mt-4 rounded-xl border bg-[#fce8ea]/40 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Generated password
-                  </p>
-                  <p className="mt-1 font-mono text-sm break-all">{generatedPassword}</p>
-                </div>
-                <Button type="button" variant="outline" size="sm" onClick={copyPassword}>
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Share this securely with {lastCreatedEmail || "the new user"}.
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
 
