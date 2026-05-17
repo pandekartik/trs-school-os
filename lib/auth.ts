@@ -1,7 +1,8 @@
 import { createServerClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import type { UserRole } from "@/lib/role-access";
-export { routeAccess } from "@/lib/role-access";
+export type { UserRole } from "@/lib/role-access";
+export { routeAccess, getLandingRoute } from "@/lib/role-access";
 
 export async function getSession() {
   const supabase = await createServerClient();

@@ -10,7 +10,7 @@ export default async function AdminUsersPage() {
   const db = await createServerClient();
   const { data: users } = await db
     .from("teacher")
-    .select("id, name, email, role, is_active, created_at")
+    .select("id, name, email, role, is_active, created_at, auth_user_id")
     .order("created_at", { ascending: false });
 
   return (

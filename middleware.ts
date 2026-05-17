@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getRoleByUserId } from "@/lib/edge-auth";
-import { routeAccess } from "@/lib/role-access";
+import { getLandingRoute, routeAccess } from "@/lib/role-access";
 
 const publicRoutes = ["/sign-in", "/reset-password"];
 
@@ -32,10 +32,7 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
   const role = user ? await getRoleByUserId(user.id) : null;
-  const landingRoute =
-    role === "admin" || role === "coordinator"
-      ? "/admin"
-      : "/teacher";
+  const landingRoute = getLandingRoute(role);
 
   // Allow public routes
   if (publicRoutes.some((r) => pathname.startsWith(r))) {
@@ -70,7 +67,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (!allowed.includes(role)) {
-      const fallback = role === "teacher" ? "/teacher" : "/admin";
+      const fallback = getLandingRoute(role);
       return NextResponse.redirect(new URL(fallback, request.url));
     }
   }

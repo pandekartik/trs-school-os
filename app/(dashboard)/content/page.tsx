@@ -1,11 +1,9 @@
 import { getRole } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase-server";
-import { ContentDrilldown } from "@/components/content/content-drilldown";
+import { ContentShell } from "@/components/content/content-shell";
 
 export default async function ContentPage() {
-  const role = await getRole();
-  if (role !== "admin") redirect("/admin");
+  await getRole();
 
   const db = await createServerClient();
 
@@ -19,7 +17,7 @@ export default async function ContentPage() {
     { data: mcqs },
     { data: tests },
   ] = await Promise.all([
-    db.from("school_year").select("*").order("created_at", { ascending: false }),
+    db.from("school_year").select("*").eq("is_active", true).order("created_at", { ascending: false }),
     db.from("academic_segment").select("*").order("sequence_number"),
     db.from("standard").select("*").order("grade"),
     db.from("subject").select("*").eq("has_chapters", true).order("name"),
@@ -30,7 +28,7 @@ export default async function ContentPage() {
   ]);
 
   return (
-    <ContentDrilldown
+    <ContentShell
       schoolYears={schoolYears ?? []}
       segments={segments ?? []}
       standards={standards ?? []}

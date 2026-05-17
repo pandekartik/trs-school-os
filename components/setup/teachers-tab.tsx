@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Teacher } from "@/lib/types";
 import { createTeacher, updateTeacher, deleteTeacher } from "@/lib/actions/setup";
+import type { UserRole } from "@/lib/role-access";
 import { useAction } from "@/lib/hooks/use-action";
 import { EditableRow } from "@/components/shared/editable-row";
 import { Button } from "@/components/ui/button";
@@ -16,15 +17,14 @@ import {
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-const roleMeta: Record<string, { color: string; border: string; bg: string }> = {
+const roleMeta: Record<UserRole, { color: string; border: string; bg: string }> = {
   admin:       { color: "#a01b2b", border: "#f0b0b7", bg: "#fce8ea" },
-  hod:         { color: "#534AB7", border: "#afa9ec", bg: "#eeedfe" },
   coordinator: { color: "#185FA5", border: "#b5d4f4", bg: "#e6f1fb" },
   teacher:     { color: "#3B6D11", border: "#c0dd97", bg: "#eaf3de" },
 };
 
 function EditTeacherForm({ t }: { t: Teacher }) {
-  const [role, setRole] = useState<"teacher" | "hod" | "coordinator" | "admin">(t.role);
+  const [role, setRole] = useState<UserRole>(t.role);
   const action = useAction((fd) => updateTeacher(t.id, fd), {
     successMessage: "Teacher updated",
   });
@@ -46,7 +46,6 @@ function EditTeacherForm({ t }: { t: Teacher }) {
             <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="teacher">Teacher</SelectItem>
-              <SelectItem value="hod">HOD</SelectItem>
               <SelectItem value="coordinator">Coordinator</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
             </SelectContent>
@@ -95,7 +94,6 @@ export function TeachersTab({ teachers }: { teachers: Teacher[] }) {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="teacher">Teacher</SelectItem>
-                  <SelectItem value="hod">HOD</SelectItem>
                   <SelectItem value="coordinator">Coordinator</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>

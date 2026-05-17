@@ -61,3 +61,37 @@ export async function createUserAccount(formData: FormData): Promise<CreateUserR
   revalidatePath("/admin");
   return { success: true };
 }
+
+type DeleteUserResult = { success: true } | { error: string };
+
+export async function deleteUserAccount(teacherId: string, authUserId: string): Promise<DeleteUserResult> {
+  const role = await getRole();
+  if (role !== "admin") {
+    return { error: "Unauthorized" };
+  }
+
+  if (!teacherId || !authUserId) {
+    return { error: "Invalid user" };
+  }
+
+  const admin = createAdminClient();
+
+  const { error: dbError } = await admin
+    .from("teacher")
+    .delete()
+    .eq("id", teacherId);
+
+  if (dbError) {
+    return { error: dbError.message };
+  }
+
+  const { error: authError } = await admin.auth.admin.deleteUser(authUserId);
+
+  if (authError) {
+    return { error: authError.message };
+  }
+
+  revalidatePath("/admin/users");
+  revalidatePath("/admin");
+  return { success: true };
+}

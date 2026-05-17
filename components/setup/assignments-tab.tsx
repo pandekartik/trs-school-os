@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Teacher, Subject, Division, Standard, SchoolYear, TeacherAssignment,
 } from "@/lib/types";
+import type { UserRole } from "@/lib/role-access";
 import {
   createTeacherAssignment, deleteTeacherAssignment,
 } from "@/lib/actions/setup";
@@ -72,9 +73,8 @@ export function AssignmentsTab({
     }))
     .sort((a, b) => a.teacherName.localeCompare(b.teacherName));
 
-  const roleColors: Record<string, { color: string; border: string; bg: string }> = {
+  const roleColors: Record<UserRole, { color: string; border: string; bg: string }> = {
     admin:       { color: "#a01b2b", border: "#f0b0b7", bg: "#fce8ea" },
-    hod:         { color: "#534AB7", border: "#afa9ec", bg: "#eeedfe" },
     coordinator: { color: "#185FA5", border: "#b5d4f4", bg: "#e6f1fb" },
     teacher:     { color: "#3B6D11", border: "#c0dd97", bg: "#eaf3de" },
   };

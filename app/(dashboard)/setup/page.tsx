@@ -8,10 +8,11 @@ import { SubjectsTab } from "@/components/setup/subjects-tab";
 import { TeachersTab } from "@/components/setup/teachers-tab";
 import { SegmentsTab } from "@/components/setup/segments-tab";
 import { AssignmentsTab } from "@/components/setup/assignments-tab";
+import { ChaptersTab } from "@/components/setup/chapters-tab";
 
 export default async function SetupPage() {
   const role = await getRole();
-  if (role !== "admin") redirect("/admin");
+  if (role !== "admin") redirect(role === "coordinator" ? "/content" : "/teacher");
 
   const db = await createServerClient();
 
@@ -23,6 +24,7 @@ export default async function SetupPage() {
     { data: subjects },
     { data: teachers },
     { data: assignments },
+    { data: chapters },
   ] = await Promise.all([
     db.from("school_year").select("*").order("created_at", { ascending: false }),
     db.from("academic_segment").select("*").order("sequence_number"),
@@ -31,6 +33,7 @@ export default async function SetupPage() {
     db.from("subject").select("*").order("name"),
     db.from("teacher").select("*").order("name"),
     db.from("teacher_assignment").select("*"),
+    db.from("chapter").select("*").order("display_order"),
   ]);
 
   return (
@@ -49,6 +52,7 @@ export default async function SetupPage() {
           <TabsTrigger value="standards">Standards & Divisions</TabsTrigger>
           <TabsTrigger value="subjects">Subjects</TabsTrigger>
           <TabsTrigger value="teachers">Teachers</TabsTrigger>
+          <TabsTrigger value="chapters">Chapters</TabsTrigger>
           <TabsTrigger value="assignments">Assignments</TabsTrigger>
         </TabsList>
 
@@ -80,6 +84,16 @@ export default async function SetupPage() {
 
         <TabsContent value="teachers" className="mt-6">
           <TeachersTab teachers={teachers ?? []} />
+        </TabsContent>
+
+        <TabsContent value="chapters" className="mt-6">
+          <ChaptersTab
+            chapters={chapters ?? []}
+            segments={segments ?? []}
+            standards={standards ?? []}
+            subjects={subjects ?? []}
+            schoolYears={schoolYears ?? []}
+          />
         </TabsContent>
 
         <TabsContent value="assignments" className="mt-6">

@@ -2,6 +2,7 @@
 
 import { createServerClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
+import type { UserRole } from "@/lib/role-access";
 
 async function getDb() {
   return await createServerClient();
@@ -199,7 +200,7 @@ export async function createTeacher(formData: FormData) {
   const name  = formData.get("name") as string;
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
-  const role  = formData.get("role") as "teacher" | "hod" | "coordinator" | "admin";
+  const role  = formData.get("role") as UserRole;
   const { error } = await db.from("teacher").insert({ name, email, phone, role });
   if (error) return { error: error.message };
   revalidatePath("/setup");
@@ -210,7 +211,7 @@ export async function updateTeacher(id: string, formData: FormData) {
   const db = await getDb();
   const name  = formData.get("name") as string;
   const phone = formData.get("phone") as string;
-  const role  = formData.get("role") as "teacher" | "hod" | "coordinator" | "admin";
+  const role  = formData.get("role") as UserRole;
   const { error } = await db.from("teacher")
     .update({ name, phone, role, updated_at: new Date().toISOString() })
     .eq("id", id);
@@ -261,10 +262,9 @@ export async function createChapter(formData: FormData) {
   const name                = formData.get("name") as string;
   const allocated_periods   = parseInt(formData.get("allocated_periods") as string);
   const comments            = (formData.get("comments") as string) || null;
-  const effective_periods   = Math.floor(allocated_periods * 0.8);
   const { error } = await db.from("chapter").insert({
     subject_id, academic_segment_id, chapter_number,
-    name, allocated_periods, effective_periods,
+    name, allocated_periods,
     comments, display_order: chapter_number,
   });
   if (error) return { error: error.message };
@@ -278,10 +278,9 @@ export async function updateChapter(id: string, formData: FormData) {
   const allocated_periods = parseInt(formData.get("allocated_periods") as string);
   const comments          = (formData.get("comments") as string) || null;
   const chapter_number    = parseInt(formData.get("chapter_number") as string);
-  const effective_periods = Math.floor(allocated_periods * 0.8);
   const { error } = await db.from("chapter")
     .update({
-      name, allocated_periods, effective_periods,
+      name, allocated_periods,
       comments, chapter_number,
       display_order: chapter_number,
       updated_at: new Date().toISOString(),
@@ -306,31 +305,42 @@ export async function saveChapterPeriod(formData: FormData) {
   const db = await getDb();
   const chapter_id    = formData.get("chapter_id") as string;
   const period_number = parseInt(formData.get("period_number") as string);
-  const title         = (formData.get("title") as string) || null;
+  const hasTitleField  = formData.has("title");
+  const titleRaw       = formData.get("title");
+  const title         = hasTitleField
+    ? (typeof titleRaw === "string" && titleRaw.trim() ? titleRaw.trim() : null)
+    : undefined;
   const uploaded_by   = (formData.get("uploaded_by") as string) || null;
 
   const { data: existing } = await db
     .from("chapter_period")
-    .select("id")
+    .select("id, title")
     .eq("chapter_id", chapter_id)
     .eq("period_number", period_number)
     .single();
 
   if (existing) {
-    const { error } = await db
-      .from("chapter_period")
-      .update({ title })
-      .eq("id", existing.id);
-    if (error) return { error: error.message };
-  } else {
-    const { error } = await db.from("chapter_period").insert({
-      chapter_id, period_number, title, uploaded_by,
-    });
-    if (error) return { error: error.message };
-  }
+    const updateData: { title?: string | null } = {};
+    if (title !== undefined) updateData.title = title;
 
-  revalidatePath("/content");
-  return { success: true };
+    if (Object.keys(updateData).length > 0) {
+      const { error } = await db
+        .from("chapter_period")
+        .update(updateData)
+        .eq("id", existing.id);
+      if (error) return { error: error.message };
+    }
+
+    revalidatePath("/content");
+    return { success: true, chapter_period_id: existing.id };
+  } else {
+    const { data, error } = await db.from("chapter_period").insert({
+      chapter_id, period_number, title: title ?? null, uploaded_by,
+    }).select("id").single();
+    if (error) return { error: error.message };
+    revalidatePath("/content");
+    return { success: true, chapter_period_id: data.id };
+  }
 }
 
 export async function updateChapterPeriodFile(

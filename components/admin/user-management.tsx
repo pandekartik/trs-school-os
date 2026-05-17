@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import { createUserAccount } from "@/app/(dashboard)/admin/users/actions";
+import { createUserAccount, deleteUserAccount } from "@/app/(dashboard)/admin/users/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 type UserRow = {
@@ -24,6 +24,7 @@ type UserRow = {
   role: "admin" | "coordinator" | "teacher" | string;
   is_active: boolean;
   created_at: string;
+  auth_user_id: string | null;
 };
 
 type Props = {
@@ -42,6 +43,7 @@ export function UserManagement({ users }: Props) {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"admin" | "coordinator" | "teacher">("teacher");
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const sortedUsers = useMemo(
     () => [...users].sort((a, b) => a.name.localeCompare(b.name)),
@@ -50,9 +52,10 @@ export function UserManagement({ users }: Props) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setLoading(true);
 
-    const result = await createUserAccount(new FormData(event.currentTarget));
+    const result = await createUserAccount(new FormData(form));
     setLoading(false);
 
     if ("error" in result) {
@@ -64,8 +67,24 @@ export function UserManagement({ users }: Props) {
     setEmail("");
     setPassword("");
     setRole("teacher");
-    event.currentTarget.reset();
+    form.reset();
     toast.success("User created");
+  }
+
+  async function handleDelete(user: UserRow) {
+    if (!confirm(`Delete ${user.name}? This cannot be undone.`)) return;
+    if (!user.auth_user_id) {
+      toast.error("Cannot delete: missing auth ID");
+      return;
+    }
+    setDeletingId(user.id);
+    const result = await deleteUserAccount(user.id, user.auth_user_id);
+    setDeletingId(null);
+    if ("error" in result) {
+      toast.error("Delete failed", { description: result.error });
+    } else {
+      toast.success(`${user.name} deleted`);
+    }
   }
 
   return (
@@ -165,9 +184,23 @@ export function UserManagement({ users }: Props) {
                     </div>
                     <div className="text-xs text-muted-foreground">{user.email}</div>
                   </div>
-                  <Badge variant={user.is_active ? "default" : "secondary"} className="shrink-0">
-                    {user.is_active ? "Active" : "Disabled"}
-                  </Badge>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge variant={user.is_active ? "default" : "secondary"}>
+                      {user.is_active ? "Active" : "Disabled"}
+                    </Badge>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      disabled={deletingId === user.id}
+                      onClick={() => handleDelete(user)}
+                    >
+                      {deletingId === user.id
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Trash2 className="h-3.5 w-3.5" />}
+                    </Button>
+                  </div>
                 </div>
               );
             })}

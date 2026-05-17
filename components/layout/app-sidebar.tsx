@@ -11,11 +11,10 @@ import {
 } from "@/components/ui/sidebar";
 import {
   Settings, BookOpen, CalendarDays,
-  GraduationCap, LayoutDashboard, LogOut, Users,
+  LayoutDashboard, LogOut, Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-type UserRole = "admin" | "coordinator" | "teacher";
+import type { UserRole } from "@/lib/role-access";
 
 type NavItem = {
   title: string;
@@ -26,24 +25,18 @@ type NavItem = {
 
 const navGroups: { label: string; items: NavItem[] }[] = [
   {
-    label: "Overview",
+    label: "Admin",
     items: [
-      { title: "Admin Dashboard", href: "/admin",    icon: LayoutDashboard, roles: ["admin", "coordinator"] },
+      { title: "Admin Dashboard", href: "/admin", icon: LayoutDashboard, roles: ["admin"] },
       { title: "Users", href: "/admin/users", icon: Users, roles: ["admin"] },
+      { title: "Setup", href: "/setup", icon: Settings, roles: ["admin"] },
+      { title: "Timetable", href: "/timetable", icon: CalendarDays, roles: ["admin"] },
     ],
   },
   {
-    label: "Setup",
+    label: "Content",
     items: [
-      { title: "Academic Setup", href: "/setup",   icon: Settings,  roles: ["admin"] },
-      { title: "Content",        href: "/content", icon: BookOpen,  roles: ["admin"] },
-    ],
-  },
-  {
-    label: "Operations",
-    items: [
-      { title: "Timetable",    href: "/timetable", icon: CalendarDays,   roles: ["admin", "coordinator"] },
-      { title: "Teacher View", href: "/teacher",   icon: GraduationCap,  roles: ["admin", "coordinator", "teacher"] },
+      { title: "Content", href: "/content", icon: BookOpen, roles: ["admin", "coordinator"] },
     ],
   },
 ];
@@ -59,7 +52,7 @@ const sidebarStyle = {
 } as React.CSSProperties;
 
 interface AppSidebarProps {
-  role: string | null;
+  role: UserRole | null;
   teacherName: string;
 }
 
@@ -91,7 +84,7 @@ export function AppSidebar({ role, teacherName }: AppSidebarProps) {
       <SidebarContent className="px-2 py-3">
         {navGroups.map((group) => {
           const visibleItems = group.items.filter(
-            (item) => role && item.roles.includes(role as UserRole)
+            (item) => role && item.roles.includes(role)
           );
           if (visibleItems.length === 0) return null;
 
