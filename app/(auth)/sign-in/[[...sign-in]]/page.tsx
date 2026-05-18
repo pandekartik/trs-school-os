@@ -37,14 +37,14 @@ export default function SignInPage() {
   return (
     <div className="min-h-screen grid grid-cols-2">
       {/* Left — branding */}
-      <div className="flex flex-col justify-between p-12" style={{ background: "#1c0509" }}>
+      <div className="flex flex-col justify-between p-12 bg-color-card">
         <div>
           <Image src="/logo.png" alt="The Rosary School" width={160} height={48} style={{ height: "48px", width: "auto", objectFit: "contain" }} />
         </div>
 
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
-            <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#ba2032" }}>
+            <div className="text-xs font-semibold tracking-widest uppercase">
               TRS School OS
             </div>
             <h1
@@ -53,7 +53,7 @@ export default function SignInPage() {
             >
               The operating system<br />for The Rosary School.
             </h1>
-            <p className="text-sm leading-relaxed max-w-sm" style={{ color: "rgba(240,222,222,0.5)" }}>
+            <p className="text-sm leading-relaxed max-w-sm">
               Content management, period scheduling, teacher operations and performance analytics — all in one place.
             </p>
           </div>
@@ -67,11 +67,10 @@ export default function SignInPage() {
               <div key={item} className="flex items-start gap-2.5">
                 <div
                   className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                  style={{ background: "rgba(186,32,50,0.3)" }}
                 >
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#ba2032" }} />
+                  <div className="w-1.5 h-1.5 rounded-full"/>
                 </div>
-                <span className="text-xs leading-relaxed" style={{ color: "rgba(240,222,222,0.6)" }}>
+                <span className="text-xs leading-relaxed">
                   {item}
                 </span>
               </div>
@@ -79,7 +78,7 @@ export default function SignInPage() {
           </div>
         </div>
 
-        <div className="text-xs" style={{ color: "rgba(240,222,222,0.25)" }}>
+        <div className="text-xs">
           © {new Date().getFullYear()} The Rosary School. Internal use only.
         </div>
       </div>
