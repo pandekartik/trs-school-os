@@ -42,6 +42,7 @@ type ScheduleGeneratorProps = {
   segments: AcademicSegment[];
   chapters: Chapter[];
   slots: TimetableSlot[];
+  onGenerateSuccess?: () => void;
 };
 
 type ResultState = {
@@ -57,6 +58,7 @@ export function ScheduleGenerator({
   segments,
   chapters,
   slots,
+  onGenerateSuccess,
 }: ScheduleGeneratorProps) {
   const router = useRouter();
   const [selectedSegmentId, setSelectedSegmentId] = useState("");
@@ -123,6 +125,7 @@ export function ScheduleGenerator({
         scheduled_chapters: response.scheduled_chapters,
       });
       toast.success("Schedule generated");
+      onGenerateSuccess?.();
       router.refresh();
     } finally {
       setLoading(false);

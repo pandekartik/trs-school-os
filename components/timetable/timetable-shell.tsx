@@ -127,6 +127,8 @@ export function TimetableShell({
     setSelectedDivisionId(nextDivision?.id ?? null);
   }, [divisionsForStandard, selectedDivision, selectedStandardId]);
 
+  const [activeTab, setActiveTab] = useState("timetable");
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
       <Card className="sticky top-0 z-10 overflow-hidden border bg-card/95 shadow-sm backdrop-blur">
@@ -218,7 +220,7 @@ export function TimetableShell({
         </CardHeader>
       </Card>
 
-      <Tabs defaultValue="timetable" className="flex min-h-0 flex-1 flex-col">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col">
         <TabsList className="w-fit">
           <TabsTrigger value="timetable">Timetable</TabsTrigger>
           <TabsTrigger value="holidays">Holidays</TabsTrigger>
@@ -265,6 +267,7 @@ export function TimetableShell({
             segments={segmentsForStandard}
             chapters={chaptersForDivision}
             slots={slotsForDivision}
+            onGenerateSuccess={() => setActiveTab("timetable")}
           />
         </TabsContent>
       </Tabs>

@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRS School OS — Components</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Neutrals */
+    --background: #FAFAFA;
+    --surface: #FFFFFF;
+    --surface-2: #F5F5F5;
+    --surface-3: #EFEFEF;
+    --border: #E5E5E5;
+    --border-strong: #D4D4D4;
+    --text-primary: #171717;
+    --text-secondary: #525252;
+    --text-muted: #A3A3A3;
+    --text-disabled: #D4D4D4;
+    /* Brand */
+    --brand: #ba2032;
+    --brand-hover: #a01b2b;
+    --brand-light: #FDF2F3;
+    --brand-border: #F8D7DC;
+    /* Semantic */
+    --success: #16A34A;
+    --success-light: #F0FDF4;
+    --success-border: #BBF7D0;
+    --warning: #D97706;
+    --warning-light: #FFFBEB;
+    --warning-border: #FED7AA;
+    --error: #DC2626;
+    --error-hover: #B91C1C;
+    --error-light: #FEF2F2;
+    --error-border: #FECACA;
+    --info: #2563EB;
+    --info-light: #EFF6FF;
+    --info-border: #BFDBFE;
+    /* Type */
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, monospace;
+    /* Radius */
+    --r-input: 6px;
+    --r-button: 6px;
+    --r-card: 8px;
+    --r-badge: 4px;
+    --r-modal: 10px;
+    /* Focus */
+    --focus-ring: 0 0 0 2px rgba(186, 32, 50, 0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #EFEFEF;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ==================== DOC SHELL ==================== */
+  .doc { max-width: 1480px; margin: 0 auto; padding: 56px 40px 96px; }
+  .doc-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .doc-header__eyebrow {
+    font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .doc-header__eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
+  .doc-header__title { font-size: 32px; font-weight: 600; letter-spacing: -0.025em; margin-bottom: 12px; }
+  .doc-header__sub { color: var(--text-secondary); font-size: 14px; max-width: 620px; line-height: 1.6; }
+  .doc-header__meta { display: flex; gap: 32px; color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
+  .doc-header__meta span strong { display: block; color: var(--text-primary); font-weight: 500; margin-top: 4px; }
+
+  /* TOC */
+  .toc {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    margin-bottom: 56px;
+  }
+  .toc__item {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 6px 10px;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background 0.12s;
+  }
+  .toc__item:hover { background: var(--surface-2); }
+  .toc__num { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .toc__name { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+
+  /* Group divider */
+  .group-divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 56px 0 20px;
+    scroll-margin-top: 24px;
+  }
+  .group-divider__num {
+    font-family: var(--font-mono); font-size: 11px; color: var(--brand); font-weight: 500;
+  }
+  .group-divider__title { font-size: 13px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
+  .group-divider__meta { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .group-divider__line { flex: 1; height: 1px; background: var(--border); }
+
+  /* Section */
+  .cmp {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+  .cmp__row {
+    display: flex; flex-direction: column;
+    gap: 14px;
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cmp__row:last-child { border-bottom: none; }
+  .cmp__row-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 16px;
+  }
+  .cmp__row-label {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .cmp__row-label strong { color: var(--text-primary); font-weight: 500; }
+  .cmp__row-meta { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .cmp__demo {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    align-items: flex-start;
+  }
+  .cmp__demo--grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .cmp__demo--grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .cmp__demo--grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .cmp__demo--grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .cmp__demo--stack { flex-direction: column; align-items: stretch; }
+
+  .cmp__cell {
+    display: flex; flex-direction: column;
+    gap: 8px;
+  }
+  .cmp__cell-label {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
+  /* ==================== BUTTONS ==================== */
+  .btn {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--r-button);
+    border: 1px solid transparent;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+    outline: none;
+    white-space: nowrap;
+  }
+  .btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .btn--sm { height: 28px; padding: 0 10px; font-size: 12px; }
+  .btn--icon { width: 32px; padding: 0; }
+  .btn--icon.btn--sm { width: 28px; }
+
+  /* Primary */
+  .btn--primary { background: var(--brand); color: #FFFFFF; }
+  .btn--primary:not([disabled]):hover { background: var(--brand-hover); }
+  .btn--primary.is-focus, .btn--primary:focus-visible { box-shadow: var(--focus-ring); }
+  .btn--primary[disabled] { background: var(--brand); opacity: 0.45; cursor: not-allowed; }
+
+  /* Secondary */
+  .btn--secondary {
+    background: var(--surface); color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+  .btn--secondary:not([disabled]):hover { background: var(--surface-2); }
+  .btn--secondary.is-focus, .btn--secondary:focus-visible { box-shadow: var(--focus-ring); border-color: var(--brand); }
+  .btn--secondary[disabled] { background: var(--surface-2); color: var(--text-disabled); cursor: not-allowed; }
+
+  /* Ghost */
+  .btn--ghost {
+    background: transparent; color: var(--text-secondary);
+    border-color: transparent;
+  }
+  .btn--ghost:not([disabled]):hover { background: var(--surface-2); color: var(--text-primary); }
+  .btn--ghost.is-focus, .btn--ghost:focus-visible { box-shadow: var(--focus-ring); background: var(--surface-2); }
+  .btn--ghost[disabled] { color: var(--text-disabled); cursor: not-allowed; }
+
+  /* Destructive */
+  .btn--destructive { background: var(--error); color: #FFFFFF; }
+  .btn--destructive:not([disabled]):hover { background: var(--error-hover); }
+  .btn--destructive.is-focus, .btn--destructive:focus-visible { box-shadow: 0 0 0 2px rgba(220,38,38,0.2); }
+  .btn--destructive[disabled] { background: var(--error); opacity: 0.45; cursor: not-allowed; }
+
+  .spinner {
+    width: 12px; height: 12px;
+    border: 1.5px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    opacity: 0.7;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ==================== INPUTS ==================== */
+  .field { display: flex; flex-direction: column; gap: 8px; max-width: 360px; }
+  .field__label-row { display: flex; justify-content: space-between; align-items: baseline; }
+  .field__label {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-secondary); font-weight: 500;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .field__label .req { color: var(--error); margin-left: 4px; }
+  .field__helper {
+    font-size: 12px; color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .field__helper--right { text-align: right; font-family: var(--font-mono); }
+  .field__error {
+    font-size: 12px; color: var(--error);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .field__error svg { width: 12px; height: 12px; flex-shrink: 0; }
+  .field__success {
+    font-size: 12px; color: var(--success);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .field__success svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+  .input-wrap { position: relative; }
+  .input {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-input);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-primary);
+    transition: border-color 0.12s, box-shadow 0.12s;
+    outline: none;
+  }
+  .input::placeholder { color: var(--text-disabled); }
+  .input:hover { border-color: var(--border-strong); }
+  .input.is-focus, .input:focus { border-color: var(--brand); box-shadow: var(--focus-ring); }
+  .input[disabled] { background: var(--surface-2); color: var(--text-muted); cursor: not-allowed; }
+  .input.is-error { border-color: var(--error); }
+  .input.is-error.is-focus, .input.is-error:focus { box-shadow: 0 0 0 2px rgba(220,38,38,0.18); }
+  .input.is-success { border-color: var(--success); }
+  .input.has-suffix { padding-right: 36px; }
+  .input-suffix {
+    position: absolute;
+    right: 8px; top: 50%;
+    transform: translateY(-50%);
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .input-suffix:hover { color: var(--text-primary); background: var(--surface-2); }
+  .input-suffix svg { width: 14px; height: 14px; }
+
+  .textarea {
+    width: 100%;
+    min-height: 84px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-input);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-primary);
+    resize: vertical;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 0.12s, box-shadow 0.12s;
+  }
+  .textarea::placeholder { color: var(--text-disabled); }
+  .textarea:hover { border-color: var(--border-strong); }
+  .textarea:focus, .textarea.is-focus { border-color: var(--brand); box-shadow: var(--focus-ring); }
+
+  .select-wrap { position: relative; }
+  .select {
+    appearance: none;
+    width: 100%;
+    height: 36px;
+    padding: 0 36px 0 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-input);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: border-color 0.12s, box-shadow 0.12s;
+    outline: none;
+  }
+  .select:hover { border-color: var(--border-strong); }
+  .select:focus, .select.is-focus { border-color: var(--brand); box-shadow: var(--focus-ring); }
+  .select-chevron {
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-muted);
+    width: 14px; height: 14px;
+  }
+
+  /* ==================== BADGES ==================== */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 22px; padding: 0 8px;
+    border-radius: var(--r-badge);
+    font-size: 11px; font-weight: 500;
+    line-height: 1;
+    font-family: var(--font-sans);
+  }
+  .badge svg { width: 11px; height: 11px; flex-shrink: 0; }
+  .badge--neutral { background: var(--surface-2); color: var(--text-secondary); }
+  .badge--success { background: var(--success-light); color: var(--success); border: 1px solid var(--success-border); }
+  .badge--warning { background: var(--warning-light); color: var(--warning); border: 1px solid var(--warning-border); }
+  .badge--error { background: var(--error-light); color: var(--error); border: 1px solid var(--error-border); }
+  .badge--info { background: var(--info-light); color: var(--info); border: 1px solid var(--info-border); }
+  .badge--brand { background: var(--brand-light); color: var(--brand); border: 1px solid var(--brand-border); }
+  .badge--outline { background: transparent; border: 1px solid var(--border-strong); color: var(--text-secondary); font-family: var(--font-mono); }
+  .badge--dot::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .badge--solid-brand { background: var(--brand); color: #FFFFFF; }
+
+  /* ==================== CARDS ==================== */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+  .card--clickable { cursor: pointer; transition: border-color 0.12s, background 0.12s; }
+  .card--clickable:hover { background: var(--surface-2); border-color: var(--border-strong); }
+  .card__head {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .card__title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .card__action { font-size: 12px; color: var(--brand); font-weight: 500; cursor: pointer; text-decoration: none; }
+  .card__action:hover { color: var(--brand-hover); }
+  .card__body { padding: 16px; }
+  .card__placeholder {
+    font-size: 13px; color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* Stat card */
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 14px;
+    position: relative;
+  }
+  .stat__icon {
+    position: absolute; top: 12px; right: 12px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--brand-light);
+    color: var(--brand);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stat__icon svg { width: 16px; height: 16px; }
+  .stat__icon--info { background: var(--info-light); color: var(--info); }
+  .stat__icon--success { background: var(--success-light); color: var(--success); }
+  .stat__label {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em; text-transform: uppercase;
+    padding-right: 40px;
+  }
+  .stat__value-row {
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .stat__value { font-size: 28px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.02em; line-height: 1; }
+  .stat__unit { font-size: 13px; color: var(--text-muted); }
+  .stat__sub { font-size: 12px; color: var(--text-muted); }
+  .stat__sub strong { color: var(--success); font-weight: 500; }
+
+  /* Alert cards */
+  .alert-card {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--r-card);
+    border-left: 3px solid;
+    border: 1px solid;
+    border-left-width: 3px;
+  }
+  .alert-card__icon {
+    flex-shrink: 0;
+    width: 20px; height: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .alert-card__icon svg { width: 18px; height: 18px; }
+  .alert-card__body { flex: 1; }
+  .alert-card__title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+  .alert-card__text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+  .alert-card__action { margin-top: 8px; }
+  .alert-card--info { background: var(--info-light); border-color: var(--info-border); border-left-color: var(--info); }
+  .alert-card--info .alert-card__icon { color: var(--info); }
+  .alert-card--warning { background: var(--warning-light); border-color: var(--warning-border); border-left-color: var(--warning); }
+  .alert-card--warning .alert-card__icon { color: var(--warning); }
+  .alert-card--error { background: var(--error-light); border-color: var(--error-border); border-left-color: var(--error); }
+  .alert-card--error .alert-card__icon { color: var(--error); }
+  .alert-card--success { background: var(--success-light); border-color: var(--success-border); border-left-color: var(--success); }
+  .alert-card--success .alert-card__icon { color: var(--success); }
+
+  /* ==================== TABLES ==================== */
+  .table-card { overflow: hidden; border: 1px solid var(--border); border-radius: var(--r-card); }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl thead th {
+    text-align: left;
+    padding: 10px 16px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .tbl tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+  .tbl tbody tr:last-child td { border-bottom: none; }
+  .tbl tbody tr:hover { background: var(--surface-2); }
+  .tbl tbody tr.is-hover { background: var(--surface-2); }
+  .tbl__name { font-weight: 500; }
+  .tbl__name-sub { font-size: 12px; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+  .tbl__progress {
+    display: flex; align-items: center; gap: 10px;
+    min-width: 120px;
+  }
+  .tbl__action { text-align: right; }
+
+  /* Empty state inside card */
+  .empty {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    gap: 12px;
+  }
+  .empty__icon {
+    width: 40px; height: 40px;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .empty__icon svg { width: 36px; height: 36px; }
+  .empty__title { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .empty__body { font-size: 13px; color: var(--text-muted); max-width: 260px; line-height: 1.5; }
+  .empty__action { margin-top: 4px; }
+
+  /* ==================== LOADING / SKELETON ==================== */
+  .skel {
+    background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+    border-radius: 4px;
+    display: block;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .skel--h12 { height: 12px; }
+  .skel--h16 { height: 16px; }
+  .skel--h20 { height: 20px; }
+  .skel--h28 { height: 28px; }
+  .skel--circ { border-radius: 50%; }
+  .skel-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .skel-row:last-child { border-bottom: none; }
+  .skel-row__content { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .section-loader {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 14px;
+    padding: 48px 20px;
+  }
+  .section-loader__spinner {
+    width: 24px; height: 24px;
+    border: 2px solid var(--surface-3);
+    border-top-color: var(--brand);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  .section-loader__text {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .inline-spinner {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-secondary);
+  }
+  .inline-spinner .spinner {
+    width: 14px; height: 14px;
+    border-color: var(--text-muted);
+    border-top-color: transparent;
+    opacity: 1;
+  }
+
+  /* ==================== EDITABLE ROW ==================== */
+  .edit-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    transition: background 0.12s;
+  }
+  .edit-row:hover .edit-row__actions { opacity: 1; }
+  .edit-row__content {
+    display: flex; align-items: center; gap: 14px;
+    flex: 1;
+    min-width: 0;
+  }
+  .edit-row__primary { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .edit-row__meta { font-size: 13px; color: var(--text-muted); }
+  .edit-row__actions {
+    display: flex; gap: 4px;
+    opacity: 0.45;
+    transition: opacity 0.15s;
+  }
+  .edit-row__actions.is-shown { opacity: 1; }
+
+  .edit-row--editing {
+    background: var(--brand-light);
+    border-color: var(--brand-border);
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .edit-row__edit-head {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .edit-row__edit-label {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--brand);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-weight: 500;
+  }
+  .edit-row__edit-form {
+    display: flex; gap: 12px; align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .edit-row__field { flex: 1; min-width: 140px; }
+  .edit-row__edit-actions {
+    display: flex; gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .edit-row--confirm {
+    background: var(--error-light);
+    border-color: var(--error-border);
+  }
+  .edit-row__confirm-text {
+    font-size: 13px; color: var(--text-primary);
+  }
+  .edit-row__confirm-text strong { font-weight: 600; }
+
+  /* ==================== PILL FILTERS ==================== */
+  .pill-row {
+    display: flex; gap: 4px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .pill {
+    height: 28px;
+    padding: 0 12px;
+    border-radius: var(--r-button);
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s, color 0.12s;
+  }
+  .pill:hover { background: var(--surface-2); color: var(--text-primary); }
+  .pill.is-selected {
+    background: var(--text-primary);
+    color: #FFFFFF;
+  }
+  .pill[disabled] { color: var(--text-disabled); cursor: not-allowed; }
+  .pill-row__label {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 0 12px;
+    align-self: center;
+    margin-right: 8px;
+  }
+
+  /* ==================== PROGRESS ==================== */
+  .prog {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%;
+  }
+  .prog__bar {
+    flex: 1;
+    height: 4px;
+    background: var(--surface-3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .prog__fill {
+    height: 100%;
+    background: var(--success);
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+  .prog__fill--warning { background: var(--warning); }
+  .prog__fill--error { background: var(--error); }
+  .prog__value {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-secondary); font-weight: 500;
+    min-width: 40px; text-align: right;
+  }
+
+  /* ==================== TOASTS ==================== */
+  .toast-stage {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: 32px;
+    min-height: 360px;
+    position: relative;
+    background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+  .toast-stage__label {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-muted); letter-spacing: 0.04em;
+  }
+  .toast-stack {
+    position: absolute;
+    bottom: 24px; right: 24px;
+    display: flex; flex-direction: column;
+    gap: 10px;
+    width: 360px;
+  }
+  .toast {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid;
+    border-radius: var(--r-card);
+    padding: 12px 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .toast__icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+  .toast__icon svg { width: 18px; height: 18px; }
+  .toast__body { flex: 1; }
+  .toast__title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+  .toast__text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+  .toast__close {
+    background: transparent; border: none;
+    color: var(--text-muted); cursor: pointer;
+    padding: 0; margin: -2px -2px 0 0;
+    width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .toast__close svg { width: 12px; height: 12px; }
+  .toast--success { border-left-color: var(--success); }
+  .toast--success .toast__icon { color: var(--success); }
+  .toast--error { border-left-color: var(--error); }
+  .toast--error .toast__icon { color: var(--error); }
+  .toast--warning { border-left-color: var(--warning); }
+  .toast--warning .toast__icon { color: var(--warning); }
+  .toast--info { border-left-color: var(--info); }
+  .toast--info .toast__icon { color: var(--info); }
+
+  /* ==================== MODALS ==================== */
+  .modal-stage {
+    position: relative;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    overflow: hidden;
+    min-height: 420px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+  .modal-stage::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(23, 23, 23, 0.45);
+  }
+  .modal {
+    position: relative;
+    background: var(--surface);
+    border-radius: var(--r-modal);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.16);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .modal--standard { width: 480px; }
+  .modal--confirm { width: 400px; }
+  .modal__head {
+    padding: 16px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal__title { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
+  .modal__close {
+    width: 24px; height: 24px;
+    background: transparent; border: none;
+    color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px;
+  }
+  .modal__close:hover { background: var(--surface-2); color: var(--text-primary); }
+  .modal__close svg { width: 14px; height: 14px; }
+  .modal__body {
+    padding: 20px;
+    display: flex; flex-direction: column;
+    gap: 16px;
+  }
+  .modal__body-text {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.55;
+  }
+  .modal__foot {
+    padding: 14px 20px;
+    display: flex; justify-content: flex-end; gap: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .modal-status-row {
+    display: flex; gap: 8px;
+  }
+  .modal-status-btn {
+    flex: 1;
+    height: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-button);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px;
+    transition: border-color 0.12s, color 0.12s, background 0.12s;
+  }
+  .modal-status-btn:hover { background: var(--surface-2); }
+  .modal-status-btn.is-active {
+    background: var(--text-primary);
+    border-color: var(--text-primary);
+    color: #FFFFFF;
+  }
+  .modal-status-btn svg { width: 12px; height: 12px; }
+
+  /* Confirm modal warning icon */
+  .modal-warn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--error-light);
+    border: 1px solid var(--error-border);
+    color: var(--error);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 4px;
+  }
+  .modal-warn svg { width: 22px; height: 22px; }
+
+  /* ==================== TABS ==================== */
+  .tabs-page {
+    display: flex; align-items: center; gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tabs-page__tab {
+    height: 40px;
+    padding: 0 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-bottom: -1px;
+    transition: color 0.12s, border-color 0.12s;
+  }
+  .tabs-page__tab:hover { color: var(--text-primary); }
+  .tabs-page__tab.is-active {
+    color: var(--brand);
+    border-bottom-color: var(--brand);
+  }
+  .tabs-page__tab[disabled] { color: var(--text-disabled); cursor: not-allowed; }
+  .tabs-page__count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+  .tabs-page__tab.is-active .tabs-page__count {
+    background: var(--brand-light);
+    color: var(--brand);
+  }
+
+  .tabs-panel {
+    display: inline-flex;
+    background: var(--surface-2);
+    border-radius: var(--r-button);
+    padding: 3px;
+    gap: 2px;
+  }
+  .tabs-panel__tab {
+    height: 26px;
+    padding: 0 12px;
+    background: transparent;
+    border: none;
+    border-radius: 5px;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background 0.12s, color 0.12s;
+  }
+  .tabs-panel__tab:hover { color: var(--text-primary); }
+  .tabs-panel__tab.is-active {
+    background: var(--surface);
+    color: var(--text-primary);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+  }
+  .tabs-panel__tab[disabled] { color: var(--text-disabled); cursor: not-allowed; }
+
+  /* Utility */
+  .stack { display: flex; flex-direction: column; gap: 8px; }
+  .stack-md { display: flex; flex-direction: column; gap: 16px; }
+  .row-end { display: flex; gap: 8px; justify-content: flex-end; }
+  .text-muted-mono { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- DOC HEADER -->
+  <header class="doc-header">
+    <div>
+      <div class="doc-header__eyebrow"><span class="dot"></span>TRS / MODULE 03 / COMPONENTS</div>
+      <h1 class="doc-header__title">Component Library</h1>
+      <p class="doc-header__sub">Every screen in TRS School OS is built from these. Components inherit Module 0 tokens and Module 2 shell aesthetics — all light, brand red as accent.</p>
+    </div>
+    <div class="doc-header__meta">
+      <span>COMPONENTS<strong>13</strong></span>
+      <span>VARIANTS<strong>60+</strong></span>
+      <span>UPDATED<strong>2026.05.18</strong></span>
+    </div>
+  </header>
+
+  <!-- TOC -->
+  <nav class="toc">
+    <a href="#buttons" class="toc__item"><span class="toc__num">01</span><span class="toc__name">Buttons</span></a>
+    <a href="#inputs" class="toc__item"><span class="toc__num">02</span><span class="toc__name">Form Inputs</span></a>
+    <a href="#badges" class="toc__item"><span class="toc__num">03</span><span class="toc__name">Badges</span></a>
+    <a href="#cards" class="toc__item"><span class="toc__num">04</span><span class="toc__name">Cards</span></a>
+    <a href="#tables" class="toc__item"><span class="toc__num">05</span><span class="toc__name">Tables</span></a>
+    <a href="#empty" class="toc__item"><span class="toc__num">06</span><span class="toc__name">Empty States</span></a>
+    <a href="#loading" class="toc__item"><span class="toc__num">07</span><span class="toc__name">Loading States</span></a>
+    <a href="#editable" class="toc__item"><span class="toc__num">08</span><span class="toc__name">Editable Row</span></a>
+    <a href="#pills" class="toc__item"><span class="toc__num">09</span><span class="toc__name">Pill Filters</span></a>
+    <a href="#progress" class="toc__item"><span class="toc__num">10</span><span class="toc__name">Progress Bars</span></a>
+    <a href="#toasts" class="toc__item"><span class="toc__num">11</span><span class="toc__name">Toasts</span></a>
+    <a href="#modals" class="toc__item"><span class="toc__num">12</span><span class="toc__name">Modals</span></a>
+    <a href="#tabs" class="toc__item"><span class="toc__num">13</span><span class="toc__name">Tabs</span></a>
+  </nav>
+
+  <!-- ================ 01 — BUTTONS ================ -->
+  <div class="group-divider" id="buttons">
+    <span class="group-divider__num">01</span>
+    <span class="group-divider__title">Buttons</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">5 variants · 5 states · 2 sizes</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>1.1</strong>PRIMARY · States</span>
+        <span class="cmp__row-meta">.btn--primary · 32px</span>
+      </div>
+      <div class="cmp__demo cmp__demo--grid">
+        <div class="cmp__cell">
+          <span class="cmp__cell-label">Default</span>
+          <button class="btn btn--primary">Save changes</button>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__cell-label">Hover</span>
+          <button class="btn btn--primary" style="background: var(--brand-hover);">Save changes</button>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__cell-label">Focus</span>
+          <button class="btn btn--primary is-focus">Save changes</button>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__cell-label">Loading</span>
+          <button class="btn btn--primary" disabled style="opacity:0.85;">
+            <span class="spinner"></span><span>Saving…</span>
+          </button>
+        </div>
+        <div class="cmp__cell">
+          <span class="cmp__cell-label">Disabled</span>
+          <button class="btn btn--primary" disabled>Save changes</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>1.2</strong>SECONDARY · States</span>
+        <span class="cmp__row-meta">.btn--secondary · 32px</span>
+      </div>
+      <div class="cmp__demo cmp__demo--grid">
+        <div class="cmp__cell"><span class="cmp__cell-label">Default</span><button class="btn btn--secondary">Create</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Hover</span><button class="btn btn--secondary" style="background: var(--surface-2);">Create</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Focus</span><button class="btn btn--secondary is-focus">Create</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Loading</span><button class="btn btn--secondary" disabled><span class="spinner"></span><span>Creating…</span></button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Disabled</span><button class="btn btn--secondary" disabled>Create</button></div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>1.3</strong>GHOST · States</span>
+        <span class="cmp__row-meta">.btn--ghost · 32px</span>
+      </div>
+      <div class="cmp__demo cmp__demo--grid">
+        <div class="cmp__cell"><span class="cmp__cell-label">Default</span><button class="btn btn--ghost">Cancel</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Hover</span><button class="btn btn--ghost" style="background: var(--surface-2); color: var(--text-primary);">Cancel</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Focus</span><button class="btn btn--ghost is-focus">Cancel</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Loading</span><button class="btn btn--ghost" disabled><span class="spinner"></span><span>Loading…</span></button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Disabled</span><button class="btn btn--ghost" disabled>Cancel</button></div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>1.4</strong>DESTRUCTIVE · States</span>
+        <span class="cmp__row-meta">.btn--destructive · 32px</span>
+      </div>
+      <div class="cmp__demo cmp__demo--grid">
+        <div class="cmp__cell"><span class="cmp__cell-label">Default</span><button class="btn btn--destructive">Delete</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Hover</span><button class="btn btn--destructive" style="background: var(--error-hover);">Delete</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Focus</span><button class="btn btn--destructive is-focus">Delete</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Loading</span><button class="btn btn--destructive" disabled><span class="spinner"></span><span>Deleting…</span></button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Disabled</span><button class="btn btn--destructive" disabled>Delete</button></div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>1.5</strong>ICON-ONLY · States</span>
+        <span class="cmp__row-meta">28×28 / 32×32 · ghost or secondary</span>
+      </div>
+      <div class="cmp__demo cmp__demo--grid">
+        <div class="cmp__cell"><span class="cmp__cell-label">Default</span><button class="btn btn--ghost btn--icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button></div>
+          <div class="cmp__cell"><span class="cmp__cell-label">Hover</span><button class="btn btn--ghost btn--icon" style="background: var(--surface-2); color: var(--text-primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Focus</span><button class="btn btn--ghost btn--icon is-focus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Loading</span><button class="btn btn--ghost btn--icon" disabled><span class="spinner"></span></button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Disabled</span><button class="btn btn--ghost btn--icon" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button></div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>1.6</strong>SIZES · Default 32 / Small 28</span>
+        <span class="cmp__row-meta">.btn--sm</span>
+      </div>
+      <div class="cmp__demo">
+        <button class="btn btn--primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add chapter</button>
+        <button class="btn btn--secondary">Upload</button>
+        <button class="btn btn--ghost">Cancel</button>
+        <button class="btn btn--destructive">Delete</button>
+        <span style="width: 16px;"></span>
+        <button class="btn btn--primary btn--sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add</button>
+        <button class="btn btn--secondary btn--sm">Edit</button>
+        <button class="btn btn--ghost btn--sm">More</button>
+        <button class="btn btn--destructive btn--sm">Remove</button>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>1.7</strong>ACTION VERBS · Real examples</span>
+        <span class="cmp__row-meta">school-context labels</span>
+      </div>
+      <div class="cmp__demo">
+        <button class="btn btn--primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Log period</button>
+        <button class="btn btn--primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>Upload lesson plan</button>
+        <button class="btn btn--secondary">Publish</button>
+        <button class="btn btn--secondary">Generate schedule</button>
+        <button class="btn btn--ghost">View details</button>
+        <button class="btn btn--destructive">Delete chapter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 02 — INPUTS ================ -->
+  <div class="group-divider" id="inputs">
+    <span class="group-divider__num">02</span>
+    <span class="group-divider__title">Form Inputs</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">6 types · 6 states</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>2.1</strong>TEXT INPUT · States</span>
+        <span class="cmp__row-meta">.input · 36px</span>
+      </div>
+      <div class="cmp__demo cmp__demo--grid-3">
+        <div class="field">
+          <span class="cmp__cell-label">Default</span>
+          <span class="field__label">Teacher name</span>
+          <input class="input" placeholder="e.g. Priya Deshmukh" />
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Focus</span>
+          <span class="field__label">Teacher name</span>
+          <input class="input is-focus" value="Priya Deshmukh" />
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Filled</span>
+          <span class="field__label">Teacher name</span>
+          <input class="input" value="Priya Deshmukh" />
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Disabled</span>
+          <span class="field__label">Teacher name</span>
+          <input class="input" value="Priya Deshmukh" disabled />
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Error</span>
+          <span class="field__label">Teacher name <span class="req">*</span></span>
+          <input class="input is-error" value="" placeholder="e.g. Priya Deshmukh" />
+          <div class="field__error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span>This field is required.</span></div>
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Success</span>
+          <span class="field__label">Teacher name</span>
+          <input class="input is-success" value="Priya Deshmukh" />
+          <div class="field__success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Available.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>2.2</strong>PASSWORD · Show/hide toggle</span>
+        <span class="cmp__row-meta">eye icon inside, right-aligned</span>
+      </div>
+      <div class="cmp__demo cmp__demo--grid-3">
+        <div class="field">
+          <span class="cmp__cell-label">Default · hidden</span>
+          <span class="field__label">Password</span>
+          <div class="input-wrap">
+            <input class="input has-suffix" type="password" value="••••••••" />
+            <button class="input-suffix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+          </div>
+          <div class="field__helper">Min. 8 characters, mixed case + number.</div>
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Visible</span>
+          <span class="field__label">Password</span>
+          <div class="input-wrap">
+            <input class="input has-suffix" type="text" value="Spring2026!" />
+            <button class="input-suffix" style="color: var(--text-primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg></button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Error</span>
+          <span class="field__label">Password</span>
+          <div class="input-wrap">
+            <input class="input has-suffix is-error" type="password" value="••••" />
+            <button class="input-suffix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+          </div>
+          <div class="field__error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span>At least 8 characters.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>2.3</strong>NUMBER · Period count</span>
+        <span class="cmp__row-meta">type="number"</span>
+      </div>
+      <div class="cmp__demo cmp__demo--grid-3">
+        <div class="field">
+          <span class="cmp__cell-label">Default</span>
+          <span class="field__label">Periods per week</span>
+          <input class="input" type="number" placeholder="0" />
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Filled · with helper</span>
+          <span class="field__label">Periods per week</span>
+          <input class="input" type="number" value="6" />
+          <div class="field__helper">Recommended: 5–8 per subject.</div>
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Disabled</span>
+          <span class="field__label">Periods per week</span>
+          <input class="input" type="number" value="6" disabled />
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>2.4</strong>DATE · Term boundary</span>
+        <span class="cmp__row-meta">type="date"</span>
+      </div>
+      <div class="cmp__demo cmp__demo--grid-3">
+        <div class="field">
+          <span class="cmp__cell-label">Default</span>
+          <span class="field__label">Term start date</span>
+          <input class="input" type="date" />
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Filled</span>
+          <span class="field__label">Term start date</span>
+          <input class="input" type="date" value="2026-06-15" />
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Error</span>
+          <span class="field__label">Term start date <span class="req">*</span></span>
+          <input class="input is-error" type="date" value="2025-06-15" />
+          <div class="field__error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span>Date must be within school year.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>2.5</strong>TEXTAREA · Lesson notes</span>
+        <span class="cmp__row-meta">.textarea · min 84px · char count</span>
+      </div>
+      <div class="cmp__demo cmp__demo--grid-3">
+        <div class="field">
+          <span class="cmp__cell-label">Default</span>
+          <div class="field__label-row">
+            <span class="field__label">Lesson notes</span>
+            <span class="field__helper field__helper--right">0 / 500</span>
+          </div>
+          <textarea class="textarea" placeholder="What was covered in this period?"></textarea>
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Filled</span>
+          <div class="field__label-row">
+            <span class="field__label">Lesson notes</span>
+            <span class="field__helper field__helper--right">147 / 500</span>
+          </div>
+          <textarea class="textarea">Covered chapters 3.1 and 3.2 on cell division. Students completed the diagram exercise. Will assign quiz on Friday to test recall.</textarea>
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Error · over limit</span>
+          <div class="field__label-row">
+            <span class="field__label">Lesson notes</span>
+            <span class="field__helper field__helper--right" style="color: var(--error);">512 / 500</span>
+          </div>
+          <textarea class="textarea" style="border-color: var(--error);">Covered chapters 3.1 and 3.2 on cell division. Students completed the diagram exercise. Will assign quiz on Friday to test recall. Plan to revisit mitosis stages next class with the projector for the animation.</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head">
+        <span class="cmp__row-label"><strong>2.6</strong>SELECT · Custom chevron</span>
+        <span class="cmp__row-meta">appearance: none</span>
+      </div>
+      <div class="cmp__demo cmp__demo--grid-3">
+        <div class="field">
+          <span class="cmp__cell-label">Default</span>
+          <span class="field__label">Standard</span>
+          <div class="select-wrap">
+            <select class="select"><option>Select a standard…</option><option>Standard I</option><option>Standard X</option></select>
+            <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Filled</span>
+          <span class="field__label">Standard</span>
+          <div class="select-wrap">
+            <select class="select"><option>Standard IX</option></select>
+            <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="field">
+          <span class="cmp__cell-label">Disabled</span>
+          <span class="field__label">Standard</span>
+          <div class="select-wrap">
+            <select class="select" disabled><option>Standard IX</option></select>
+            <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 03 — BADGES ================ -->
+  <div class="group-divider" id="badges">
+    <span class="group-divider__num">03</span>
+    <span class="group-divider__title">Badges &amp; Status Labels</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">7 variants · always paired with text</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>3.1</strong>VARIANTS</span><span class="cmp__row-meta">.badge</span></div>
+      <div class="cmp__demo">
+        <span class="badge badge--neutral">Neutral</span>
+        <span class="badge badge--success">Success</span>
+        <span class="badge badge--warning">Warning</span>
+        <span class="badge badge--error">Error</span>
+        <span class="badge badge--info">Info</span>
+        <span class="badge badge--brand">Brand</span>
+        <span class="badge badge--outline">Outline</span>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>3.2</strong>STATUS · With icons</span><span class="cmp__row-meta">period &amp; coverage states</span></div>
+      <div class="cmp__demo">
+        <span class="badge badge--brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Active</span>
+        <span class="badge badge--success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Done</span>
+        <span class="badge badge--warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Partial</span>
+        <span class="badge badge--error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Not done</span>
+        <span class="badge badge--warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Unlogged</span>
+        <span class="badge badge--neutral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>Cancelled</span>
+        <span class="badge badge--neutral">Buffer</span>
+        <span class="badge badge--outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Scheduled</span>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>3.3</strong>ROLE · Outline</span><span class="cmp__row-meta">used in topbar &amp; user lists</span></div>
+      <div class="cmp__demo">
+        <span class="badge badge--outline"><span style="width: 5px; height: 5px; border-radius: 50%; background: var(--brand);"></span>Admin</span>
+        <span class="badge badge--outline"><span style="width: 5px; height: 5px; border-radius: 50%; background: var(--info);"></span>Coordinator</span>
+        <span class="badge badge--outline"><span style="width: 5px; height: 5px; border-radius: 50%; background: var(--success);"></span>Teacher</span>
+        <span class="badge badge--outline">2026–27</span>
+        <span class="badge badge--outline">TERM 1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 04 — CARDS ================ -->
+  <div class="group-divider" id="cards">
+    <span class="group-divider__num">04</span>
+    <span class="group-divider__title">Cards</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">standard · stat · clickable · alert</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>4.1</strong>STANDARD CARD</span><span class="cmp__row-meta">header + body · hairline border, no shadow</span></div>
+      <div class="cmp__demo cmp__demo--grid-2">
+        <div class="card">
+          <div class="card__head">
+            <span class="card__title">Today's coverage</span>
+            <a href="#" class="card__action">View all →</a>
+          </div>
+          <div class="card__body">
+            <p class="card__placeholder">48 active classes · 94% of periods marked done by teachers. Eight periods remaining for the day.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card__head">
+            <span class="card__title">Unit plans</span>
+            <span class="badge badge--neutral">14</span>
+          </div>
+          <div class="card__body">
+            <p class="card__placeholder">Light reflection, Acids &amp; bases, Cell structure, Heat &amp; temperature, Newton's laws…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>4.2</strong>STAT CARD</span><span class="cmp__row-meta">label + value + sub + icon top-right</span></div>
+      <div class="cmp__demo cmp__demo--grid-4">
+        <div class="stat">
+          <div class="stat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg></div>
+          <span class="stat__label">Coverage today</span>
+          <div class="stat__value-row"><span class="stat__value">94</span><span class="stat__unit">%</span></div>
+          <span class="stat__sub"><strong>↑ 3.1%</strong> vs yesterday</span>
+        </div>
+        <div class="stat">
+          <div class="stat__icon stat__icon--info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+          <span class="stat__label">Teachers online</span>
+          <div class="stat__value-row"><span class="stat__value">32</span><span class="stat__unit">/ 38</span></div>
+          <span class="stat__sub">84% present</span>
+        </div>
+        <div class="stat">
+          <div class="stat__icon stat__icon--success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+          <span class="stat__label">Lessons logged</span>
+          <div class="stat__value-row"><span class="stat__value">187</span></div>
+          <span class="stat__sub">since 08:00 IST</span>
+        </div>
+        <div class="stat">
+          <div class="stat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+          <span class="stat__label">Active classes</span>
+          <div class="stat__value-row"><span class="stat__value">48</span></div>
+          <span class="stat__sub"><strong>↑ 2</strong> this week</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>4.3</strong>CLICKABLE CARD</span><span class="cmp__row-meta">hover state shown</span></div>
+      <div class="cmp__demo cmp__demo--grid-2">
+        <div class="card card--clickable">
+          <div class="card__head">
+            <span class="card__title">Standard IX-B</span>
+            <span class="badge badge--brand"><span style="width:5px;height:5px;border-radius:50%;background:currentColor"></span>Period 4</span>
+          </div>
+          <div class="card__body">
+            <p class="card__placeholder">English · Reading comprehension — Unit 02 · Ms Sharma · Room 204</p>
+          </div>
+        </div>
+        <div class="card card--clickable" style="background: var(--surface-2); border-color: var(--border-strong);">
+          <div class="card__head" style="border-bottom-color: var(--border-strong);">
+            <span class="card__title">Standard X-A <span class="text-muted-mono" style="margin-left: 8px;">HOVER STATE</span></span>
+            <span class="badge badge--neutral">Period 5</span>
+          </div>
+          <div class="card__body">
+            <p class="card__placeholder">English · Prose — Unit 04 · Ms Sharma · Room 206</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>4.4</strong>ALERT CARDS</span><span class="cmp__row-meta">info · warning · error · success</span></div>
+      <div class="cmp__demo cmp__demo--grid-2">
+        <div class="alert-card alert-card--info">
+          <span class="alert-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span>
+          <div class="alert-card__body">
+            <div class="alert-card__title">Schedule generated</div>
+            <div class="alert-card__text">127 period instances created for Term 1. Review and publish from Timetable.</div>
+            <div class="alert-card__action"><button class="btn btn--ghost btn--sm" style="padding: 0; color: var(--info);">Go to Timetable →</button></div>
+          </div>
+        </div>
+        <div class="alert-card alert-card--warning">
+          <span class="alert-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span>
+          <div class="alert-card__body">
+            <div class="alert-card__title">3 unlogged periods</div>
+            <div class="alert-card__text">From yesterday, May 17. Log them now or mark as cancelled.</div>
+          </div>
+        </div>
+        <div class="alert-card alert-card--error">
+          <span class="alert-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M15 9l-6 6"></path><path d="M9 9l6 6"></path></svg></span>
+          <div class="alert-card__body">
+            <div class="alert-card__title">Upload failed</div>
+            <div class="alert-card__text">"Light_reflection_p3.pdf" exceeds the 10MB limit. Compress and try again.</div>
+          </div>
+        </div>
+        <div class="alert-card alert-card--success">
+          <span class="alert-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+          <div class="alert-card__body">
+            <div class="alert-card__title">Term 1 published</div>
+            <div class="alert-card__text">All teachers can now see Term 1 schedule. Effective from June 15.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 05 — TABLES ================ -->
+  <div class="group-divider" id="tables">
+    <span class="group-divider__num">05</span>
+    <span class="group-divider__title">Data Tables</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">default · hover · empty · loading</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>5.1</strong>STANDARD TABLE · Default + row hover</span><span class="cmp__row-meta">2nd row showing hover</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="table-card">
+          <table class="tbl">
+            <thead><tr><th>Teacher</th><th>Role</th><th>Status</th><th>Coverage today</th><th class="tbl__action">Action</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="tbl__name">Priya Deshmukh</div>
+                  <div class="tbl__name-sub">priya.deshmukh@trs.edu</div>
+                </td>
+                <td><span class="badge badge--outline"><span style="width:5px;height:5px;border-radius:50%;background:var(--brand);"></span>Admin</span></td>
+                <td><span class="badge badge--success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>Online</span></td>
+                <td><div class="tbl__progress"><div class="prog"><div class="prog__bar"><div class="prog__fill" style="width: 100%;"></div></div><span class="prog__value">100%</span></div></div></td>
+                <td class="tbl__action"><button class="btn btn--ghost btn--sm">View</button></td>
+              </tr>
+              <tr class="is-hover">
+                <td>
+                  <div class="tbl__name">Rohan Karkare</div>
+                  <div class="tbl__name-sub">rohan.k@trs.edu <span class="text-muted-mono" style="margin-left: 6px;">HOVER</span></div>
+                </td>
+                <td><span class="badge badge--outline"><span style="width:5px;height:5px;border-radius:50%;background:var(--info);"></span>Coordinator</span></td>
+                <td><span class="badge badge--success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>Online</span></td>
+                <td><div class="tbl__progress"><div class="prog"><div class="prog__bar"><div class="prog__fill" style="width: 80%;"></div></div><span class="prog__value">80%</span></div></div></td>
+                <td class="tbl__action"><button class="btn btn--ghost btn--sm">View</button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="tbl__name">Anjali Sharma</div>
+                  <div class="tbl__name-sub">anjali.s@trs.edu</div>
+                </td>
+                <td><span class="badge badge--outline"><span style="width:5px;height:5px;border-radius:50%;background:var(--success);"></span>Teacher</span></td>
+                <td><span class="badge badge--success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>Online</span></td>
+                <td><div class="tbl__progress"><div class="prog"><div class="prog__bar"><div class="prog__fill prog__fill--warning" style="width: 66%;"></div></div><span class="prog__value">66%</span></div></div></td>
+                <td class="tbl__action"><button class="btn btn--ghost btn--sm">View</button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="tbl__name">Vikram Pawar</div>
+                  <div class="tbl__name-sub">vikram.p@trs.edu</div>
+                </td>
+                <td><span class="badge badge--outline"><span style="width:5px;height:5px;border-radius:50%;background:var(--success);"></span>Teacher</span></td>
+                <td><span class="badge badge--neutral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>Offline</span></td>
+                <td><div class="tbl__progress"><div class="prog"><div class="prog__bar"><div class="prog__fill prog__fill--error" style="width: 33%;"></div></div><span class="prog__value">33%</span></div></div></td>
+                <td class="tbl__action"><button class="btn btn--ghost btn--sm">View</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>5.2</strong>TABLE EMPTY STATE</span><span class="cmp__row-meta">filtered with no matches</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="table-card">
+          <table class="tbl">
+            <thead><tr><th>Teacher</th><th>Role</th><th>Status</th><th>Coverage today</th><th class="tbl__action">Action</th></tr></thead>
+          </table>
+          <div class="empty">
+            <div class="empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></div>
+            <div class="empty__title">No results found</div>
+            <div class="empty__body">Try adjusting your filters or clearing the search.</div>
+            <div class="empty__action"><button class="btn btn--ghost btn--sm">Clear filters</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>5.3</strong>TABLE LOADING · Skeleton</span><span class="cmp__row-meta">4 shimmer rows</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="table-card">
+          <table class="tbl">
+            <thead><tr><th>Teacher</th><th>Role</th><th>Status</th><th>Coverage today</th><th class="tbl__action">Action</th></tr></thead>
+            <tbody>
+              <tr><td><span class="skel skel--h16" style="width: 60%;"></span><span class="skel skel--h12" style="width: 80%; margin-top: 6px;"></span></td><td><span class="skel skel--h20" style="width: 80px; border-radius: 4px;"></span></td><td><span class="skel skel--h20" style="width: 70px; border-radius: 4px;"></span></td><td><span class="skel skel--h12"></span></td><td class="tbl__action"><span class="skel skel--h20" style="width: 50px; margin-left: auto; border-radius: 4px;"></span></td></tr>
+              <tr><td><span class="skel skel--h16" style="width: 50%;"></span><span class="skel skel--h12" style="width: 75%; margin-top: 6px;"></span></td><td><span class="skel skel--h20" style="width: 80px; border-radius: 4px;"></span></td><td><span class="skel skel--h20" style="width: 70px; border-radius: 4px;"></span></td><td><span class="skel skel--h12"></span></td><td class="tbl__action"><span class="skel skel--h20" style="width: 50px; margin-left: auto; border-radius: 4px;"></span></td></tr>
+              <tr><td><span class="skel skel--h16" style="width: 55%;"></span><span class="skel skel--h12" style="width: 78%; margin-top: 6px;"></span></td><td><span class="skel skel--h20" style="width: 80px; border-radius: 4px;"></span></td><td><span class="skel skel--h20" style="width: 70px; border-radius: 4px;"></span></td><td><span class="skel skel--h12"></span></td><td class="tbl__action"><span class="skel skel--h20" style="width: 50px; margin-left: auto; border-radius: 4px;"></span></td></tr>
+              <tr><td><span class="skel skel--h16" style="width: 65%;"></span><span class="skel skel--h12" style="width: 82%; margin-top: 6px;"></span></td><td><span class="skel skel--h20" style="width: 80px; border-radius: 4px;"></span></td><td><span class="skel skel--h20" style="width: 70px; border-radius: 4px;"></span></td><td><span class="skel skel--h12"></span></td><td class="tbl__action"><span class="skel skel--h20" style="width: 50px; margin-left: auto; border-radius: 4px;"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 06 — EMPTY STATES ================ -->
+  <div class="group-divider" id="empty">
+    <span class="group-divider__num">06</span>
+    <span class="group-divider__title">Empty States</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">4 patterns · always centered in container</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__demo cmp__demo--grid-2">
+        <div class="card">
+          <div class="card__head"><span class="card__title">Chapters</span></div>
+          <div class="empty">
+            <div class="empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg></div>
+            <div class="empty__title">No chapters yet</div>
+            <div class="empty__body">Add chapters in Setup to get started.</div>
+            <div class="empty__action"><button class="btn btn--secondary btn--sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add chapter</button></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__head"><span class="card__title">Search results</span></div>
+          <div class="empty">
+            <div class="empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="8" x2="14" y2="14"></line><line x1="14" y1="8" x2="8" y2="14"></line></svg></div>
+            <div class="empty__title">No results found</div>
+            <div class="empty__body">Try adjusting your filters.</div>
+            <div class="empty__action"><button class="btn btn--ghost btn--sm">Clear filters</button></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__head"><span class="card__title">This week's schedule</span></div>
+          <div class="empty">
+            <div class="empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="9" y1="14" x2="15" y2="20"></line><line x1="15" y1="14" x2="9" y2="20"></line></svg></div>
+            <div class="empty__title">No schedule generated</div>
+            <div class="empty__body">Go to Timetable to generate this week's schedule.</div>
+            <div class="empty__action"><button class="btn btn--secondary btn--sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Go to Timetable</button></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__head"><span class="card__title">Details</span></div>
+          <div class="empty">
+            <div class="empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path><path d="M13 13l6 6"></path></svg></div>
+            <div class="empty__title">Select an item</div>
+            <div class="empty__body">Choose from the list on the left to view details.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 07 — LOADING STATES ================ -->
+  <div class="group-divider" id="loading">
+    <span class="group-divider__num">07</span>
+    <span class="group-divider__title">Loading States</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">skeleton shimmer · spinners</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>7.1</strong>SKELETON · List row</span><span class="cmp__row-meta">shimmer animation 1.6s</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="table-card">
+          <div class="skel-row">
+            <span class="skel skel--circ" style="width: 32px; height: 32px;"></span>
+            <div class="skel-row__content">
+              <span class="skel skel--h16" style="width: 30%;"></span>
+              <span class="skel skel--h12" style="width: 55%;"></span>
+            </div>
+            <span class="skel skel--h20" style="width: 80px;"></span>
+          </div>
+          <div class="skel-row">
+            <span class="skel skel--circ" style="width: 32px; height: 32px;"></span>
+            <div class="skel-row__content">
+              <span class="skel skel--h16" style="width: 25%;"></span>
+              <span class="skel skel--h12" style="width: 48%;"></span>
+            </div>
+            <span class="skel skel--h20" style="width: 80px;"></span>
+          </div>
+          <div class="skel-row">
+            <span class="skel skel--circ" style="width: 32px; height: 32px;"></span>
+            <div class="skel-row__content">
+              <span class="skel skel--h16" style="width: 35%;"></span>
+              <span class="skel skel--h12" style="width: 60%;"></span>
+            </div>
+            <span class="skel skel--h20" style="width: 80px;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>7.2</strong>SKELETON · Card &amp; Stat</span><span class="cmp__row-meta">composed shimmer</span></div>
+      <div class="cmp__demo cmp__demo--grid-2">
+        <div class="card">
+          <div class="card__head"><span class="skel skel--h16" style="width: 35%;"></span><span class="skel skel--h20" style="width: 60px;"></span></div>
+          <div class="card__body" style="display: flex; flex-direction: column; gap: 10px;">
+            <span class="skel skel--h12" style="width: 90%;"></span>
+            <span class="skel skel--h12" style="width: 80%;"></span>
+            <span class="skel skel--h12" style="width: 65%;"></span>
+          </div>
+        </div>
+        <div class="stat">
+          <span class="skel skel--circ" style="width: 32px; height: 32px; position: absolute; top: 12px; right: 12px;"></span>
+          <span class="skel skel--h12" style="width: 45%;"></span>
+          <span class="skel skel--h28" style="width: 55%;"></span>
+          <span class="skel skel--h12" style="width: 70%;"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>7.3</strong>INLINE SPINNER · In context</span><span class="cmp__row-meta">used in buttons / labels</span></div>
+      <div class="cmp__demo">
+        <button class="btn btn--primary" disabled><span class="spinner"></span><span>Publishing…</span></button>
+        <button class="btn btn--secondary" disabled><span class="spinner"></span><span>Saving…</span></button>
+        <span class="inline-spinner"><span class="spinner"></span>Loading teachers…</span>
+        <span class="inline-spinner" style="color: var(--text-muted);"><span class="spinner"></span>Syncing with timetable</span>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>7.4</strong>FULL SECTION LOADER</span><span class="cmp__row-meta">centered spinner + label</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="card">
+          <div class="card__head"><span class="card__title">Loading content</span></div>
+          <div class="section-loader">
+            <div class="section-loader__spinner"></div>
+            <div class="section-loader__text">Fetching lessons…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 08 — EDITABLE ROW ================ -->
+  <div class="group-divider" id="editable">
+    <span class="group-divider__num">08</span>
+    <span class="group-divider__title">Editable Row</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">view · edit · delete confirm</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>8.1</strong>VIEW · default · with hover actions</span><span class="cmp__row-meta">actions fade in on hover</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="edit-row">
+          <div class="edit-row__content">
+            <span class="edit-row__primary">2026–27</span>
+            <span class="edit-row__meta">15 Jun 2026 — 30 Apr 2027</span>
+            <span class="badge badge--success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>Active</span>
+          </div>
+          <div class="edit-row__actions">
+            <button class="btn btn--ghost btn--icon btn--sm" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button>
+            <button class="btn btn--ghost btn--icon btn--sm" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"></path></svg></button>
+          </div>
+        </div>
+        <div class="edit-row">
+          <div class="edit-row__content">
+            <span class="edit-row__primary">2025–26</span>
+            <span class="edit-row__meta">15 Jun 2025 — 30 Apr 2026</span>
+            <span class="badge badge--neutral">Past</span>
+          </div>
+          <div class="edit-row__actions is-shown">
+            <button class="btn btn--ghost btn--icon btn--sm" title="Edit" style="background: var(--surface-2);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button>
+            <button class="btn btn--ghost btn--icon btn--sm" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"></path></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>8.2</strong>EDIT · inline form, brand light tint</span><span class="cmp__row-meta">expanded row</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="edit-row edit-row--editing">
+          <div class="edit-row__edit-head">
+            <span class="edit-row__edit-label">Editing school year</span>
+            <button class="btn btn--ghost btn--icon btn--sm" title="Cancel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+          </div>
+          <div class="edit-row__edit-form">
+            <div class="edit-row__field">
+              <span class="field__label">Label</span>
+              <input class="input" value="2026–27" style="margin-top: 6px;" />
+            </div>
+            <div class="edit-row__field">
+              <span class="field__label">Start date</span>
+              <input class="input" type="date" value="2026-06-15" style="margin-top: 6px;" />
+            </div>
+            <div class="edit-row__field">
+              <span class="field__label">End date</span>
+              <input class="input" type="date" value="2027-04-30" style="margin-top: 6px;" />
+            </div>
+          </div>
+          <div class="edit-row__edit-actions">
+            <button class="btn btn--ghost">Cancel</button>
+            <button class="btn btn--primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>8.3</strong>DELETE CONFIRM · inline, no modal</span><span class="cmp__row-meta">destructive in place</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="edit-row edit-row--confirm">
+          <div class="edit-row__content">
+            <span class="edit-row__confirm-text">Delete <strong>2025–26</strong>? This will archive all linked lessons and timetables.</span>
+          </div>
+          <div class="edit-row__actions is-shown" style="opacity: 1;">
+            <button class="btn btn--ghost btn--sm">Cancel</button>
+            <button class="btn btn--destructive btn--sm">Delete year</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 09 — PILL FILTERS ================ -->
+  <div class="group-divider" id="pills">
+    <span class="group-divider__num">09</span>
+    <span class="group-divider__title">Pill Filters</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">single-select · dark active</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>9.1</strong>STATES · default / hover / selected / disabled</span><span class="cmp__row-meta">28px height</span></div>
+      <div class="cmp__demo">
+        <div class="cmp__cell"><span class="cmp__cell-label">Default</span><button class="pill">Std 5</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Hover</span><button class="pill" style="background: var(--surface-2); color: var(--text-primary);">Std 5</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Selected</span><button class="pill is-selected">Std 5</button></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Disabled</span><button class="pill" disabled>Std 5</button></div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>9.2</strong>STANDARDS · All + I–X · horizontal scroll</span><span class="cmp__row-meta">Std VII selected</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="pill-row">
+          <span class="pill-row__label">Standard</span>
+          <button class="pill is-selected">All</button>
+          <button class="pill">Std I</button>
+          <button class="pill">Std II</button>
+          <button class="pill">Std III</button>
+          <button class="pill">Std IV</button>
+          <button class="pill">Std V</button>
+          <button class="pill">Std VI</button>
+          <button class="pill">Std VII</button>
+          <button class="pill">Std VIII</button>
+          <button class="pill">Std IX</button>
+          <button class="pill">Std X</button>
+        </div>
+        <div class="pill-row">
+          <span class="pill-row__label">Status</span>
+          <button class="pill">All</button>
+          <button class="pill is-selected">Pending</button>
+          <button class="pill">In progress</button>
+          <button class="pill">Complete</button>
+          <button class="pill" disabled>Archived</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 10 — PROGRESS BARS ================ -->
+  <div class="group-divider" id="progress">
+    <span class="group-divider__num">10</span>
+    <span class="group-divider__title">Progress Bars</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">4px tall · thresholded color</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>10.1</strong>COVERAGE · By threshold</span><span class="cmp__row-meta">success ≥ 70% · warning 40–69% · error &lt; 40%</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px 80px; max-width: 1000px;">
+          <div class="prog"><div class="prog__bar"><div class="prog__fill" style="width: 92%;"></div></div><span class="prog__value">92%</span></div>
+          <div class="prog"><div class="prog__bar"><div class="prog__fill" style="width: 100%;"></div></div><span class="prog__value">100%</span></div>
+          <div class="prog"><div class="prog__bar"><div class="prog__fill prog__fill--warning" style="width: 56%;"></div></div><span class="prog__value">56%</span></div>
+          <div class="prog"><div class="prog__bar"><div class="prog__fill prog__fill--warning" style="width: 64%;"></div></div><span class="prog__value">64%</span></div>
+          <div class="prog"><div class="prog__bar"><div class="prog__fill prog__fill--error" style="width: 22%;"></div></div><span class="prog__value">22%</span></div>
+          <div class="prog"><div class="prog__bar"><div class="prog__fill prog__fill--error" style="width: 38%;"></div></div><span class="prog__value">38%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>10.2</strong>UPLOAD · Fraction</span><span class="cmp__row-meta">x / y periods uploaded</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px 80px; max-width: 1000px;">
+          <div class="prog"><div class="prog__bar"><div class="prog__fill" style="width: 100%;"></div></div><span class="prog__value">7 / 7</span></div>
+          <div class="prog"><div class="prog__bar"><div class="prog__fill prog__fill--warning" style="width: 42%;"></div></div><span class="prog__value">3 / 7</span></div>
+          <div class="prog"><div class="prog__bar"><div class="prog__fill prog__fill--error" style="width: 14%;"></div></div><span class="prog__value">1 / 7</span></div>
+          <div class="prog"><div class="prog__bar"></div><span class="prog__value">0 / 7</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 11 — TOASTS ================ -->
+  <div class="group-divider" id="toasts">
+    <span class="group-divider__num">11</span>
+    <span class="group-divider__title">Toast Notifications</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">bottom-right · 360px · auto-dismiss</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>11.1</strong>STACK · 4 variants in position</span><span class="cmp__row-meta">success · error · warning · info</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="toast-stage">
+          <span class="toast-stage__label">PAGE BACKGROUND · TOAST CONTAINER BOTTOM-RIGHT</span>
+          <div class="toast-stack">
+            <div class="toast toast--info">
+              <span class="toast__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span>
+              <div class="toast__body">
+                <div class="toast__title">Schedule generated</div>
+                <div class="toast__text">127 period instances created for Term 1.</div>
+              </div>
+              <button class="toast__close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div class="toast toast--warning">
+              <span class="toast__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span>
+              <div class="toast__body">
+                <div class="toast__title">Unlogged periods</div>
+                <div class="toast__text">3 periods from yesterday need attention.</div>
+              </div>
+              <button class="toast__close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div class="toast toast--error">
+              <span class="toast__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M15 9l-6 6"></path><path d="M9 9l6 6"></path></svg></span>
+              <div class="toast__body">
+                <div class="toast__title">Upload failed</div>
+                <div class="toast__text">File exceeds 10MB limit.</div>
+              </div>
+              <button class="toast__close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div class="toast toast--success">
+              <span class="toast__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              <div class="toast__body">
+                <div class="toast__title">Period logged</div>
+                <div class="toast__text">Period 3 marked as done.</div>
+              </div>
+              <button class="toast__close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 12 — MODALS ================ -->
+  <div class="group-divider" id="modals">
+    <span class="group-divider__num">12</span>
+    <span class="group-divider__title">Modal Dialog</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">standard 480 · confirm 400 · dimmed overlay</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>12.1</strong>STANDARD · Period log</span><span class="cmp__row-meta">480px · status + notes</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="modal-stage">
+          <div class="modal modal--standard">
+            <div class="modal__head">
+              <span class="modal__title">Log Period 4 · IX-B · English</span>
+              <button class="modal__close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div class="modal__body">
+              <div class="field">
+                <span class="field__label">Status</span>
+                <div class="modal-status-row">
+                  <button class="modal-status-btn is-active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Done</button>
+                  <button class="modal-status-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line></svg>Partial</button>
+                  <button class="modal-status-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Not done</button>
+                  <button class="modal-status-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>Cancelled</button>
+                </div>
+              </div>
+              <div class="field">
+                <div class="field__label-row">
+                  <span class="field__label">Notes</span>
+                  <span class="field__helper field__helper--right">0 / 500</span>
+                </div>
+                <textarea class="textarea" placeholder="What was covered? Any chapter, topic, exercise…"></textarea>
+              </div>
+            </div>
+            <div class="modal__foot">
+              <button class="btn btn--ghost">Cancel</button>
+              <button class="btn btn--primary">Log period</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>12.2</strong>CONFIRM · Destructive</span><span class="cmp__row-meta">400px · warning icon</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="modal-stage">
+          <div class="modal modal--confirm">
+            <div class="modal__body" style="padding-top: 24px;">
+              <div class="modal-warn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              </div>
+              <div>
+                <h3 class="modal__title" style="font-size: 16px; margin-bottom: 4px;">Delete 2025–26 school year?</h3>
+                <p class="modal__body-text">This will archive all linked lessons, timetables, and teacher records. The year cannot be restored.</p>
+              </div>
+            </div>
+            <div class="modal__foot">
+              <button class="btn btn--ghost">Cancel</button>
+              <button class="btn btn--destructive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"></path></svg>Delete year</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 13 — TABS ================ -->
+  <div class="group-divider" id="tabs">
+    <span class="group-divider__num">13</span>
+    <span class="group-divider__title">Tab Navigation</span>
+    <span class="group-divider__line"></span>
+    <span class="group-divider__meta">page tabs · panel tabs</span>
+  </div>
+
+  <div class="cmp">
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>13.1</strong>PAGE TABS · Underlined</span><span class="cmp__row-meta">used in Setup, Timetable</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="tabs-page">
+          <button class="tabs-page__tab is-active">Overview</button>
+          <button class="tabs-page__tab">Standards <span class="tabs-page__count">10</span></button>
+          <button class="tabs-page__tab">Subjects <span class="tabs-page__count">12</span></button>
+          <button class="tabs-page__tab">Teachers <span class="tabs-page__count">38</span></button>
+          <button class="tabs-page__tab">Terms <span class="tabs-page__count">03</span></button>
+          <button class="tabs-page__tab" disabled>Archive</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>13.2</strong>STATES · default / hover / active / disabled</span><span class="cmp__row-meta">page tab variants</span></div>
+      <div class="cmp__demo">
+        <div class="cmp__cell"><span class="cmp__cell-label">Default</span><div class="tabs-page" style="border-bottom: none;"><button class="tabs-page__tab" style="border-bottom: 2px solid transparent;">Standards</button></div></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Hover</span><div class="tabs-page" style="border-bottom: none;"><button class="tabs-page__tab" style="color: var(--text-primary); border-bottom: 2px solid transparent;">Standards</button></div></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Active</span><div class="tabs-page" style="border-bottom: none;"><button class="tabs-page__tab is-active">Standards</button></div></div>
+        <div class="cmp__cell"><span class="cmp__cell-label">Disabled</span><div class="tabs-page" style="border-bottom: none;"><button class="tabs-page__tab" disabled style="border-bottom: 2px solid transparent;">Standards</button></div></div>
+      </div>
+    </div>
+
+    <div class="cmp__row">
+      <div class="cmp__row-head"><span class="cmp__row-label"><strong>13.3</strong>PANEL TABS · Pill-style</span><span class="cmp__row-meta">used in Upload panel</span></div>
+      <div class="cmp__demo cmp__demo--stack">
+        <div class="tabs-panel">
+          <button class="tabs-panel__tab is-active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Lesson plans</button>
+          <button class="tabs-panel__tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>MCQs</button>
+          <button class="tabs-panel__tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>Test</button>
+          <button class="tabs-panel__tab" disabled>Solutions</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

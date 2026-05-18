@@ -3,53 +3,93 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import type { CSSProperties, ElementType } from "react";
 import { createClient } from "@/lib/supabase";
 import {
-  Sidebar, SidebarContent, SidebarFooter,
-  SidebarGroup, SidebarGroupLabel, SidebarHeader,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import {
-  Settings, BookOpen, CalendarDays,
-  LayoutDashboard, LogOut, Users,
+  BookOpen,
+  CalendarDays,
+  GraduationCap,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/role-access";
 
 type NavItem = {
   title: string;
   href: string;
-  icon: React.ElementType;
+  icon: ElementType;
   roles: UserRole[];
+  shortcut?: string;
 };
 
 const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: "Admin",
     items: [
-      { title: "Admin Dashboard", href: "/admin", icon: LayoutDashboard, roles: ["admin"] },
-      { title: "Users", href: "/admin/users", icon: Users, roles: ["admin"] },
+      { title: "Dashboard", href: "/admin", icon: LayoutDashboard, roles: ["admin", "coordinator"], shortcut: "G D" },
       { title: "Setup", href: "/setup", icon: Settings, roles: ["admin"] },
       { title: "Timetable", href: "/timetable", icon: CalendarDays, roles: ["admin"] },
+      { title: "Users", href: "/admin/users", icon: Users, roles: ["admin"] },
     ],
   },
   {
     label: "Content",
     items: [
-      { title: "Content", href: "/content", icon: BookOpen, roles: ["admin", "coordinator"] },
+      { title: "Content", href: "/content", icon: BookOpen, roles: ["admin", "coordinator"], shortcut: "G C" },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { title: "Teacher View", href: "/teacher", icon: GraduationCap, roles: ["admin", "coordinator", "teacher"] },
     ],
   },
 ];
 
 const sidebarStyle = {
-  "--sidebar-background":         "#1c0509",
-  "--sidebar-foreground":         "#f0dede",
-  "--sidebar-primary":            "#ba2032",
-  "--sidebar-primary-foreground": "#ffffff",
-  "--sidebar-accent":             "rgba(186,32,50,0.25)",
-  "--sidebar-accent-foreground":  "#f0dede",
-  "--sidebar-border":             "rgba(255,255,255,0.07)",
-} as React.CSSProperties;
+  "--sidebar-background": "var(--sidebar-bg)",
+  "--sidebar-foreground": "var(--sidebar-text)",
+  "--sidebar-primary": "var(--sidebar-active-bg)",
+  "--sidebar-primary-foreground": "var(--sidebar-active-text)",
+  "--sidebar-accent": "var(--sidebar-bg-hover)",
+  "--sidebar-accent-foreground": "var(--sidebar-text-active)",
+  "--sidebar-border": "var(--sidebar-border)",
+  "--sidebar-ring": "var(--brand)",
+} as CSSProperties;
+
+const roleTone: Record<UserRole, string> = {
+  admin: "bg-brand",
+  coordinator: "bg-info",
+  teacher: "bg-success",
+};
+
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "TR";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
+function isActivePath(pathname: string, href: string) {
+  if (href === "/admin") return pathname === "/admin";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 interface AppSidebarProps {
   role: UserRole | null;
@@ -58,7 +98,8 @@ interface AppSidebarProps {
 
 export function AppSidebar({ role, teacherName }: AppSidebarProps) {
   const pathname = usePathname();
-  const router   = useRouter();
+  const router = useRouter();
+  const displayRole = role ?? "teacher";
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -68,8 +109,9 @@ export function AppSidebar({ role, teacherName }: AppSidebarProps) {
   }
 
   return (
-    <Sidebar style={sidebarStyle}>
-      <SidebarHeader className="px-4 py-4">
+    <TooltipProvider>
+      <Sidebar collapsible="icon" style={sidebarStyle} className="border-r border-sidebar-border">
+      <SidebarHeader className="h-14 justify-center border-b border-sidebar-border px-3 py-0 group-data-[collapsible=icon]:px-0">
         <Image
           src="/logo.png"
           alt="The Rosary School"
@@ -79,9 +121,7 @@ export function AppSidebar({ role, teacherName }: AppSidebarProps) {
         />
       </SidebarHeader>
 
-      <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", margin: "0 8px" }} />
-
-      <SidebarContent className="px-2 py-3">
+      <SidebarContent className="gap-1 px-2 py-3">
         {navGroups.map((group) => {
           const visibleItems = group.items.filter(
             (item) => role && item.roles.includes(role)
@@ -89,35 +129,45 @@ export function AppSidebar({ role, teacherName }: AppSidebarProps) {
           if (visibleItems.length === 0) return null;
 
           return (
-            <SidebarGroup key={group.label} className="mb-2 p-0">
-              <SidebarGroupLabel
-                style={{
-                  fontSize: "10px", fontWeight: 600,
-                  letterSpacing: "0.1em", textTransform: "uppercase",
-                  color: "rgba(240,222,222,0.4)", padding: "0 12px", marginBottom: "4px",
-                }}
-              >
+            <SidebarGroup key={group.label} className="mb-2 p-0 group-data-[collapsible=icon]:mb-1">
+              <SidebarGroupLabel className="h-auto px-2 pb-1.5 pt-2.5 group-data-[collapsible=icon]:hidden">
                 {group.label}
               </SidebarGroupLabel>
-              <SidebarMenu>
+              <SidebarMenu className="gap-0.5">
                 {visibleItems.map((item) => {
-                  const isActive = pathname === item.href;
+                  const isActive = isActivePath(pathname, item.href);
+                  const Icon = item.icon;
+
                   return (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton
                         asChild
                         isActive={isActive}
-                        style={{
-                          borderRadius: "8px", height: "36px",
-                          padding: "0 12px", fontSize: "13px",
-                          fontWeight: isActive ? 500 : 400,
-                          color: isActive ? "#ffffff" : "rgba(240,222,222,0.7)",
-                          background: isActive ? "#ba2032" : "transparent",
-                        }}
+                        tooltip={item.title}
+                        className={cn(
+                          "h-8 gap-2.5 px-2 text-[13px] font-medium transition-colors group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0",
+                          isActive
+                            ? "bg-brand text-white hover:bg-brand hover:text-white [&_svg]:text-white"
+                            : "text-text-secondary hover:bg-surface-2 hover:text-foreground [&_svg]:text-text-muted hover:[&_svg]:text-text-secondary"
+                        )}
                       >
                         <Link href={item.href}>
-                          <item.icon style={{ width: "15px", height: "15px", opacity: isActive ? 1 : 0.7 }} />
-                          <span>{item.title}</span>
+                          <Icon className="size-[15px]" />
+                          <span className="truncate group-data-[collapsible=icon]:hidden">
+                            {item.title}
+                          </span>
+                          {item.shortcut && (
+                            <span
+                              className={cn(
+                                "ml-auto rounded-[3px] border px-1.5 py-px font-mono text-[10px] group-data-[collapsible=icon]:hidden",
+                                isActive
+                                  ? "border-white/30 bg-white/10 text-white/95"
+                                  : "border-border bg-surface text-text-muted"
+                              )}
+                            >
+                              {item.shortcut}
+                            </span>
+                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -129,32 +179,33 @@ export function AppSidebar({ role, teacherName }: AppSidebarProps) {
         })}
       </SidebarContent>
 
-      <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", margin: "0 8px" }} />
+      <div className="flex items-center gap-2 px-4 pb-2 pt-2 font-mono text-[10px] tracking-[0.04em] text-text-muted group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+        <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-brand shadow-[0_0_6px_rgba(186,32,50,0.4)]" />
+        <span className="group-data-[collapsible=icon]:hidden">LIVE · SCHOOL OPS</span>
+      </div>
 
-      <SidebarFooter className="p-4">
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-col gap-0.5">
-            <span style={{ fontSize: "12px", fontWeight: 500, color: "rgba(240,222,222,0.9)" }}>
-              {teacherName}
-            </span>
-            {role && (
-              <span style={{ fontSize: "10px", color: "rgba(240,222,222,0.75)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                Role: {role}
-              </span>
-            )}
+      <SidebarFooter className="h-[60px] justify-center border-t border-sidebar-border p-0">
+        <div className="flex w-full items-center gap-2.5 px-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+          <div className={cn("flex size-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold tracking-[0.02em] text-white", roleTone[displayRole])}>
+            {getInitials(teacherName)}
+          </div>
+          <div className="min-w-0 flex-1 leading-tight group-data-[collapsible=icon]:hidden">
+            <div className="truncate text-[13px] font-medium text-foreground">{teacherName}</div>
+            <div className="truncate text-[11px] capitalize text-text-muted">{displayRole}</div>
           </div>
           <Button
             variant="ghost"
-            size="sm"
-            className="w-full justify-start gap-2 h-8 px-2 text-xs"
-            style={{ color: "rgba(240,222,222,0.5)" }}
+            size="icon-sm"
+            className="size-7 text-text-muted hover:bg-surface-2 hover:text-foreground group-data-[collapsible=icon]:hidden"
             onClick={handleSignOut}
+            title="Sign out"
           >
-            <LogOut className="h-3.5 w-3.5" />
-            Sign out
+            <LogOut className="size-[15px]" />
+            <span className="sr-only">Sign out</span>
           </Button>
         </div>
       </SidebarFooter>
-    </Sidebar>
+      </Sidebar>
+    </TooltipProvider>
   );
 }

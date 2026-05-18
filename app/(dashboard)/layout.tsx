@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
-import { PageHeader } from "@/components/layout/page-header";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { ShellTopbar } from "@/components/layout/page-header";
 import { Toaster } from "@/components/ui/sonner";
 import { getUser, getTeacherProfile } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase-admin";
+import type { UserRole } from "@/lib/role-access";
 
 export default async function DashboardLayout({
   children,
@@ -15,17 +16,22 @@ export default async function DashboardLayout({
   if (!user) redirect("/sign-in");
 
   const profile = await getTeacherProfile();
+  const role = (profile?.role as UserRole | undefined) ?? null;
+  const admin = createAdminClient();
+  const { data: activeSchoolYear } = await admin
+    .from("school_year")
+    .select("name")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   return (
     <SidebarProvider>
-      <AppSidebar role={profile?.role ?? null} teacherName={profile?.name ?? user.email ?? ""} />
-      <SidebarInset>
-        <header className="flex h-12 items-center gap-3 border-b px-4 shrink-0">
-          <SidebarTrigger className="h-7 w-7" />
-          <Separator orientation="vertical" className="h-4" />
-          <PageHeader />
-        </header>
-        <main className="flex flex-col flex-1 p-6 overflow-auto">
+      <AppSidebar role={role} teacherName={profile?.name ?? user.email ?? ""} />
+      <SidebarInset className="overflow-hidden">
+        <ShellTopbar role={role} schoolYearName={activeSchoolYear?.name ?? null} />
+        <main className="flex flex-1 flex-col overflow-auto bg-background p-6">
           {children}
         </main>
       </SidebarInset>

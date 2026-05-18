@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRS School OS — App Shell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Neutrals */
+    --background: #FAFAFA;
+    --surface: #FFFFFF;
+    --surface-2: #F5F5F5;
+    --surface-3: #EFEFEF;
+    --border: #E5E5E5;
+    --border-strong: #D4D4D4;
+    --text-primary: #171717;
+    --text-secondary: #525252;
+    --text-muted: #A3A3A3;
+    --text-disabled: #D4D4D4;
+    /* Brand */
+    --brand: #ba2032;
+    --brand-hover: #a01b2b;
+    --brand-light: #FDF2F3;
+    --brand-border: #F8D7DC;
+    /* Semantic */
+    --success: #16A34A;
+    --info: #2563EB;
+    --info-light: #EFF6FF;
+    --info-border: #BFDBFE;
+    --warning: #D97706;
+    --error: #DC2626;
+    /* Type */
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #EFEFEF;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ==================== DOC SHELL ==================== */
+  .doc {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 56px 40px 96px;
+  }
+  .doc-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 56px;
+  }
+  .doc-header__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .doc-header__eyebrow .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--brand);
+  }
+  .doc-header__title {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+  }
+  .doc-header__sub {
+    color: var(--text-secondary);
+    font-size: 14px;
+    max-width: 620px;
+    line-height: 1.6;
+  }
+  .doc-header__meta {
+    display: flex; gap: 32px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .doc-header__meta span strong {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+
+  /* Group divider */
+  .group-divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 64px 0 24px;
+  }
+  .group-divider:first-of-type { margin-top: 0; }
+  .group-divider__num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--brand);
+    font-weight: 500;
+  }
+  .group-divider__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+  .group-divider__line { flex: 1; height: 1px; background: var(--border); }
+
+  .screen-section { margin-bottom: 28px; }
+  .screen-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 0 4px 12px;
+  }
+  .screen-head__left { display: flex; align-items: center; gap: 14px; }
+  .screen-head__id {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-secondary); background: var(--surface);
+    border: 1px solid var(--border); padding: 3px 8px; border-radius: 4px;
+  }
+  .screen-head__name { font-size: 12px; color: var(--text-secondary); }
+  .screen-head__name span { color: var(--text-primary); }
+  .screen-head__pill {
+    font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
+  }
+
+  /* ==================== FRAME ==================== */
+  .frame {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    width: 1280px;
+    height: 800px;
+    display: flex;
+    position: relative;
+  }
+
+  /* ==================== SIDEBAR — LIGHT ==================== */
+  .sb {
+    width: 220px;
+    background: var(--surface);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    height: 100%;
+  }
+  .sb--collapsed { width: 52px; }
+
+  .sb__header {
+    height: 56px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sb__logo-mark {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    background: var(--brand);
+    display: flex; align-items: center; justify-content: center;
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+  .sb__logo-text {
+    display: flex; flex-direction: column;
+    line-height: 1.25;
+    overflow: hidden;
+  }
+  .sb__logo-primary {
+    font-size: 13px; font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .sb__logo-secondary {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .sb--collapsed .sb__logo-text { display: none; }
+  .sb--collapsed .sb__header { justify-content: center; padding: 0; }
+
+  .sb__nav {
+    padding: 12px 8px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+    gap: 4px;
+  }
+  .sb__group { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+  .sb__group-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 10px 8px 6px;
+    font-family: var(--font-sans);
+  }
+  .sb--collapsed .sb__group-label { display: none; }
+  .sb--collapsed .sb__group { gap: 2px; margin-bottom: 6px; }
+
+  .sb__item {
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 6px;
+    display: flex; align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    text-decoration: none;
+    transition: background 0.12s, color 0.12s;
+    cursor: pointer;
+    position: relative;
+  }
+  .sb__item-icon {
+    width: 15px; height: 15px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.12s;
+  }
+  .sb__item-icon svg { width: 15px; height: 15px; display: block; }
+  .sb__item-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sb__item-kbd {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+
+  .sb__item:hover {
+    background: var(--surface-2);
+    color: var(--text-primary);
+  }
+  .sb__item:hover .sb__item-icon { color: var(--text-secondary); }
+
+  .sb__item.is-active {
+    background: var(--brand);
+    color: #FFFFFF;
+  }
+  .sb__item.is-active .sb__item-icon { color: #FFFFFF; }
+  .sb__item.is-active .sb__item-kbd {
+    color: rgba(255,255,255,0.95);
+    border-color: rgba(255,255,255,0.32);
+    background: rgba(255,255,255,0.12);
+  }
+
+  .sb--collapsed .sb__item-label,
+  .sb--collapsed .sb__item-kbd { display: none; }
+  .sb--collapsed .sb__item {
+    padding: 0;
+    justify-content: center;
+    width: 36px;
+    margin: 0 auto;
+  }
+
+  /* Ops pulse just above footer */
+  .sb__ops {
+    padding: 10px 16px 8px;
+    display: flex; align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+  .sb__ops-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--brand);
+    box-shadow: 0 0 6px rgba(186,32,50,0.4);
+    flex-shrink: 0;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  .sb__ops-text { letter-spacing: 0.04em; }
+  .sb--collapsed .sb__ops { padding: 8px 0; justify-content: center; }
+  .sb--collapsed .sb__ops-text { display: none; }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* Footer */
+  .sb__footer {
+    height: 60px;
+    padding: 0 12px;
+    display: flex; align-items: center;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .sb__avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #FFFFFF;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+  .sb__user {
+    flex: 1;
+    display: flex; flex-direction: column;
+    line-height: 1.25;
+    overflow: hidden;
+  }
+  .sb__user-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .sb__user-role {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: capitalize;
+  }
+  .sb__signout {
+    width: 28px; height: 28px;
+    border-radius: 4px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: color 0.12s, background 0.12s;
+  }
+  .sb__signout:hover {
+    background: var(--surface-2);
+    color: var(--text-primary);
+  }
+  .sb__signout svg { width: 15px; height: 15px; }
+  .sb--collapsed .sb__footer {
+    padding: 0;
+    justify-content: center;
+  }
+  .sb--collapsed .sb__user,
+  .sb--collapsed .sb__signout { display: none; }
+
+  /* Tooltip for collapsed nav (light) */
+  .tooltip {
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--surface);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    z-index: 10;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    pointer-events: none;
+  }
+  .tooltip::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 7px; height: 7px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ==================== MAIN AREA ==================== */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--background);
+  }
+
+  /* ==================== TOPBAR ==================== */
+  .tb {
+    height: 48px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px 0 4px;
+    flex-shrink: 0;
+  }
+  .tb__left { display: flex; align-items: center; gap: 0; }
+  .tb__toggle {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+    margin-left: 8px;
+  }
+  .tb__toggle:hover {
+    background: var(--surface-2);
+    color: var(--text-primary);
+  }
+  .tb__toggle svg { width: 16px; height: 16px; }
+  .tb__divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border);
+    margin: 0 8px;
+  }
+  .tb__title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.005em;
+  }
+  .tb__crumb-sep {
+    color: var(--text-disabled);
+    margin: 0 8px;
+    font-size: 13px;
+  }
+  .tb__crumb-section {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .tb__right {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .tb__search {
+    display: inline-flex; align-items: center;
+    gap: 8px;
+    height: 28px;
+    padding: 0 8px 0 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    cursor: text;
+    transition: border-color 0.12s, background 0.12s;
+    min-width: 200px;
+  }
+  .tb__search:hover {
+    background: var(--surface);
+    border-color: var(--border-strong);
+  }
+  .tb__search svg {
+    width: 13px; height: 13px;
+    color: var(--text-muted);
+  }
+  .tb__search-kbd {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center;
+    gap: 6px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    line-height: 1;
+  }
+  .badge--outline {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+  .badge--admin {
+    background: var(--brand);
+    color: #FFFFFF;
+  }
+  .badge--coordinator {
+    background: var(--info-light);
+    color: var(--info);
+    border: 1px solid var(--info-border);
+  }
+  .badge--teacher {
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .badge__dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.75;
+  }
+  .badge--admin .badge__dot { opacity: 0.85; }
+
+  .tb__clock {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    padding-left: 10px;
+    border-left: 1px solid var(--border);
+    height: 22px;
+  }
+  .tb__clock-live {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px rgba(22, 163, 74, 0.4);
+  }
+
+  /* ==================== PAGE WRAPPER ==================== */
+  .pg {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    background: var(--background);
+  }
+  .pg__header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 24px;
+  }
+  .pg__title {
+    font-size: 20px; font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .pg__subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .pg__actions {
+    display: flex; gap: 8px;
+  }
+  .btn {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .btn--primary {
+    background: var(--brand); color: #FFFFFF;
+  }
+  .btn--primary:hover { background: var(--brand-hover); }
+  .btn--secondary {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+  .btn--secondary:hover { background: var(--surface-2); }
+  .btn svg { width: 13px; height: 13px; }
+
+  /* Placeholder content */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .kpi__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .kpi__value {
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .kpi__num {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .kpi__unit {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .kpi__delta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--success);
+  }
+  .kpi__delta.is-down { color: var(--error); }
+
+  .body-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+  }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .panel__head {
+    padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel__title {
+    font-size: 13px; font-weight: 600;
+    color: var(--text-primary);
+  }
+  .panel__meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .panel__body { padding: 16px; }
+
+  .chart-ph {
+    height: 220px;
+    display: flex; align-items: flex-end; gap: 4px;
+    padding: 12px 4px;
+  }
+  .chart-ph__bar {
+    flex: 1;
+    background: var(--surface-3);
+    border-radius: 3px 3px 0 0;
+  }
+  .chart-ph__bar.is-accent { background: var(--brand); opacity: 0.9; }
+  .chart-ph__bar.is-muted { background: var(--surface-3); }
+
+  .chart-legend {
+    display: flex; justify-content: space-between;
+    padding: 0 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .activity-list { display: flex; flex-direction: column; gap: 0; }
+  .activity-list__item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .activity-list__item:last-child { border-bottom: none; }
+  .activity-list__dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-disabled);
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .activity-list__dot.is-brand { background: var(--brand); }
+  .activity-list__dot.is-green { background: var(--success); }
+  .activity-list__content { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .activity-list__text {
+    font-size: 13px; color: var(--text-primary);
+    line-height: 1.4;
+  }
+  .activity-list__text strong { font-weight: 500; }
+  .activity-list__meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ==================== TOPBAR VARIANTS SECTION ==================== */
+  .strip-stack {
+    display: flex; flex-direction: column;
+    gap: 16px;
+  }
+  .strip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    width: 1000px;
+  }
+
+  /* ==================== STATE ROW SECTIONS — LIGHT ==================== */
+  .state-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .state-card {
+    background: var(--surface);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 18px;
+    width: 260px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .state-card__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .state-card__label strong {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-right: 6px;
+  }
+  .state-card__nav { display: flex; flex-direction: column; gap: 4px; }
+  .state-card__note {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .state-card__note span { color: var(--text-secondary); }
+
+  /* Footer variants */
+  .footer-row {
+    display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  .footer-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    width: 280px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .footer-card__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .footer-card__label strong { color: var(--text-primary); font-weight: 500; margin-right: 6px; }
+  .footer-card__sb {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 220px;
+    overflow: hidden;
+  }
+
+  /* Avatar tints by role */
+  .av-admin { background: var(--brand); }
+  .av-coord { background: var(--info); }
+  .av-teach { background: var(--success); }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- DOC HEADER -->
+  <header class="doc-header">
+    <div>
+      <div class="doc-header__eyebrow"><span class="dot"></span>TRS / MODULE 02 / APP SHELL</div>
+      <h1 class="doc-header__title">App Shell</h1>
+      <p class="doc-header__sub">All-light persistent sidebar + topbar. Brand red is the single accent that does the work — active nav, brand mark, live operational pulse.</p>
+    </div>
+    <div class="doc-header__meta">
+      <span>SECTIONS<strong>07</strong></span>
+      <span>ROLES<strong>03</strong></span>
+      <span>UPDATED<strong>2026.05.18</strong></span>
+    </div>
+  </header>
+
+  <!-- ================ 01 — FULL SHELL ADMIN ================ -->
+  <div class="group-divider">
+    <span class="group-divider__num">01</span>
+    <span class="group-divider__title">Full Shell · Admin</span>
+    <span class="group-divider__line"></span>
+  </div>
+
+  <section class="screen-section">
+    <div class="screen-head">
+      <div class="screen-head__left">
+        <span class="screen-head__id">1.1</span>
+        <span class="screen-head__name">App Shell · <span>Admin Dashboard</span></span>
+      </div>
+      <span class="screen-head__pill">1280×800 · 220px sidebar · all 3 groups</span>
+    </div>
+    <div class="frame">
+      <aside class="sb">
+        <div class="sb__header">
+          <div class="sb__logo-mark">TRS</div>
+          <div class="sb__logo-text">
+            <span class="sb__logo-primary">School OS</span>
+            <span class="sb__logo-secondary">The Rosary School</span>
+          </div>
+        </div>
+        <nav class="sb__nav">
+          <div class="sb__group">
+            <div class="sb__group-label">Admin</div>
+            <a class="sb__item is-active" href="#">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg></span>
+              <span class="sb__item-label">Dashboard</span>
+              <span class="sb__item-kbd">G D</span>
+            </a>
+            <a class="sb__item" href="#">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
+              <span class="sb__item-label">Setup</span>
+            </a>
+            <a class="sb__item" href="#">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path></svg></span>
+              <span class="sb__item-label">Timetable</span>
+            </a>
+            <a class="sb__item" href="#">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+              <span class="sb__item-label">Users</span>
+            </a>
+          </div>
+          <div class="sb__group">
+            <div class="sb__group-label">Content</div>
+            <a class="sb__item" href="#">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
+              <span class="sb__item-label">Content</span>
+            </a>
+          </div>
+          <div class="sb__group">
+            <div class="sb__group-label">Operations</div>
+            <a class="sb__item" href="#">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></span>
+              <span class="sb__item-label">Teacher View</span>
+            </a>
+          </div>
+        </nav>
+        <div class="sb__ops">
+          <span class="sb__ops-dot"></span>
+          <span class="sb__ops-text">LIVE · PERIOD 04 / 08</span>
+        </div>
+        <div class="sb__footer">
+          <div class="sb__avatar av-admin">PD</div>
+          <div class="sb__user">
+            <span class="sb__user-name">Priya Deshmukh</span>
+            <span class="sb__user-role">Admin</span>
+          </div>
+          <button class="sb__signout" title="Sign out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          </button>
+        </div>
+      </aside>
+      <div class="main">
+        <header class="tb">
+          <div class="tb__left">
+            <button class="tb__toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></button>
+            <span class="tb__divider"></span>
+            <span class="tb__crumb-section">ADMIN</span>
+            <span class="tb__crumb-sep">/</span>
+            <span class="tb__title">Dashboard</span>
+          </div>
+          <div class="tb__right">
+            <span class="tb__search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <span>Search the school…</span>
+              <span class="tb__search-kbd">⌘K</span>
+            </span>
+            <span class="badge badge--outline">2026–27</span>
+            <span class="badge badge--admin"><span class="badge__dot"></span>Admin</span>
+            <span class="tb__clock">
+              <span class="tb__clock-live"></span>
+              <span>12:47 IST</span>
+            </span>
+          </div>
+        </header>
+        <div class="pg">
+          <div class="pg__header">
+            <div>
+              <h1 class="pg__title">Dashboard</h1>
+              <p class="pg__subtitle">Live coverage across The Rosary School &amp; Jr. College · Mon 18 May.</p>
+            </div>
+            <div class="pg__actions">
+              <button class="btn btn--secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export
+              </button>
+              <button class="btn btn--primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New announcement
+              </button>
+            </div>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi"><span class="kpi__label">Active classes</span><div class="kpi__value"><span class="kpi__num">48</span><span class="kpi__delta">↑ 2</span></div></div>
+            <div class="kpi"><span class="kpi__label">Coverage today</span><div class="kpi__value"><span class="kpi__num">94</span><span class="kpi__unit">%</span><span class="kpi__delta">↑ 3.1</span></div></div>
+            <div class="kpi"><span class="kpi__label">Teachers online</span><div class="kpi__value"><span class="kpi__num">32</span><span class="kpi__unit">/ 38</span></div></div>
+            <div class="kpi"><span class="kpi__label">Lessons logged</span><div class="kpi__value"><span class="kpi__num">187</span><span class="kpi__delta is-down">↓ 4</span></div></div>
+          </div>
+          <div class="body-grid">
+            <div class="panel">
+              <div class="panel__head">
+                <span class="panel__title">Coverage by period</span>
+                <span class="panel__meta">TODAY · 8 PERIODS</span>
+              </div>
+              <div class="panel__body">
+                <div class="chart-ph">
+                  <div class="chart-ph__bar" style="height: 60%;"></div>
+                  <div class="chart-ph__bar" style="height: 78%;"></div>
+                  <div class="chart-ph__bar" style="height: 88%;"></div>
+                  <div class="chart-ph__bar is-accent" style="height: 96%;"></div>
+                  <div class="chart-ph__bar is-muted" style="height: 30%;"></div>
+                  <div class="chart-ph__bar is-muted" style="height: 30%;"></div>
+                  <div class="chart-ph__bar is-muted" style="height: 30%;"></div>
+                  <div class="chart-ph__bar is-muted" style="height: 30%;"></div>
+                </div>
+                <div class="chart-legend">
+                  <span>P1</span><span>P2</span><span>P3</span><span>P4 · NOW</span><span>P5</span><span>P6</span><span>P7</span><span>P8</span>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel__head">
+                <span class="panel__title">Recent activity</span>
+                <span class="panel__meta">LIVE</span>
+              </div>
+              <div class="panel__body">
+                <div class="activity-list">
+                  <div class="activity-list__item">
+                    <div class="activity-list__dot is-brand"></div>
+                    <div class="activity-list__content">
+                      <span class="activity-list__text"><strong>Ms Khan</strong> started Period 4 · IX-B</span>
+                      <span class="activity-list__meta">12:47 IST · 2 min ago</span>
+                    </div>
+                  </div>
+                  <div class="activity-list__item">
+                    <div class="activity-list__dot is-green"></div>
+                    <div class="activity-list__content">
+                      <span class="activity-list__text"><strong>Mr Pawar</strong> logged lesson for X-A</span>
+                      <span class="activity-list__meta">12:41 IST · 8 min ago</span>
+                    </div>
+                  </div>
+                  <div class="activity-list__item">
+                    <div class="activity-list__dot"></div>
+                    <div class="activity-list__content">
+                      <span class="activity-list__text"><strong>Ms Joshi</strong> updated unit plan for VII-C</span>
+                      <span class="activity-list__meta">12:32 IST · 17 min ago</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ 02 — FULL SHELL COORDINATOR ================ -->
+  <div class="group-divider">
+    <span class="group-divider__num">02</span>
+    <span class="group-divider__title">Full Shell · Coordinator</span>
+    <span class="group-divider__line"></span>
+  </div>
+
+  <section class="screen-section">
+    <div class="screen-head">
+      <div class="screen-head__left">
+        <span class="screen-head__id">2.1</span>
+        <span class="screen-head__name">App Shell · <span>Coordinator / Content</span></span>
+      </div>
+      <span class="screen-head__pill">2 groups · Content active</span>
+    </div>
+    <div class="frame">
+      <aside class="sb">
+        <div class="sb__header">
+          <div class="sb__logo-mark">TRS</div>
+          <div class="sb__logo-text">
+            <span class="sb__logo-primary">School OS</span>
+            <span class="sb__logo-secondary">The Rosary School</span>
+          </div>
+        </div>
+        <nav class="sb__nav">
+          <div class="sb__group">
+            <div class="sb__group-label">Content</div>
+            <a class="sb__item is-active" href="#">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
+              <span class="sb__item-label">Content</span>
+              <span class="sb__item-kbd">G C</span>
+            </a>
+          </div>
+          <div class="sb__group">
+            <div class="sb__group-label">Operations</div>
+            <a class="sb__item" href="#">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></span>
+              <span class="sb__item-label">Teacher View</span>
+            </a>
+          </div>
+        </nav>
+        <div class="sb__ops">
+          <span class="sb__ops-dot"></span>
+          <span class="sb__ops-text">LIVE · PERIOD 04 / 08</span>
+        </div>
+        <div class="sb__footer">
+          <div class="sb__avatar av-coord">RK</div>
+          <div class="sb__user">
+            <span class="sb__user-name">Rohan Karkare</span>
+            <span class="sb__user-role">Coordinator · Science</span>
+          </div>
+          <button class="sb__signout" title="Sign out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          </button>
+        </div>
+      </aside>
+      <div class="main">
+        <header class="tb">
+          <div class="tb__left">
+            <button class="tb__toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></button>
+            <span class="tb__divider"></span>
+            <span class="tb__crumb-section">CONTENT</span>
+            <span class="tb__crumb-sep">/</span>
+            <span class="tb__title">Library</span>
+          </div>
+          <div class="tb__right">
+            <span class="tb__search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <span>Search content…</span>
+              <span class="tb__search-kbd">⌘K</span>
+            </span>
+            <span class="badge badge--outline">2026–27</span>
+            <span class="badge badge--coordinator"><span class="badge__dot"></span>Coordinator</span>
+            <span class="tb__clock">
+              <span class="tb__clock-live"></span>
+              <span>12:47 IST</span>
+            </span>
+          </div>
+        </header>
+        <div class="pg">
+          <div class="pg__header">
+            <div>
+              <h1 class="pg__title">Content library</h1>
+              <p class="pg__subtitle">Lesson plans, unit plans and resources for the science coordinator team.</p>
+            </div>
+            <div class="pg__actions">
+              <button class="btn btn--secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                Filter
+              </button>
+              <button class="btn btn--primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New unit plan
+              </button>
+            </div>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi"><span class="kpi__label">Total units</span><div class="kpi__value"><span class="kpi__num">64</span><span class="kpi__delta">↑ 4</span></div></div>
+            <div class="kpi"><span class="kpi__label">Published</span><div class="kpi__value"><span class="kpi__num">58</span><span class="kpi__unit">/ 64</span></div></div>
+            <div class="kpi"><span class="kpi__label">In review</span><div class="kpi__value"><span class="kpi__num">06</span></div></div>
+            <div class="kpi"><span class="kpi__label">Contributors</span><div class="kpi__value"><span class="kpi__num">14</span></div></div>
+          </div>
+          <div class="body-grid">
+            <div class="panel">
+              <div class="panel__head">
+                <span class="panel__title">Recent units</span>
+                <span class="panel__meta">UPDATED · 7 DAYS</span>
+              </div>
+              <div class="panel__body">
+                <div class="activity-list">
+                  <div class="activity-list__item">
+                    <div class="activity-list__dot is-brand"></div>
+                    <div class="activity-list__content">
+                      <span class="activity-list__text"><strong>VIII · Physics</strong> · Light &amp; reflection (Unit 04)</span>
+                      <span class="activity-list__meta">EDITED 12:14 · BY MS JOSHI</span>
+                    </div>
+                  </div>
+                  <div class="activity-list__item">
+                    <div class="activity-list__dot is-green"></div>
+                    <div class="activity-list__content">
+                      <span class="activity-list__text"><strong>IX · Chemistry</strong> · Acids, bases, salts (Unit 02)</span>
+                      <span class="activity-list__meta">PUBLISHED 11:02 · BY MR PAWAR</span>
+                    </div>
+                  </div>
+                  <div class="activity-list__item">
+                    <div class="activity-list__dot"></div>
+                    <div class="activity-list__content">
+                      <span class="activity-list__text"><strong>X · Biology</strong> · Cell structure (Unit 01)</span>
+                      <span class="activity-list__meta">EDITED 10:38 · BY MS KHAN</span>
+                    </div>
+                  </div>
+                  <div class="activity-list__item">
+                    <div class="activity-list__dot"></div>
+                    <div class="activity-list__content">
+                      <span class="activity-list__text"><strong>VII · Science</strong> · Heat &amp; temperature (Unit 03)</span>
+                      <span class="activity-list__meta">EDITED YESTERDAY · BY MR RANE</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel__head">
+                <span class="panel__title">By grade</span>
+                <span class="panel__meta">UNITS</span>
+              </div>
+              <div class="panel__body">
+                <div class="chart-ph">
+                  <div class="chart-ph__bar" style="height: 50%;"></div>
+                  <div class="chart-ph__bar" style="height: 70%;"></div>
+                  <div class="chart-ph__bar is-accent" style="height: 92%;"></div>
+                  <div class="chart-ph__bar" style="height: 80%;"></div>
+                  <div class="chart-ph__bar" style="height: 64%;"></div>
+                  <div class="chart-ph__bar" style="height: 40%;"></div>
+                </div>
+                <div class="chart-legend">
+                  <span>V</span><span>VI</span><span>VII</span><span>VIII</span><span>IX</span><span>X</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ 03 — FULL SHELL TEACHER ================ -->
+  <div class="group-divider">
+    <span class="group-divider__num">03</span>
+    <span class="group-divider__title">Full Shell · Teacher</span>
+    <span class="group-divider__line"></span>
+  </div>
+
+  <section class="screen-section">
+    <div class="screen-head">
+      <div class="screen-head__left">
+        <span class="screen-head__id">3.1</span>
+        <span class="screen-head__name">App Shell · <span>Teacher View</span></span>
+      </div>
+      <span class="screen-head__pill">single group · no label</span>
+    </div>
+    <div class="frame">
+      <aside class="sb">
+        <div class="sb__header">
+          <div class="sb__logo-mark">TRS</div>
+          <div class="sb__logo-text">
+            <span class="sb__logo-primary">School OS</span>
+            <span class="sb__logo-secondary">The Rosary School</span>
+          </div>
+        </div>
+        <nav class="sb__nav">
+          <div class="sb__group">
+            <a class="sb__item is-active" href="#">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></span>
+              <span class="sb__item-label">Teacher View</span>
+              <span class="sb__item-kbd">G T</span>
+            </a>
+          </div>
+        </nav>
+        <div class="sb__ops">
+          <span class="sb__ops-dot"></span>
+          <span class="sb__ops-text">LIVE · PERIOD 04 / 08</span>
+        </div>
+        <div class="sb__footer">
+          <div class="sb__avatar av-teach">AS</div>
+          <div class="sb__user">
+            <span class="sb__user-name">Anjali Sharma</span>
+            <span class="sb__user-role">Teacher · English</span>
+          </div>
+          <button class="sb__signout" title="Sign out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          </button>
+        </div>
+      </aside>
+      <div class="main">
+        <header class="tb">
+          <div class="tb__left">
+            <button class="tb__toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></button>
+            <span class="tb__divider"></span>
+            <span class="tb__crumb-section">TEACHER</span>
+            <span class="tb__crumb-sep">/</span>
+            <span class="tb__title">Today</span>
+          </div>
+          <div class="tb__right">
+            <span class="tb__search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <span>Search lessons…</span>
+              <span class="tb__search-kbd">⌘K</span>
+            </span>
+            <span class="badge badge--outline">2026–27</span>
+            <span class="badge badge--teacher"><span class="badge__dot"></span>Teacher</span>
+            <span class="tb__clock">
+              <span class="tb__clock-live"></span>
+              <span>12:47 IST</span>
+            </span>
+          </div>
+        </header>
+        <div class="pg">
+          <div class="pg__header">
+            <div>
+              <h1 class="pg__title">Today, 18 May</h1>
+              <p class="pg__subtitle">Six periods across IX-B, X-A and VII-C · 4 of 6 covered.</p>
+            </div>
+            <div class="pg__actions">
+              <button class="btn btn--secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Week view
+              </button>
+              <button class="btn btn--primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Log lesson
+              </button>
+            </div>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi"><span class="kpi__label">Today's periods</span><div class="kpi__value"><span class="kpi__num">06</span></div></div>
+            <div class="kpi"><span class="kpi__label">Covered</span><div class="kpi__value"><span class="kpi__num">04</span><span class="kpi__unit">/ 06</span></div></div>
+            <div class="kpi"><span class="kpi__label">Now</span><div class="kpi__value"><span class="kpi__num" style="font-size:16px;">IX-B · ENG</span></div></div>
+            <div class="kpi"><span class="kpi__label">Next at 13:30</span><div class="kpi__value"><span class="kpi__num" style="font-size:16px;">X-A · ENG</span></div></div>
+          </div>
+          <div class="body-grid">
+            <div class="panel">
+              <div class="panel__head">
+                <span class="panel__title">Today's schedule</span>
+                <span class="panel__meta">06 PERIODS</span>
+              </div>
+              <div class="panel__body">
+                <div class="activity-list">
+                  <div class="activity-list__item"><div class="activity-list__dot is-green"></div><div class="activity-list__content"><span class="activity-list__text"><strong>P1 · 08:00</strong> · X-A · English · Poetry — Unit 03</span><span class="activity-list__meta">LOGGED 08:48</span></div></div>
+                  <div class="activity-list__item"><div class="activity-list__dot is-green"></div><div class="activity-list__content"><span class="activity-list__text"><strong>P2 · 09:00</strong> · IX-B · English · Grammar — Unit 02</span><span class="activity-list__meta">LOGGED 09:52</span></div></div>
+                  <div class="activity-list__item"><div class="activity-list__dot is-green"></div><div class="activity-list__content"><span class="activity-list__text"><strong>P3 · 10:30</strong> · VII-C · English · Composition — Unit 01</span><span class="activity-list__meta">LOGGED 11:21</span></div></div>
+                  <div class="activity-list__item"><div class="activity-list__dot is-brand"></div><div class="activity-list__content"><span class="activity-list__text"><strong>P4 · 12:30</strong> · IX-B · English · Reading — Unit 02</span><span class="activity-list__meta">IN PROGRESS · 17 MIN</span></div></div>
+                  <div class="activity-list__item"><div class="activity-list__dot"></div><div class="activity-list__content"><span class="activity-list__text"><strong>P5 · 13:30</strong> · X-A · English · Prose — Unit 04</span><span class="activity-list__meta">UPCOMING</span></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel__head">
+                <span class="panel__title">This week</span>
+                <span class="panel__meta">COVERAGE</span>
+              </div>
+              <div class="panel__body">
+                <div class="chart-ph">
+                  <div class="chart-ph__bar" style="height: 80%;"></div>
+                  <div class="chart-ph__bar" style="height: 92%;"></div>
+                  <div class="chart-ph__bar" style="height: 88%;"></div>
+                  <div class="chart-ph__bar is-accent" style="height: 70%;"></div>
+                  <div class="chart-ph__bar is-muted" style="height: 30%;"></div>
+                </div>
+                <div class="chart-legend">
+                  <span>M</span><span>T</span><span>W</span><span>T · NOW</span><span>F</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ 04 — SIDEBAR COLLAPSED ================ -->
+  <div class="group-divider">
+    <span class="group-divider__num">04</span>
+    <span class="group-divider__title">Sidebar Collapsed</span>
+    <span class="group-divider__line"></span>
+  </div>
+
+  <section class="screen-section">
+    <div class="screen-head">
+      <div class="screen-head__left">
+        <span class="screen-head__id">4.1</span>
+        <span class="screen-head__name">App Shell · <span>Collapsed (52px) with hover tooltip</span></span>
+      </div>
+      <span class="screen-head__pill">icons only · tooltip on Timetable</span>
+    </div>
+    <div class="frame">
+      <aside class="sb sb--collapsed">
+        <div class="sb__header">
+          <div class="sb__logo-mark">TRS</div>
+        </div>
+        <nav class="sb__nav">
+          <div class="sb__group">
+            <a class="sb__item is-active" href="#" title="Dashboard">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg></span>
+            </a>
+            <a class="sb__item" href="#" title="Setup">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
+            </a>
+            <a class="sb__item" href="#" style="background: var(--surface-2); color: var(--text-primary);">
+              <span class="sb__item-icon" style="color: var(--text-secondary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path></svg></span>
+              <span class="tooltip">Timetable</span>
+            </a>
+            <a class="sb__item" href="#" title="Users">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+            </a>
+          </div>
+          <div class="sb__group">
+            <a class="sb__item" href="#" title="Content">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
+            </a>
+          </div>
+          <div class="sb__group">
+            <a class="sb__item" href="#" title="Teacher View">
+              <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></span>
+            </a>
+          </div>
+        </nav>
+        <div class="sb__ops">
+          <span class="sb__ops-dot"></span>
+        </div>
+        <div class="sb__footer">
+          <div class="sb__avatar av-admin">PD</div>
+        </div>
+      </aside>
+      <div class="main">
+        <header class="tb">
+          <div class="tb__left">
+            <button class="tb__toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></button>
+            <span class="tb__divider"></span>
+            <span class="tb__crumb-section">ADMIN</span>
+            <span class="tb__crumb-sep">/</span>
+            <span class="tb__title">Dashboard</span>
+          </div>
+          <div class="tb__right">
+            <span class="tb__search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <span>Search the school…</span>
+              <span class="tb__search-kbd">⌘K</span>
+            </span>
+            <span class="badge badge--outline">2026–27</span>
+            <span class="badge badge--admin"><span class="badge__dot"></span>Admin</span>
+            <span class="tb__clock">
+              <span class="tb__clock-live"></span>
+              <span>12:47 IST</span>
+            </span>
+          </div>
+        </header>
+        <div class="pg">
+          <div class="pg__header">
+            <div>
+              <h1 class="pg__title">Dashboard</h1>
+              <p class="pg__subtitle">More room for the page when the sidebar is folded.</p>
+            </div>
+            <div class="pg__actions">
+              <button class="btn btn--secondary">Export</button>
+              <button class="btn btn--primary">New announcement</button>
+            </div>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi"><span class="kpi__label">Active classes</span><div class="kpi__value"><span class="kpi__num">48</span><span class="kpi__delta">↑ 2</span></div></div>
+            <div class="kpi"><span class="kpi__label">Coverage today</span><div class="kpi__value"><span class="kpi__num">94</span><span class="kpi__unit">%</span></div></div>
+            <div class="kpi"><span class="kpi__label">Teachers online</span><div class="kpi__value"><span class="kpi__num">32</span><span class="kpi__unit">/ 38</span></div></div>
+            <div class="kpi"><span class="kpi__label">Lessons logged</span><div class="kpi__value"><span class="kpi__num">187</span></div></div>
+          </div>
+          <div class="body-grid">
+            <div class="panel">
+              <div class="panel__head"><span class="panel__title">Coverage by period</span><span class="panel__meta">TODAY</span></div>
+              <div class="panel__body">
+                <div class="chart-ph">
+                  <div class="chart-ph__bar" style="height: 60%;"></div>
+                  <div class="chart-ph__bar" style="height: 78%;"></div>
+                  <div class="chart-ph__bar" style="height: 88%;"></div>
+                  <div class="chart-ph__bar is-accent" style="height: 96%;"></div>
+                  <div class="chart-ph__bar is-muted" style="height: 30%;"></div>
+                  <div class="chart-ph__bar is-muted" style="height: 30%;"></div>
+                  <div class="chart-ph__bar is-muted" style="height: 30%;"></div>
+                  <div class="chart-ph__bar is-muted" style="height: 30%;"></div>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel__head"><span class="panel__title">Activity</span><span class="panel__meta">LIVE</span></div>
+              <div class="panel__body">
+                <div class="activity-list">
+                  <div class="activity-list__item"><div class="activity-list__dot is-brand"></div><div class="activity-list__content"><span class="activity-list__text"><strong>Ms Khan</strong> started Period 4</span><span class="activity-list__meta">2 MIN AGO</span></div></div>
+                  <div class="activity-list__item"><div class="activity-list__dot is-green"></div><div class="activity-list__content"><span class="activity-list__text"><strong>Mr Pawar</strong> logged X-A</span><span class="activity-list__meta">8 MIN AGO</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ 05 — TOPBAR VARIANTS ================ -->
+  <div class="group-divider">
+    <span class="group-divider__num">05</span>
+    <span class="group-divider__title">Topbar Variants</span>
+    <span class="group-divider__line"></span>
+  </div>
+
+  <section class="screen-section">
+    <div class="screen-head">
+      <div class="screen-head__left">
+        <span class="screen-head__id">5.1</span>
+        <span class="screen-head__name">Topbar · <span>Per-page</span></span>
+      </div>
+      <span class="screen-head__pill">5 page titles · 1000px wide</span>
+    </div>
+    <div class="strip-stack">
+      <div class="strip">
+        <header class="tb">
+          <div class="tb__left">
+            <button class="tb__toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></button>
+            <span class="tb__divider"></span>
+            <span class="tb__crumb-section">ADMIN</span>
+            <span class="tb__crumb-sep">/</span>
+            <span class="tb__title">Dashboard</span>
+          </div>
+          <div class="tb__right">
+            <span class="tb__search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>Search the school…</span><span class="tb__search-kbd">⌘K</span></span>
+            <span class="badge badge--outline">2026–27</span>
+            <span class="badge badge--admin"><span class="badge__dot"></span>Admin</span>
+          </div>
+        </header>
+      </div>
+      <div class="strip">
+        <header class="tb">
+          <div class="tb__left">
+            <button class="tb__toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></button>
+            <span class="tb__divider"></span>
+            <span class="tb__crumb-section">ADMIN</span>
+            <span class="tb__crumb-sep">/</span>
+            <span class="tb__title">Setup</span>
+          </div>
+          <div class="tb__right">
+            <span class="tb__search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>Search settings…</span><span class="tb__search-kbd">⌘K</span></span>
+            <span class="badge badge--outline">2026–27</span>
+            <span class="badge badge--admin"><span class="badge__dot"></span>Admin</span>
+          </div>
+        </header>
+      </div>
+      <div class="strip">
+        <header class="tb">
+          <div class="tb__left">
+            <button class="tb__toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></button>
+            <span class="tb__divider"></span>
+            <span class="tb__crumb-section">CONTENT</span>
+            <span class="tb__crumb-sep">/</span>
+            <span class="tb__title">Library</span>
+          </div>
+          <div class="tb__right">
+            <span class="tb__search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>Search content…</span><span class="tb__search-kbd">⌘K</span></span>
+            <span class="badge badge--outline">2026–27</span>
+            <span class="badge badge--coordinator"><span class="badge__dot"></span>Coordinator</span>
+          </div>
+        </header>
+      </div>
+      <div class="strip">
+        <header class="tb">
+          <div class="tb__left">
+            <button class="tb__toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></button>
+            <span class="tb__divider"></span>
+            <span class="tb__crumb-section">ADMIN</span>
+            <span class="tb__crumb-sep">/</span>
+            <span class="tb__title">Timetable</span>
+          </div>
+          <div class="tb__right">
+            <span class="tb__search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>Search timetable…</span><span class="tb__search-kbd">⌘K</span></span>
+            <span class="badge badge--outline">2026–27</span>
+            <span class="badge badge--admin"><span class="badge__dot"></span>Admin</span>
+          </div>
+        </header>
+      </div>
+      <div class="strip">
+        <header class="tb">
+          <div class="tb__left">
+            <button class="tb__toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></button>
+            <span class="tb__divider"></span>
+            <span class="tb__crumb-section">TEACHER</span>
+            <span class="tb__crumb-sep">/</span>
+            <span class="tb__title">Today</span>
+          </div>
+          <div class="tb__right">
+            <span class="tb__search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>Search lessons…</span><span class="tb__search-kbd">⌘K</span></span>
+            <span class="badge badge--outline">2026–27</span>
+            <span class="badge badge--teacher"><span class="badge__dot"></span>Teacher</span>
+          </div>
+        </header>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ 06 — NAV ITEM STATES ================ -->
+  <div class="group-divider">
+    <span class="group-divider__num">06</span>
+    <span class="group-divider__title">Nav Item States</span>
+    <span class="group-divider__line"></span>
+  </div>
+
+  <section class="screen-section">
+    <div class="screen-head">
+      <div class="screen-head__left">
+        <span class="screen-head__id">6.1</span>
+        <span class="screen-head__name">Nav Item · <span>States</span></span>
+      </div>
+      <span class="screen-head__pill">default · hover · active · collapsed</span>
+    </div>
+    <div class="state-row">
+      <div class="state-card">
+        <span class="state-card__label"><strong>01</strong>DEFAULT</span>
+        <div class="state-card__nav">
+          <a class="sb__item" href="#">
+            <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg></span>
+            <span class="sb__item-label">Dashboard</span>
+          </a>
+        </div>
+        <p class="state-card__note"><span>text</span> · #525252<br /><span>icon</span> · #A3A3A3<br /><span>bg</span> · transparent</p>
+      </div>
+      <div class="state-card">
+        <span class="state-card__label"><strong>02</strong>HOVER</span>
+        <div class="state-card__nav">
+          <a class="sb__item" href="#" style="background: var(--surface-2); color: var(--text-primary);">
+            <span class="sb__item-icon" style="color: var(--text-secondary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg></span>
+            <span class="sb__item-label">Dashboard</span>
+          </a>
+        </div>
+        <p class="state-card__note"><span>text</span> · #171717<br /><span>icon</span> · #525252<br /><span>bg</span> · #F5F5F5</p>
+      </div>
+      <div class="state-card">
+        <span class="state-card__label"><strong>03</strong>ACTIVE</span>
+        <div class="state-card__nav">
+          <a class="sb__item is-active" href="#">
+            <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg></span>
+            <span class="sb__item-label">Dashboard</span>
+          </a>
+        </div>
+        <p class="state-card__note"><span>text</span> · #FFFFFF<br /><span>icon</span> · #FFFFFF<br /><span>bg</span> · #ba2032</p>
+      </div>
+      <div class="state-card">
+        <span class="state-card__label"><strong>04</strong>ACTIVE · COLLAPSED</span>
+        <div class="state-card__nav">
+          <a class="sb__item is-active" href="#" style="width: 36px; padding: 0; justify-content: center;">
+            <span class="sb__item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg></span>
+          </a>
+        </div>
+        <p class="state-card__note"><span>icon only</span> · 36px<br /><span>tooltip</span> on hover<br />right of icon</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ 07 — SIDEBAR FOOTER VARIANTS ================ -->
+  <div class="group-divider">
+    <span class="group-divider__num">07</span>
+    <span class="group-divider__title">Sidebar Footer · By Role</span>
+    <span class="group-divider__line"></span>
+  </div>
+
+  <section class="screen-section">
+    <div class="screen-head">
+      <div class="screen-head__left">
+        <span class="screen-head__id">7.1</span>
+        <span class="screen-head__name">Footer · <span>Admin / Coordinator / Teacher</span></span>
+      </div>
+      <span class="screen-head__pill">avatar · name · role · sign-out</span>
+    </div>
+    <div class="footer-row">
+      <div class="footer-card">
+        <span class="footer-card__label"><strong>01</strong>ADMIN · brand</span>
+        <div class="footer-card__sb">
+          <div class="sb__footer" style="border-top: none;">
+            <div class="sb__avatar av-admin">PD</div>
+            <div class="sb__user">
+              <span class="sb__user-name">Priya Deshmukh</span>
+              <span class="sb__user-role">Admin</span>
+            </div>
+            <button class="sb__signout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></button>
+          </div>
+        </div>
+      </div>
+      <div class="footer-card">
+        <span class="footer-card__label"><strong>02</strong>COORDINATOR · info</span>
+        <div class="footer-card__sb">
+          <div class="sb__footer" style="border-top: none;">
+            <div class="sb__avatar av-coord">RK</div>
+            <div class="sb__user">
+              <span class="sb__user-name">Rohan Karkare</span>
+              <span class="sb__user-role">Coordinator · Science</span>
+            </div>
+            <button class="sb__signout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></button>
+          </div>
+        </div>
+      </div>
+      <div class="footer-card">
+        <span class="footer-card__label"><strong>03</strong>TEACHER · success</span>
+        <div class="footer-card__sb">
+          <div class="sb__footer" style="border-top: none;">
+            <div class="sb__avatar av-teach">AS</div>
+            <div class="sb__user">
+              <span class="sb__user-name">Anjali Sharma</span>
+              <span class="sb__user-role">Teacher · English</span>
+            </div>
+            <button class="sb__signout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

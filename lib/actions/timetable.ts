@@ -309,6 +309,7 @@ export async function generateSchedule(
   }
 
   revalidatePath("/timetable");
+  revalidatePath("/teacher");
   return {
     success: true,
     created: rows.length,

@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRS School OS — Design Tokens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Neutrals */
+    --background: #FAFAFA;
+    --surface: #FFFFFF;
+    --surface-2: #F5F5F5;
+    --surface-3: #EFEFEF;
+    --border: #E5E5E5;
+    --border-strong: #D4D4D4;
+    --text-primary: #171717;
+    --text-secondary: #525252;
+    --text-muted: #A3A3A3;
+    --text-disabled: #D4D4D4;
+
+    /* Brand */
+    --brand: #ba2032;
+    --brand-hover: #a01b2b;
+    --brand-light: #FDF2F3;
+    --brand-muted: #E8929A;
+
+    /* Semantic */
+    --success: #16A34A;
+    --success-light: #F0FDF4;
+    --success-border: #BBF7D0;
+    --warning: #D97706;
+    --warning-light: #FFFBEB;
+    --warning-border: #FED7AA;
+    --error: #DC2626;
+    --error-light: #FEF2F2;
+    --error-border: #FECACA;
+    --info: #2563EB;
+    --info-light: #EFF6FF;
+    --info-border: #BFDBFE;
+
+    /* Sidebar (light) */
+    --sidebar-bg: #FFFFFF;
+    --sidebar-bg-hover: #F5F5F5;
+    --sidebar-text: #525252;
+    --sidebar-text-active: #171717;
+    --sidebar-text-muted: #A3A3A3;
+    --sidebar-active-bg: #ba2032;
+    --sidebar-active-text: #FFFFFF;
+    --sidebar-border: #E5E5E5;
+
+    /* Role accents — semantic per-role identity */
+    --role-admin: #ba2032;
+    --role-coordinator: #2563EB;
+    --role-teacher: #16A34A;
+
+    /* Typography */
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', monospace;
+
+    /* Radius */
+    --radius-input: 6px;
+    --radius-button: 6px;
+    --radius-card: 8px;
+    --radius-badge: 4px;
+    --radius-modal: 10px;
+    --radius-avatar: 50%;
+
+    /* Elevation */
+    --elevation-flat: 1px solid #E5E5E5;
+    --elevation-raised: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --focus-ring: 0 0 0 2px rgba(186, 32, 50, 0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--background);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 64px 48px 96px;
+  }
+
+  /* ============ Header ============ */
+  .doc-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 64px;
+  }
+  .doc-header__left { display: flex; flex-direction: column; gap: 12px; }
+  .doc-header__eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .doc-header__eyebrow .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--brand);
+  }
+  .doc-header__title {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+  .doc-header__sub {
+    color: var(--text-secondary);
+    font-size: 14px;
+    max-width: 540px;
+  }
+  .doc-header__meta {
+    display: flex;
+    gap: 24px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .doc-header__meta span strong {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  /* ============ Section ============ */
+  section { margin-bottom: 72px; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-head__title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .section-head__count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .group-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 32px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .group-label:first-child { margin-top: 0; }
+  .group-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ============ Color Swatches ============ */
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+  }
+  .swatch {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .swatch__chip {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .swatch__chip--dark { border-color: rgba(255,255,255,0.08); }
+  .swatch__meta { display: flex; flex-direction: column; gap: 2px; }
+  .swatch__name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .swatch__value {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  /* ============ Typography ============ */
+  .type-table {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .type-row {
+    display: contents;
+  }
+  .type-row > div {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+  }
+  .type-row:last-child > div { border-bottom: none; }
+  .type-row__sample {
+    color: var(--text-primary);
+  }
+  .type-row__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+    text-align: right;
+    min-width: 260px;
+  }
+  .type-row__token {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .type-row__specs {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .ty-page-title { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+  .ty-section-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .ty-card-title { font-size: 14px; font-weight: 600; }
+  .ty-body { font-size: 14px; font-weight: 400; }
+  .ty-small { font-size: 13px; font-weight: 400; }
+  .ty-label { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+  .ty-micro { font-size: 11px; font-weight: 400; }
+  .ty-mono { font-family: var(--font-mono); font-size: 12px; font-weight: 400; }
+
+  /* ============ Spacing ============ */
+  .spacing-stack {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .spacing-row {
+    display: grid;
+    grid-template-columns: 60px 60px 1fr;
+    align-items: center;
+    gap: 24px;
+  }
+  .spacing-row__token {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .spacing-row__value {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .spacing-row__bar-wrap {
+    height: 24px;
+    display: flex;
+    align-items: center;
+  }
+  .spacing-row__bar {
+    height: 14px;
+    background: var(--brand);
+    border-radius: 2px;
+  }
+
+  /* ============ Radius ============ */
+  .radius-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
+  }
+  .radius-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 24px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .radius-box {
+    width: 60px;
+    height: 60px;
+    background: var(--surface-3);
+    border: 1px solid var(--border-strong);
+  }
+  .radius-card__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .radius-card__token {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .radius-card__value {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ============ Elevation ============ */
+  .elev-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .elev-card {
+    background: var(--surface);
+    border-radius: var(--radius-card);
+    padding: 28px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .elev-card--flat { border: var(--elevation-flat); }
+  .elev-card--raised { box-shadow: var(--elevation-raised); border: 1px solid transparent; }
+  .elev-card--focus { border: 1px solid var(--border); box-shadow: var(--focus-ring); }
+  .elev-card__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .elev-card__desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  .elev-card__token {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ============ CSS Block ============ */
+  .code-card {
+    background: #0E0E0E;
+    color: #E5E5E5;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    border: 1px solid #1F1F1F;
+  }
+  .code-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid #1F1F1F;
+    background: #131313;
+  }
+  .code-card__title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #A3A3A3;
+  }
+  .code-card__copy {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #A3A3A3;
+    background: transparent;
+    border: 1px solid #2A2A2A;
+    border-radius: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .code-card__copy:hover { color: #fff; border-color: #3A3A3A; }
+  .code-card__copy.copied { color: #4ADE80; border-color: #166534; }
+  pre.code-block {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 24px 20px;
+    overflow-x: auto;
+    color: #D4D4D4;
+  }
+  .code-block .var { color: #FCA5A5; }
+  .code-block .val { color: #93C5FD; }
+  .code-block .comment { color: #525252; }
+  .code-block .selector { color: #FBBF24; }
+  .code-block .brace { color: #737373; }
+</style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- HEADER -->
+    <header class="doc-header">
+      <div class="doc-header__left">
+        <div class="doc-header__eyebrow"><span class="dot"></span>TRS School OS — Design System</div>
+        <h1 class="doc-header__title">Design Tokens</h1>
+        <p class="doc-header__sub">Single source of truth for color, type, spacing, radius, and elevation. The Rosary School, Pune.</p>
+      </div>
+      <div class="doc-header__meta">
+        <span>VERSION<strong>v1.0.0</strong></span>
+        <span>UPDATED<strong>May 18, 2026</strong></span>
+        <span>SCOPE<strong>Global</strong></span>
+      </div>
+    </header>
+
+    <!-- COLOR -->
+    <section>
+      <div class="section-head">
+        <div class="section-head__title">01 — Color Palette</div>
+        <div class="section-head__count">39 tokens</div>
+      </div>
+
+      <div class="group-label">Neutrals</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__chip" style="background:#FAFAFA"></div><div class="swatch__meta"><div class="swatch__name">background</div><div class="swatch__value">#FAFAFA</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#FFFFFF"></div><div class="swatch__meta"><div class="swatch__name">surface</div><div class="swatch__value">#FFFFFF</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#F5F5F5"></div><div class="swatch__meta"><div class="swatch__name">surface-2</div><div class="swatch__value">#F5F5F5</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#EFEFEF"></div><div class="swatch__meta"><div class="swatch__name">surface-3</div><div class="swatch__value">#EFEFEF</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#E5E5E5"></div><div class="swatch__meta"><div class="swatch__name">border</div><div class="swatch__value">#E5E5E5</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#D4D4D4"></div><div class="swatch__meta"><div class="swatch__name">border-strong</div><div class="swatch__value">#D4D4D4</div></div></div>
+        <div class="swatch"><div class="swatch__chip swatch__chip--dark" style="background:#171717"></div><div class="swatch__meta"><div class="swatch__name">text-primary</div><div class="swatch__value">#171717</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#525252"></div><div class="swatch__meta"><div class="swatch__name">text-secondary</div><div class="swatch__value">#525252</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#A3A3A3"></div><div class="swatch__meta"><div class="swatch__name">text-muted</div><div class="swatch__value">#A3A3A3</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#D4D4D4"></div><div class="swatch__meta"><div class="swatch__name">text-disabled</div><div class="swatch__value">#D4D4D4</div></div></div>
+      </div>
+
+      <div class="group-label">Brand</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__chip" style="background:#ba2032"></div><div class="swatch__meta"><div class="swatch__name">brand</div><div class="swatch__value">#BA2032</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#a01b2b"></div><div class="swatch__meta"><div class="swatch__name">brand-hover</div><div class="swatch__value">#A01B2B</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#FDF2F3"></div><div class="swatch__meta"><div class="swatch__name">brand-light</div><div class="swatch__value">#FDF2F3</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#E8929A"></div><div class="swatch__meta"><div class="swatch__name">brand-muted</div><div class="swatch__value">#E8929A</div></div></div>
+      </div>
+
+      <div class="group-label">Semantic — Success</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__chip" style="background:#16A34A"></div><div class="swatch__meta"><div class="swatch__name">success</div><div class="swatch__value">#16A34A</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#F0FDF4"></div><div class="swatch__meta"><div class="swatch__name">success-light</div><div class="swatch__value">#F0FDF4</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#BBF7D0"></div><div class="swatch__meta"><div class="swatch__name">success-border</div><div class="swatch__value">#BBF7D0</div></div></div>
+      </div>
+
+      <div class="group-label">Semantic — Warning</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__chip" style="background:#D97706"></div><div class="swatch__meta"><div class="swatch__name">warning</div><div class="swatch__value">#D97706</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#FFFBEB"></div><div class="swatch__meta"><div class="swatch__name">warning-light</div><div class="swatch__value">#FFFBEB</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#FED7AA"></div><div class="swatch__meta"><div class="swatch__name">warning-border</div><div class="swatch__value">#FED7AA</div></div></div>
+      </div>
+
+      <div class="group-label">Semantic — Error</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__chip" style="background:#DC2626"></div><div class="swatch__meta"><div class="swatch__name">error</div><div class="swatch__value">#DC2626</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#FEF2F2"></div><div class="swatch__meta"><div class="swatch__name">error-light</div><div class="swatch__value">#FEF2F2</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#FECACA"></div><div class="swatch__meta"><div class="swatch__name">error-border</div><div class="swatch__value">#FECACA</div></div></div>
+      </div>
+
+      <div class="group-label">Semantic — Info</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__chip" style="background:#2563EB"></div><div class="swatch__meta"><div class="swatch__name">info</div><div class="swatch__value">#2563EB</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#EFF6FF"></div><div class="swatch__meta"><div class="swatch__name">info-light</div><div class="swatch__value">#EFF6FF</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#BFDBFE"></div><div class="swatch__meta"><div class="swatch__name">info-border</div><div class="swatch__value">#BFDBFE</div></div></div>
+      </div>
+
+      <div class="group-label">Sidebar (Light)</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__chip" style="background:#FFFFFF"></div><div class="swatch__meta"><div class="swatch__name">sidebar-bg</div><div class="swatch__value">#FFFFFF</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#F5F5F5"></div><div class="swatch__meta"><div class="swatch__name">sidebar-bg-hover</div><div class="swatch__value">#F5F5F5</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#525252"></div><div class="swatch__meta"><div class="swatch__name">sidebar-text</div><div class="swatch__value">#525252</div></div></div>
+        <div class="swatch"><div class="swatch__chip swatch__chip--dark" style="background:#171717"></div><div class="swatch__meta"><div class="swatch__name">sidebar-text-active</div><div class="swatch__value">#171717</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#A3A3A3"></div><div class="swatch__meta"><div class="swatch__name">sidebar-text-muted</div><div class="swatch__value">#A3A3A3</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#ba2032"></div><div class="swatch__meta"><div class="swatch__name">sidebar-active-bg</div><div class="swatch__value">#BA2032</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#FFFFFF"></div><div class="swatch__meta"><div class="swatch__name">sidebar-active-text</div><div class="swatch__value">#FFFFFF</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#E5E5E5"></div><div class="swatch__meta"><div class="swatch__name">sidebar-border</div><div class="swatch__value">#E5E5E5</div></div></div>
+      </div>
+
+      <div class="group-label">Role Accents</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__chip" style="background:#ba2032"></div><div class="swatch__meta"><div class="swatch__name">role-admin</div><div class="swatch__value">#BA2032 · brand</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#2563EB"></div><div class="swatch__meta"><div class="swatch__name">role-coordinator</div><div class="swatch__value">#2563EB · info</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#16A34A"></div><div class="swatch__meta"><div class="swatch__name">role-teacher</div><div class="swatch__value">#16A34A · success</div></div></div>
+      </div>
+    </section>
+
+    <!-- TYPOGRAPHY -->
+    <section>
+      <div class="section-head">
+        <div class="section-head__title">02 — Typography Scale</div>
+        <div class="section-head__count">Inter · Geist Mono</div>
+      </div>
+
+      <div class="type-table">
+        <div class="type-row">
+          <div class="type-row__sample"><span class="ty-page-title">The Rosary School</span></div>
+          <div class="type-row__meta">
+            <div class="type-row__token">page-title</div>
+            <div class="type-row__specs">20px · 600 · -0.02em</div>
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__sample"><span class="ty-section-title">The Rosary School</span></div>
+          <div class="type-row__meta">
+            <div class="type-row__token">section-title</div>
+            <div class="type-row__specs">16px · 600 · -0.01em</div>
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__sample"><span class="ty-card-title">The Rosary School</span></div>
+          <div class="type-row__meta">
+            <div class="type-row__token">card-title</div>
+            <div class="type-row__specs">14px · 600</div>
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__sample"><span class="ty-body">The Rosary School</span></div>
+          <div class="type-row__meta">
+            <div class="type-row__token">body</div>
+            <div class="type-row__specs">14px · 400</div>
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__sample"><span class="ty-small">The Rosary School</span></div>
+          <div class="type-row__meta">
+            <div class="type-row__token">small</div>
+            <div class="type-row__specs">13px · 400</div>
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__sample"><span class="ty-label">The Rosary School</span></div>
+          <div class="type-row__meta">
+            <div class="type-row__token">label</div>
+            <div class="type-row__specs">11px · 500 · 0.06em · UPPER</div>
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__sample"><span class="ty-micro">The Rosary School</span></div>
+          <div class="type-row__meta">
+            <div class="type-row__token">micro</div>
+            <div class="type-row__specs">11px · 400</div>
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__sample"><span class="ty-mono">The Rosary School</span></div>
+          <div class="type-row__meta">
+            <div class="type-row__token">mono</div>
+            <div class="type-row__specs">12px · 400 · Geist Mono</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPACING -->
+    <section>
+      <div class="section-head">
+        <div class="section-head__title">03 — Spacing Scale</div>
+        <div class="section-head__count">8px grid · 4px increments</div>
+      </div>
+      <div class="spacing-stack">
+        <div class="spacing-row"><div class="spacing-row__token">space-1</div><div class="spacing-row__value">2px</div><div class="spacing-row__bar-wrap"><div class="spacing-row__bar" style="width:2px"></div></div></div>
+        <div class="spacing-row"><div class="spacing-row__token">space-2</div><div class="spacing-row__value">4px</div><div class="spacing-row__bar-wrap"><div class="spacing-row__bar" style="width:4px"></div></div></div>
+        <div class="spacing-row"><div class="spacing-row__token">space-3</div><div class="spacing-row__value">8px</div><div class="spacing-row__bar-wrap"><div class="spacing-row__bar" style="width:8px"></div></div></div>
+        <div class="spacing-row"><div class="spacing-row__token">space-4</div><div class="spacing-row__value">12px</div><div class="spacing-row__bar-wrap"><div class="spacing-row__bar" style="width:12px"></div></div></div>
+        <div class="spacing-row"><div class="spacing-row__token">space-5</div><div class="spacing-row__value">16px</div><div class="spacing-row__bar-wrap"><div class="spacing-row__bar" style="width:16px"></div></div></div>
+        <div class="spacing-row"><div class="spacing-row__token">space-6</div><div class="spacing-row__value">20px</div><div class="spacing-row__bar-wrap"><div class="spacing-row__bar" style="width:20px"></div></div></div>
+        <div class="spacing-row"><div class="spacing-row__token">space-7</div><div class="spacing-row__value">24px</div><div class="spacing-row__bar-wrap"><div class="spacing-row__bar" style="width:24px"></div></div></div>
+        <div class="spacing-row"><div class="spacing-row__token">space-8</div><div class="spacing-row__value">32px</div><div class="spacing-row__bar-wrap"><div class="spacing-row__bar" style="width:32px"></div></div></div>
+        <div class="spacing-row"><div class="spacing-row__token">space-9</div><div class="spacing-row__value">48px</div><div class="spacing-row__bar-wrap"><div class="spacing-row__bar" style="width:48px"></div></div></div>
+      </div>
+    </section>
+
+    <!-- RADIUS -->
+    <section>
+      <div class="section-head">
+        <div class="section-head__title">04 — Border Radius</div>
+        <div class="section-head__count">6 tokens</div>
+      </div>
+      <div class="radius-grid">
+        <div class="radius-card">
+          <div class="radius-box" style="border-radius:6px"></div>
+          <div class="radius-card__meta"><div class="radius-card__token">input</div><div class="radius-card__value">6px</div></div>
+        </div>
+        <div class="radius-card">
+          <div class="radius-box" style="border-radius:6px"></div>
+          <div class="radius-card__meta"><div class="radius-card__token">button</div><div class="radius-card__value">6px</div></div>
+        </div>
+        <div class="radius-card">
+          <div class="radius-box" style="border-radius:8px"></div>
+          <div class="radius-card__meta"><div class="radius-card__token">card</div><div class="radius-card__value">8px</div></div>
+        </div>
+        <div class="radius-card">
+          <div class="radius-box" style="border-radius:4px"></div>
+          <div class="radius-card__meta"><div class="radius-card__token">badge</div><div class="radius-card__value">4px</div></div>
+        </div>
+        <div class="radius-card">
+          <div class="radius-box" style="border-radius:10px"></div>
+          <div class="radius-card__meta"><div class="radius-card__token">modal</div><div class="radius-card__value">10px</div></div>
+        </div>
+        <div class="radius-card">
+          <div class="radius-box" style="border-radius:50%"></div>
+          <div class="radius-card__meta"><div class="radius-card__token">avatar</div><div class="radius-card__value">50%</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ELEVATION -->
+    <section>
+      <div class="section-head">
+        <div class="section-head__title">05 — Shadows &amp; Elevation</div>
+        <div class="section-head__count">3 levels</div>
+      </div>
+      <div class="elev-grid">
+        <div class="elev-card elev-card--flat">
+          <div>
+            <div class="elev-card__name">Flat</div>
+            <div class="elev-card__desc">Default surface. Used for cards, tables, list rows. Hairline border only.</div>
+          </div>
+          <div class="elev-card__token">1px solid #E5E5E5</div>
+        </div>
+        <div class="elev-card elev-card--raised">
+          <div>
+            <div class="elev-card__name">Raised</div>
+            <div class="elev-card__desc">Floating elements. Used for popovers, dropdowns, toasts, modals.</div>
+          </div>
+          <div class="elev-card__token">0 4px 16px rgba(0,0,0,0.08)</div>
+        </div>
+        <div class="elev-card elev-card--focus">
+          <div>
+            <div class="elev-card__name">Focus Ring</div>
+            <div class="elev-card__desc">Keyboard focus state. Wraps interactive elements on tab focus.</div>
+          </div>
+          <div class="elev-card__token">0 0 0 2px rgba(186,32,50,0.15)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CSS BLOCK -->
+    <section style="margin-bottom: 0;">
+      <div class="section-head">
+        <div class="section-head__title">06 — CSS Variables</div>
+        <div class="section-head__count">Drop into globals.css</div>
+      </div>
+      <div class="code-card">
+        <div class="code-card__head">
+          <div class="code-card__title">globals.css</div>
+          <button class="code-card__copy" id="copyBtn">Copy</button>
+        </div>
+<pre class="code-block" id="cssBlock"><span class="selector">:root</span> <span class="brace">{</span>
+  <span class="comment">/* ─── Neutrals ─── */</span>
+  <span class="var">--background</span>: <span class="val">#FAFAFA</span>;
+  <span class="var">--surface</span>: <span class="val">#FFFFFF</span>;
+  <span class="var">--surface-2</span>: <span class="val">#F5F5F5</span>;
+  <span class="var">--surface-3</span>: <span class="val">#EFEFEF</span>;
+  <span class="var">--border</span>: <span class="val">#E5E5E5</span>;
+  <span class="var">--border-strong</span>: <span class="val">#D4D4D4</span>;
+  <span class="var">--text-primary</span>: <span class="val">#171717</span>;
+  <span class="var">--text-secondary</span>: <span class="val">#525252</span>;
+  <span class="var">--text-muted</span>: <span class="val">#A3A3A3</span>;
+  <span class="var">--text-disabled</span>: <span class="val">#D4D4D4</span>;
+
+  <span class="comment">/* ─── Brand ─── */</span>
+  <span class="var">--brand</span>: <span class="val">#ba2032</span>;
+  <span class="var">--brand-hover</span>: <span class="val">#a01b2b</span>;
+  <span class="var">--brand-light</span>: <span class="val">#FDF2F3</span>;
+  <span class="var">--brand-muted</span>: <span class="val">#E8929A</span>;
+
+  <span class="comment">/* ─── Semantic ─── */</span>
+  <span class="var">--success</span>: <span class="val">#16A34A</span>;
+  <span class="var">--success-light</span>: <span class="val">#F0FDF4</span>;
+  <span class="var">--success-border</span>: <span class="val">#BBF7D0</span>;
+  <span class="var">--warning</span>: <span class="val">#D97706</span>;
+  <span class="var">--warning-light</span>: <span class="val">#FFFBEB</span>;
+  <span class="var">--warning-border</span>: <span class="val">#FED7AA</span>;
+  <span class="var">--error</span>: <span class="val">#DC2626</span>;
+  <span class="var">--error-light</span>: <span class="val">#FEF2F2</span>;
+  <span class="var">--error-border</span>: <span class="val">#FECACA</span>;
+  <span class="var">--info</span>: <span class="val">#2563EB</span>;
+  <span class="var">--info-light</span>: <span class="val">#EFF6FF</span>;
+  <span class="var">--info-border</span>: <span class="val">#BFDBFE</span>;
+
+  <span class="comment">/* ─── Sidebar (light) ─── */</span>
+  <span class="var">--sidebar-bg</span>: <span class="val">#FFFFFF</span>;
+  <span class="var">--sidebar-bg-hover</span>: <span class="val">#F5F5F5</span>;
+  <span class="var">--sidebar-text</span>: <span class="val">#525252</span>;
+  <span class="var">--sidebar-text-active</span>: <span class="val">#171717</span>;
+  <span class="var">--sidebar-text-muted</span>: <span class="val">#A3A3A3</span>;
+  <span class="var">--sidebar-active-bg</span>: <span class="val">#ba2032</span>;
+  <span class="var">--sidebar-active-text</span>: <span class="val">#FFFFFF</span>;
+  <span class="var">--sidebar-border</span>: <span class="val">#E5E5E5</span>;
+
+  <span class="comment">/* ─── Role accents ─── */</span>
+  <span class="var">--role-admin</span>: <span class="val">#ba2032</span>;
+  <span class="var">--role-coordinator</span>: <span class="val">#2563EB</span>;
+  <span class="var">--role-teacher</span>: <span class="val">#16A34A</span>;
+
+  <span class="comment">/* ─── Typography ─── */</span>
+  <span class="var">--font-sans</span>: <span class="val">'Inter', system-ui, sans-serif</span>;
+  <span class="var">--font-mono</span>: <span class="val">'Geist Mono', monospace</span>;
+
+  <span class="comment">/* ─── Radius ─── */</span>
+  <span class="var">--radius-input</span>: <span class="val">6px</span>;
+  <span class="var">--radius-button</span>: <span class="val">6px</span>;
+  <span class="var">--radius-card</span>: <span class="val">8px</span>;
+  <span class="var">--radius-badge</span>: <span class="val">4px</span>;
+  <span class="var">--radius-modal</span>: <span class="val">10px</span>;
+  <span class="var">--radius-avatar</span>: <span class="val">50%</span>;
+
+  <span class="comment">/* ─── Spacing (8px grid) ─── */</span>
+  <span class="var">--space-1</span>: <span class="val">2px</span>;
+  <span class="var">--space-2</span>: <span class="val">4px</span>;
+  <span class="var">--space-3</span>: <span class="val">8px</span>;
+  <span class="var">--space-4</span>: <span class="val">12px</span>;
+  <span class="var">--space-5</span>: <span class="val">16px</span>;
+  <span class="var">--space-6</span>: <span class="val">20px</span>;
+  <span class="var">--space-7</span>: <span class="val">24px</span>;
+  <span class="var">--space-8</span>: <span class="val">32px</span>;
+  <span class="var">--space-9</span>: <span class="val">48px</span>;
+
+  <span class="comment">/* ─── Elevation ─── */</span>
+  <span class="var">--elevation-flat</span>: <span class="val">1px solid #E5E5E5</span>;
+  <span class="var">--elevation-raised</span>: <span class="val">0 4px 16px rgba(0,0,0,0.08)</span>;
+  <span class="var">--focus-ring</span>: <span class="val">0 0 0 2px rgba(186,32,50,0.15)</span>;
+<span class="brace">}</span></pre>
+      </div>
+    </section>
+
+  </div>
+
+<script>
+  const btn = document.getElementById('copyBtn');
+  const block = document.getElementById('cssBlock');
+  btn.addEventListener('click', () => {
+    const txt = block.innerText;
+    navigator.clipboard.writeText(txt).then(() => {
+      btn.textContent = 'Copied';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 1400);
+    });
+  });
+</script>
+</body>
+</html>

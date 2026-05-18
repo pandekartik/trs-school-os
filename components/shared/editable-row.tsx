@@ -26,10 +26,10 @@ export function EditableRow({
   if (editing) {
     return (
       <div className={cn(
-        "border rounded-lg px-3 py-3 bg-[#fce8ea] border-[#f0b0b7]",
+        "flex flex-col gap-4 rounded-[var(--radius-card)] border border-brand-border bg-brand-light p-4",
         className
       )}>
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-3">
           <div className="flex-1">{editForm}</div>
           <Button
             type="button"
@@ -47,11 +47,12 @@ export function EditableRow({
 
   return (
     <div className={cn(
-      "flex items-center justify-between px-3 py-2.5 rounded-lg border bg-secondary/40 hover:bg-secondary/60 transition-colors group",
+      "group flex items-center justify-between gap-4 rounded-[var(--radius-card)] border border-border bg-surface px-4 py-3.5 transition-colors hover:bg-surface-2",
+      confirming && "border-error-border bg-error-light hover:bg-error-light",
       className
     )}>
       <div className="flex-1 min-w-0">{children}</div>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
+      <div className="flex shrink-0 items-center gap-1 opacity-45 transition-opacity group-hover:opacity-100">
         <Button
           variant="ghost"
           size="icon"
