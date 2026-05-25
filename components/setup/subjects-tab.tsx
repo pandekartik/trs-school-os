@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Edit2, Trash2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 function EditSubjectForm({ sub }: { sub: Subject }) {
@@ -178,32 +178,21 @@ export function SubjectsTab({
                   key={sub.id}
                   editForm={<EditSubjectForm sub={sub} />}
                   onDelete={() => handleDelete(sub.id)}
-                  className="grid grid-cols-5 gap-4 px-3 py-2.5 items-center border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
+                  className="border-b border-gray-100 last:border-b-0 bg-white px-0 py-0 rounded-none hover:bg-gray-50"
                 >
-                  <div className="text-xs font-medium text-gray-900">{sub.name}</div>
-                  <div>
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] h-5 px-2 font-normal"
-                      style={{ color: "var(--color-brand)", borderColor: "var(--color-brand)" }}
-                    >
-                      {sub.type === "academic" ? "Academic" : "Non-academic"}
-                    </Badge>
-                  </div>
-                  <div className="text-xs text-gray-600">{sub.periods_per_week}×/wk</div>
-                  <div className="text-xs text-gray-600">{sub.has_chapters ? "Yes" : "No"}</div>
-                  <div className="flex items-center gap-1 justify-end">
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <Edit2 className="h-3.5 w-3.5 text-gray-600" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => handleDelete(sub.id)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 text-gray-600" />
-                    </Button>
+                  <div className="grid grid-cols-5 gap-4 px-3 py-2.5 items-center w-full">
+                    <div className="text-xs font-medium text-gray-900">{sub.name}</div>
+                    <div>
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] h-5 px-2 font-normal"
+                        style={{ color: "var(--color-brand)", borderColor: "var(--color-brand)" }}
+                      >
+                        {sub.type === "academic" ? "Academic" : "Non-academic"}
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-gray-600">{sub.periods_per_week}×/wk</div>
+                    <div className="text-xs text-gray-600">{sub.has_chapters ? "Yes" : "No"}</div>
                   </div>
                 </EditableRow>
               ))}

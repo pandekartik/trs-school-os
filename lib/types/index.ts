@@ -175,5 +175,23 @@ export type CoverageSummary = {
   last_refreshed_at: string;
 };
 
+export type TimeTemplate = {
+  id: string;
+  name: string;
+  days: string[];
+  created_at?: string;
+};
+
+export type TemplateSlot = {
+  id: string;
+  template_id: string;
+  name: string;
+  start_time: string;
+  end_time: string;
+  slot_type: "period" | "break" | "lunch" | "assembly";
+  display_order: number;
+  created_at?: string;
+};
+
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };

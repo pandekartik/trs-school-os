@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Plus, CheckCircle, Trash2, Edit2, Calendar } from "lucide-react";
+import { Loader2, Plus, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 function EditYearForm({ year, onDone }: { year: SchoolYear; onDone: () => void }) {
@@ -111,27 +111,25 @@ export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
             <div className="h-px bg-gray-200" />
 
             {/* Table */}
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-0 border border-gray-200 rounded-sm overflow-hidden">
               {/* Header */}
-              <div className="grid grid-cols-5 gap-4 px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase text-gray-600 rounded-t-sm">
+              <div className="grid grid-cols-5 gap-4 px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase text-gray-600">
                 <div>Name</div>
                 <div>Date Range</div>
                 <div>Status</div>
-                <div></div>
+                <div>Action</div>
                 <div></div>
               </div>
 
               {/* Rows */}
-              <div className="flex flex-col border border-t-0 border-gray-200 rounded-b-sm overflow-hidden">
-                {schoolYears.map((year, idx) => (
-                  <EditableRow
-                    key={year.id}
-                    editForm={<EditYearForm year={year} onDone={() => {}} />}
-                    onDelete={() => handleDelete(year.id)}
-                    className={`grid grid-cols-5 gap-4 px-3 py-3 items-center border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${
-                      idx % 2 === 0 ? 'bg-white' : ''
-                    }`}
-                  >
+              {schoolYears.map((year) => (
+                <EditableRow
+                  key={year.id}
+                  editForm={<EditYearForm year={year} onDone={() => {}} />}
+                  onDelete={() => handleDelete(year.id)}
+                  className="border-b border-gray-100 last:border-b-0 bg-white px-0 py-0 rounded-none"
+                >
+                  <div className="grid grid-cols-5 gap-4 px-3 py-2.5 items-center w-full">
                     <div className="text-xs font-medium text-gray-900">{year.name}</div>
                     <div className="text-xs text-gray-500">
                       {year.start_date} → {year.end_date}
@@ -146,7 +144,7 @@ export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 text-xs text-gray-600"
+                          className="h-6 text-xs text-gray-600 px-2"
                           onClick={async () => {
                             await setActiveSchoolYear(year.id);
                             toast.success("Active year updated");
@@ -156,22 +154,9 @@ export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
                         </Button>
                       )}
                     </div>
-                    <div className="flex items-center gap-1 justify-end">
-                      <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <Edit2 className="h-3.5 w-3.5 text-gray-600" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={() => handleDelete(year.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5 text-gray-600" />
-                      </Button>
-                    </div>
-                  </EditableRow>
-                ))}
-              </div>
+                  </div>
+                </EditableRow>
+              ))}
             </div>
           </>
         )}

@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Edit2, Trash2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 function EditStandardForm({ std }: { std: Standard }) {
@@ -113,38 +113,33 @@ export function StandardsTab({
           {standards.length > 0 && (
             <>
               <div className="h-px bg-gray-200" />
-              <div className="flex flex-col gap-0">
+              <div className="flex flex-col gap-0 border border-gray-200 rounded-sm overflow-hidden">
                 {standards.map((std) => (
                   <EditableRow
                     key={std.id}
                     editForm={<EditStandardForm std={std} />}
                     onDelete={() => handleDeleteStd(std.id)}
-                    className={`flex items-center justify-between px-3 py-2.5 border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors ${
+                    className={`border-b border-gray-100 last:border-b-0 bg-white px-0 py-0 rounded-none transition-colors cursor-pointer ${
                       selectedStandard === std.id
-                        ? "bg-red-50 border-l-2 border-l-red-600"
+                        ? "border-l-2 border-l-red-600 bg-red-50"
                         : "hover:bg-gray-50"
                     }`}
-                    onClick={() => setSelectedStandard(std.id)}
                   >
-                    <div className="flex-1">
-                      <div className="text-xs font-medium text-gray-900">{std.name}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal">
-                        Grade {std.grade}
-                      </Badge>
-                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal">
-                        {divisions.filter((d) => d.standard_id === std.id).length} div
-                      </Badge>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
-                        <Edit2 className="h-3 w-3 text-gray-500" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteStd(std.id);
-                      }}>
-                        <Trash2 className="h-3 w-3 text-gray-500" />
-                      </Button>
+                    <div
+                      className="flex items-center justify-between px-3 py-2.5 w-full"
+                      onClick={() => setSelectedStandard(std.id)}
+                    >
+                      <div className="flex-1">
+                        <div className="text-xs font-medium text-gray-900">{std.name}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal">
+                          Grade {std.grade}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal">
+                          {divisions.filter((d) => d.standard_id === std.id).length} div
+                        </Badge>
+                      </div>
                     </div>
                   </EditableRow>
                 ))}
@@ -184,24 +179,16 @@ export function StandardsTab({
               {currentDivisions.length > 0 && (
                 <>
                   <div className="h-px bg-gray-200" />
-                  <div className="flex flex-col gap-0">
+                  <div className="flex flex-col gap-0 border border-gray-200 rounded-sm overflow-hidden">
                     {currentDivisions.map((div) => (
                       <EditableRow
                         key={div.id}
                         editForm={<EditDivisionForm div={div} />}
                         onDelete={() => handleDeleteDiv(div.id)}
-                        className="flex items-center justify-between px-3 py-2.5 border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
+                        className="border-b border-gray-100 last:border-b-0 bg-white px-0 py-0 rounded-none hover:bg-gray-50"
                       >
-                        <div className="flex-1">
+                        <div className="px-3 py-2.5">
                           <span className="text-xs font-medium text-gray-900">Division {div.name}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-6 w-6">
-                            <Edit2 className="h-3 w-3 text-gray-500" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteDiv(div.id)}>
-                            <Trash2 className="h-3 w-3 text-gray-500" />
-                          </Button>
                         </div>
                       </EditableRow>
                     ))}

@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Edit2, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
 const PRESETS = [
@@ -154,15 +154,15 @@ export function SegmentsTab({
           ) : (
             <>
               {/* Segments List */}
-              <div className="flex flex-col gap-0 border border-gray-200 rounded-sm">
+              <div className="flex flex-col gap-0 border border-gray-200 rounded-sm overflow-hidden">
                 {currentSegments.map((seg) => (
                   <EditableRow
                     key={seg.id}
                     editForm={<EditSegmentForm seg={seg} />}
                     onDelete={() => handleDelete(seg.id)}
-                    className="flex items-center justify-between px-3 py-2.5 border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
+                    className="border-b border-gray-100 last:border-b-0 bg-white px-0 py-0 rounded-none hover:bg-gray-50"
                   >
-                    <div className="flex-1">
+                    <div className="px-3 py-2.5 w-full">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-medium text-gray-900">{seg.name}</span>
                         <Badge
@@ -179,14 +179,6 @@ export function SegmentsTab({
                       <div className="text-xs text-gray-500">
                         {seg.start_date} → {seg.end_date}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <Edit2 className="h-3 w-3 text-gray-500" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(seg.id)}>
-                        <Trash2 className="h-3 w-3 text-gray-500" />
-                      </Button>
                     </div>
                   </EditableRow>
                 ))}

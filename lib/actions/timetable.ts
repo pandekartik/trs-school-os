@@ -318,3 +318,176 @@ export async function generateSchedule(
     existingCount: existingCount ?? 0,
   };
 }
+
+export async function createTimeTemplate(formData: FormData) {
+  const db = await getDb();
+  const name = String(formData.get("name") ?? "");
+  const days = formData.getAll("days") as string[];
+
+  if (!name) return { error: "Template name is required" };
+  if (days.length === 0) return { error: "At least one day must be selected" };
+
+  const { data, error } = await db
+    .from("time_template")
+    .insert([{ name, days }])
+    .select("id")
+    .single();
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/timetable/templates");
+  return { success: true, id: data?.id };
+}
+
+export async function saveAllSlots(
+  templateId: string,
+  slots: Array<{
+    name: string;
+    start_time: string;
+    end_time: string;
+    slot_type: string;
+    display_order: number;
+  }>
+) {
+  const db = await getDb();
+
+  const { error: deleteError } = await db
+    .from("template_slot")
+    .delete()
+    .eq("template_id", templateId);
+
+  if (deleteError) return { error: deleteError.message };
+
+  if (slots.length > 0) {
+    const slotsData = slots.map((slot) => ({
+      template_id: templateId,
+      ...slot,
+    }));
+
+    const { error: insertError } = await db
+      .from("template_slot")
+      .insert(slotsData);
+
+    if (insertError) return { error: insertError.message };
+  }
+
+  revalidatePath("/timetable/templates");
+  return { success: true };
+}
+
+export async function deleteTimeTemplate(id: string) {
+  const db = await getDb();
+
+  const { error: deleteSlotError } = await db
+    .from("template_slot")
+    .delete()
+    .eq("template_id", id);
+
+  if (deleteSlotError) return { error: deleteSlotError.message };
+
+  const { error: deleteTemplateError } = await db
+    .from("time_template")
+    .delete()
+    .eq("id", id);
+
+  if (deleteTemplateError) return { error: deleteTemplateError.message };
+
+  revalidatePath("/timetable/templates");
+  return { success: true };
+}
+
+export async function duplicateTimeTemplate(id: string) {
+  const db = await getDb();
+
+  const { data: original, error: fetchError } = await db
+    .from("time_template")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (fetchError || !original) return { error: "Template not found" };
+
+  const { data: slots, error: slotsError } = await db
+    .from("template_slot")
+    .select("*")
+    .eq("template_id", id);
+
+  if (slotsError) return { error: slotsError.message };
+
+  const { data: newTemplate, error: createError } = await db
+    .from("time_template")
+    .insert([
+      {
+        name: `${original.name} (copy)`,
+        days: original.days,
+      },
+    ])
+    .select("id")
+    .single();
+
+  if (createError || !newTemplate) return { error: createError?.message };
+
+  if (slots && slots.length > 0) {
+    const newSlots = slots.map(({ id: _id, template_id, created_at, ...slot }) => ({
+      template_id: newTemplate.id,
+      ...slot,
+    }));
+
+    const { error: insertSlotsError } = await db
+      .from("template_slot")
+      .insert(newSlots);
+
+    if (insertSlotsError) return { error: insertSlotsError.message };
+  }
+
+  revalidatePath("/timetable/templates");
+  return { success: true, id: newTemplate.id };
+}
+
+export async function addTemplateSlot(formData: FormData) {
+  const db = await getDb();
+  const template_id = String(formData.get("template_id") ?? "");
+  const name = String(formData.get("name") ?? "");
+  const start_time = String(formData.get("start_time") ?? "");
+  const end_time = String(formData.get("end_time") ?? "");
+  const slot_type = String(formData.get("slot_type") ?? "");
+  const display_order = parseInt(String(formData.get("display_order") ?? "0"), 10);
+
+  if (!template_id || !name || !start_time || !end_time || !slot_type) {
+    return { error: "All fields are required" };
+  }
+
+  const { data, error } = await db
+    .from("template_slot")
+    .insert([
+      {
+        template_id,
+        name,
+        start_time,
+        end_time,
+        slot_type,
+        display_order,
+      },
+    ])
+    .select("id")
+    .single();
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/timetable/templates");
+  return { success: true, id: data?.id };
+}
+
+export async function deleteTemplateSlot(id: string) {
+  const db = await getDb();
+
+  const { error } = await db
+    .from("template_slot")
+    .delete()
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/timetable/templates");
+  return { success: true };
+}
