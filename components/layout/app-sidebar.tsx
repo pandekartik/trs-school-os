@@ -19,11 +19,19 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   BookOpen,
+  Building2,
+  CalendarCheck,
   CalendarDays,
+  CalendarOff,
+  CalendarRange,
+  Clock,
+  FileText,
   GraduationCap,
+  Layers,
   LayoutDashboard,
   LogOut,
-  Settings,
+  Upload,
+  UserCheck,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,24 +48,42 @@ type NavItem = {
 
 const navGroups: { label: string; items: NavItem[] }[] = [
   {
-    label: "Admin",
+    label: "ADMIN",
     items: [
-      { title: "Dashboard", href: "/admin", icon: LayoutDashboard, roles: ["admin", "coordinator"], shortcut: "G D" },
-      { title: "Setup", href: "/setup", icon: Settings, roles: ["admin"] },
-      { title: "Timetable", href: "/timetable", icon: CalendarDays, roles: ["admin"] },
+      { title: "Dashboard", href: "/admin", icon: LayoutDashboard, roles: ["admin"] },
       { title: "Users", href: "/admin/users", icon: Users, roles: ["admin"] },
     ],
   },
   {
-    label: "Content",
+    label: "SETUP",
     items: [
-      { title: "Content", href: "/content", icon: BookOpen, roles: ["admin", "coordinator"], shortcut: "G C" },
+      { title: "School Year", href: "/setup/school-year", icon: CalendarRange, roles: ["admin"] },
+      { title: "Standards", href: "/setup/standards", icon: Building2, roles: ["admin"] },
+      { title: "Segments", href: "/setup/segments", icon: Layers, roles: ["admin"] },
+      { title: "Subjects", href: "/setup/subjects", icon: BookOpen, roles: ["admin"] },
+      { title: "Teachers", href: "/setup/teachers", icon: GraduationCap, roles: ["admin"] },
+      { title: "Chapters", href: "/setup/chapters", icon: FileText, roles: ["admin"] },
+      { title: "Teacher Allocation", href: "/setup/teacher-allocation", icon: UserCheck, roles: ["admin"] },
     ],
   },
   {
-    label: "Operations",
+    label: "TIMETABLE",
     items: [
-      { title: "Teacher View", href: "/teacher", icon: GraduationCap, roles: ["admin", "coordinator", "teacher"] },
+      { title: "Time Templates", href: "/timetable/templates", icon: Clock, roles: ["admin"] },
+      { title: "Timetable", href: "/timetable/builder", icon: CalendarDays, roles: ["admin"] },
+      { title: "Holidays", href: "/timetable/holidays", icon: CalendarOff, roles: ["admin"] },
+    ],
+  },
+  {
+    label: "CONTENT",
+    items: [
+      { title: "Content", href: "/content", icon: Upload, roles: ["admin", "coordinator"] },
+    ],
+  },
+  {
+    label: "OPERATIONS",
+    items: [
+      { title: "Teacher View", href: "/teacher", icon: CalendarCheck, roles: ["admin", "coordinator", "teacher"] },
     ],
   },
 ];
@@ -87,7 +113,6 @@ function getInitials(name: string) {
 }
 
 function isActivePath(pathname: string, href: string) {
-  if (href === "/admin") return pathname === "/admin";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

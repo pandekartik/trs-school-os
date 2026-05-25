@@ -54,7 +54,7 @@ export async function middleware(request: NextRequest) {
   // Check role-based access
   const matchedRoute = Object.keys(routeAccess)
     .sort((a, b) => b.length - a.length)
-    .find((route) => pathname.startsWith(route));
+    .find((route) => pathname === route || pathname.startsWith(`${route}/`));
 
   if (matchedRoute) {
     const allowed = routeAccess[matchedRoute];

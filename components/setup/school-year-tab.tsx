@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Plus, CheckCircle } from "lucide-react";
+import { Loader2, Plus, CheckCircle, Trash2, Edit2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 function EditYearForm({ year, onDone }: { year: SchoolYear; onDone: () => void }) {
@@ -25,20 +25,25 @@ function EditYearForm({ year, onDone }: { year: SchoolYear; onDone: () => void }
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col gap-1">
           <Label>Name</Label>
-          <Input name="name" defaultValue={year.name} className="h-7 text-xs" required />
+          <Input name="name" defaultValue={year.name} className="h-8 text-xs" required />
         </div>
         <div className="flex flex-col gap-1">
           <Label>Start</Label>
-          <Input name="start_date" type="date" defaultValue={year.start_date} className="h-7 text-xs" required />
+          <Input name="start_date" type="date" defaultValue={year.start_date} className="h-8 text-xs" required />
         </div>
         <div className="flex flex-col gap-1">
           <Label>End</Label>
-          <Input name="end_date" type="date" defaultValue={year.end_date} className="h-7 text-xs" required />
+          <Input name="end_date" type="date" defaultValue={year.end_date} className="h-8 text-xs" required />
         </div>
       </div>
-      <Button type="submit" size="sm" className="h-7 text-xs w-fit" disabled={action.loading}>
-        {action.loading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save changes"}
-      </Button>
+      <div className="flex gap-2">
+        <Button type="submit" size="sm" className="h-8 text-xs" disabled={action.loading}>
+          {action.loading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+        </Button>
+        <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" onClick={onDone}>
+          Cancel
+        </Button>
+      </div>
     </form>
   );
 }
@@ -53,99 +58,134 @@ export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>School years</CardTitle>
-            {schoolYears.length > 0 && (
-              <Badge variant="outline" className="font-normal">{schoolYears.length} years</Badge>
-            )}
+    <Card className="border-2xl">
+      <CardHeader>
+        <CardTitle>School Year</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-6">
+        {/* Add Form - Inline Row */}
+        <form onSubmit={syAction.handleSubmit} className="flex items-end gap-2">
+          <div className="flex-1">
+            <Label className="text-xs mb-1.5 block">Name</Label>
+            <Input
+              name="name"
+              placeholder="e.g. 2026-27"
+              className="h-8 text-xs"
+              required
+            />
           </div>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={syAction.handleSubmit} className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label>Name</Label>
-              <Input name="name" placeholder="e.g. 2026-27" required />
-            </div>
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="flex flex-col gap-1.5">
-                <Label>Start date</Label>
-                <Input name="start_date" type="date" required />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>End date</Label>
-                <Input name="end_date" type="date" required />
-              </div>
-            </div>
-            <Button type="submit" disabled={syAction.loading} className="w-full">
-              {syAction.loading
-                ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Adding...</>
-                : <><Plus className="h-3.5 w-3.5" />Add school year</>
-              }
-            </Button>
-          </form>
+          <div className="flex-1">
+            <Label className="text-xs mb-1.5 block">Start date</Label>
+            <Input
+              name="start_date"
+              type="date"
+              className="h-8 text-xs"
+              required
+            />
+          </div>
+          <div className="flex-1">
+            <Label className="text-xs mb-1.5 block">End date</Label>
+            <Input
+              name="end_date"
+              type="date"
+              className="h-8 text-xs"
+              required
+            />
+          </div>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={syAction.loading}
+            className="h-8 text-xs"
+          >
+            {syAction.loading
+              ? <><Loader2 className="h-3 w-3 animate-spin" /></>
+              : <><Plus className="h-3.5 w-3.5" /></>
+            }
+            Add
+          </Button>
+        </form>
 
-          {schoolYears.length > 0 && (
-            <>
-              <div className="h-px bg-border my-4" />
-              <div className="flex flex-col gap-1.5">
-                {schoolYears.map((year) => (
+        {schoolYears.length > 0 && (
+          <>
+            <div className="h-px bg-gray-200" />
+
+            {/* Table */}
+            <div className="flex flex-col">
+              {/* Header */}
+              <div className="grid grid-cols-5 gap-4 px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase text-gray-600 rounded-t-sm">
+                <div>Name</div>
+                <div>Date Range</div>
+                <div>Status</div>
+                <div></div>
+                <div></div>
+              </div>
+
+              {/* Rows */}
+              <div className="flex flex-col border border-t-0 border-gray-200 rounded-b-sm overflow-hidden">
+                {schoolYears.map((year, idx) => (
                   <EditableRow
                     key={year.id}
                     editForm={<EditYearForm year={year} onDone={() => {}} />}
                     onDelete={() => handleDelete(year.id)}
+                    className={`grid grid-cols-5 gap-4 px-3 py-3 items-center border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${
+                      idx % 2 === 0 ? 'bg-white' : ''
+                    }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium">{year.name}</span>
-                      {year.is_active
-                        ? <Badge className="text-[10px] h-5 px-2">Active</Badge>
-                        : (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5 hover:text-green-700"
-                            onClick={async () => {
-                              await setActiveSchoolYear(year.id);
-                              toast.success("Active year updated");
-                            }}
-                          >
-                            <CheckCircle className="h-3 w-3" />
-                          </Button>
-                        )
-                      }
-                    </div>
-                    <div className="text-[11px] text-muted-foreground">
+                    <div className="text-xs font-medium text-gray-900">{year.name}</div>
+                    <div className="text-xs text-gray-500">
                       {year.start_date} → {year.end_date}
+                    </div>
+                    <div>
+                      {year.is_active && (
+                        <Badge className="text-[10px] h-5 px-2 bg-green-100 text-green-700 border-0">Active</Badge>
+                      )}
+                    </div>
+                    <div>
+                      {!year.is_active && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 text-xs text-gray-600"
+                          onClick={async () => {
+                            await setActiveSchoolYear(year.id);
+                            toast.success("Active year updated");
+                          }}
+                        >
+                          Set Active
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 justify-end">
+                      <Button variant="ghost" size="icon" className="h-6 w-6">
+                        <Edit2 className="h-3.5 w-3.5 text-gray-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleDelete(year.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 text-gray-600" />
+                      </Button>
                     </div>
                   </EditableRow>
                 ))}
               </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            </div>
+          </>
+        )}
 
-      <Card>
-        <CardHeader><CardTitle>How it works</CardTitle></CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-3 text-sm text-muted-foreground">
-            <p>Only one year is active at a time. Past years are archived — viewable but not editable.</p>
-            <div className="rounded-lg border bg-secondary/40 p-3 text-xs">
-              <p className="font-medium text-foreground mb-1.5">Complete setup in this order</p>
-              <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                <li>School year <span className="text-green-600">← you are here</span></li>
-                <li>Standards & divisions</li>
-                <li>Segments per standard</li>
-                <li>Subjects per standard</li>
-                <li>Teachers</li>
-                <li>Assignments</li>
-              </ol>
+        {schoolYears.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-12 gap-3">
+            <Calendar className="h-12 w-12 text-gray-300" />
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-600">No school years yet</p>
+              <p className="text-xs text-gray-500">Add your first school year above</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

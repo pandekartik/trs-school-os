@@ -11,8 +11,18 @@ const routeMeta: Record<string, { section: string; title: string }> = {
   "/admin": { section: "ADMIN", title: "Dashboard" },
   "/admin/users": { section: "ADMIN", title: "Users" },
   "/setup": { section: "ADMIN", title: "Setup" },
+  "/setup/school-year": { section: "ADMIN", title: "School Year" },
+  "/setup/standards": { section: "ADMIN", title: "Standards" },
+  "/setup/segments": { section: "ADMIN", title: "Segments" },
+  "/setup/subjects": { section: "ADMIN", title: "Subjects" },
+  "/setup/teachers": { section: "ADMIN", title: "Teachers" },
+  "/setup/chapters": { section: "ADMIN", title: "Chapters" },
+  "/setup/teacher-allocation": { section: "ADMIN", title: "Teacher Allocation" },
   "/content": { section: "CONTENT", title: "Library" },
   "/timetable": { section: "ADMIN", title: "Timetable" },
+  "/timetable/templates": { section: "ADMIN", title: "Time Templates" },
+  "/timetable/builder": { section: "ADMIN", title: "Timetable" },
+  "/timetable/holidays": { section: "ADMIN", title: "Holidays" },
   "/teacher": { section: "TEACHER", title: "Today" },
 };
 

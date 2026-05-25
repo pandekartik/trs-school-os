@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Edit2, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
 const PRESETS = [
@@ -61,10 +61,12 @@ export function SegmentsTab({
 }) {
   const activeYear = schoolYears.find((y) => y.is_active);
   const [selectedStandard, setSelectedStandard] = useState(standards[0]?.id ?? "");
+  const [showAddForm, setShowAddForm] = useState(false);
   const [segmentType, setSegmentType] = useState("unit");
   const [seqNum, setSeqNum] = useState("1");
 
   const segAction = useAction(createAcademicSegment, { successMessage: "Segment created" });
+  const selectedStandardData = standards.find((s) => s.id === selectedStandard);
 
   const currentSegments = segments
     .filter((s) => s.standard_id === selectedStandard)
@@ -90,160 +92,178 @@ export function SegmentsTab({
       await createAcademicSegment(fd);
     }
     toast.success("4 segments created — update the dates for each");
+    setShowAddForm(false);
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <Card>
-        <CardHeader><CardTitle>Add segment</CardTitle></CardHeader>
-        <CardContent>
-          {!activeYear && (
-            <div className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-700 mb-3">
-              No active school year. Set one first.
-            </div>
-          )}
-          <form onSubmit={segAction.handleSubmit} className="flex flex-col gap-3">
-            <input type="hidden" name="school_year_id" value={activeYear?.id ?? ""} />
-            <input type="hidden" name="standard_id" value={selectedStandard} />
-            <input type="hidden" name="segment_type" value={segmentType} />
-            <input type="hidden" name="sequence_number" value={seqNum} />
+    <div className="flex flex-col gap-4">
+      {/* Pill Selector */}
+      <div className="flex gap-2 flex-wrap">
+        {standards.map((std) => (
+          <button
+            key={std.id}
+            onClick={() => setSelectedStandard(std.id)}
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              selectedStandard === std.id
+                ? "bg-gray-900 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            {std.name}
+          </button>
+        ))}
+      </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label>Standard</Label>
-              <Select value={selectedStandard} onValueChange={setSelectedStandard}>
-                <SelectTrigger><SelectValue placeholder="Select standard" /></SelectTrigger>
-                <SelectContent>
-                  {standards.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label>Segment name</Label>
-              <Input name="name" placeholder="e.g. Unit 1" required />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="flex flex-col gap-1.5">
-                <Label>Type</Label>
-                <Select value={segmentType} onValueChange={setSegmentType}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unit">Unit</SelectItem>
-                    <SelectItem value="term">Term</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>Sequence</Label>
-                <Select value={seqNum} onValueChange={setSeqNum}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1st</SelectItem>
-                    <SelectItem value="2">2nd</SelectItem>
-                    <SelectItem value="3">3rd</SelectItem>
-                    <SelectItem value="4">4th</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="flex flex-col gap-1.5">
-                <Label>Start date</Label>
-                <Input name="start_date" type="date" required />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>End date</Label>
-                <Input name="end_date" type="date" required />
-              </div>
-            </div>
-
-            <Button type="submit" disabled={segAction.loading || !selectedStandard || !activeYear} className="w-full">
-              {segAction.loading
-                ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Adding...</>
-                : <><Plus className="h-3.5 w-3.5" />Add segment</>
-              }
-            </Button>
-
-            <div className="h-px bg-border" />
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full text-xs"
-              disabled={!selectedStandard || !activeYear}
-              onClick={bulkCreate}
-            >
-              Quick create all 4 segments for this standard
-            </Button>
-            <p className="text-[11px] text-muted-foreground text-center -mt-1">
-              Creates Unit 1, Term 1, Unit 2, Term 2 — edit dates after
-            </p>
-          </form>
-        </CardContent>
-      </Card>
-
+      {/* Segments Card */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>
-              Segments
-              {selectedStandard && (
-                <span className="font-normal text-muted-foreground ml-1.5">
-                  — {standards.find((s) => s.id === selectedStandard)?.name}
-                </span>
+            <div>
+              <CardTitle>
+                {selectedStandardData?.name || "Segments"}
+              </CardTitle>
+            </div>
+            <div className="flex items-center gap-3">
+              {currentSegments.length > 0 && (
+                <Badge variant="outline" className="font-normal">{currentSegments.length} segments</Badge>
               )}
-            </CardTitle>
-            <Select value={selectedStandard} onValueChange={setSelectedStandard}>
-              <SelectTrigger className="h-7 text-xs w-28">
-                <SelectValue placeholder="Standard" />
-              </SelectTrigger>
-              <SelectContent>
-                {standards.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-8 text-xs"
+                disabled={!selectedStandard || !activeYear}
+                onClick={bulkCreate}
+              >
+                Quick create 4 segments
+              </Button>
+            </div>
           </div>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className="flex flex-col gap-4">
+          {!activeYear && (
+            <div className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-700">
+              No active school year. Set one first.
+            </div>
+          )}
+
           {currentSegments.length === 0 ? (
-            <div className="text-center py-8 text-xs text-muted-foreground">
-              No segments yet. Use Quick create to add all 4 at once.
+            <div className="text-center py-8">
+              <p className="text-xs text-gray-600">No segments for this standard. Use Quick create to add all 4 at once.</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-1.5">
-              {currentSegments.map((seg) => {
-                return (
+            <>
+              {/* Segments List */}
+              <div className="flex flex-col gap-0 border border-gray-200 rounded-sm">
+                {currentSegments.map((seg) => (
                   <EditableRow
                     key={seg.id}
                     editForm={<EditSegmentForm seg={seg} />}
                     onDelete={() => handleDelete(seg.id)}
+                    className="flex items-center justify-between px-3 py-2.5 border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium">{seg.name}</span>
-                      <Badge
-                        className="text-[10px] h-5 px-2 font-normal border"
-                        style={{
-                          color: seg.segment_type === "unit" ? "#185FA5" : "#3B6D11",
-                          borderColor: seg.segment_type === "unit" ? "#b5d4f4" : "#c0dd97",
-                          background: seg.segment_type === "unit" ? "#e6f1fb" : "#eaf3de",
-                        }}
-                      >
-                        {seg.segment_type}
-                      </Badge>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium text-gray-900">{seg.name}</span>
+                        <Badge
+                          className="text-[10px] h-5 px-2 font-normal border"
+                          style={{
+                            color: seg.segment_type === "unit" ? "#185FA5" : "#3B6D11",
+                            borderColor: seg.segment_type === "unit" ? "#b5d4f4" : "#c0dd97",
+                            background: seg.segment_type === "unit" ? "#e6f1fb" : "#eaf3de",
+                          }}
+                        >
+                          {seg.segment_type}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {seg.start_date} → {seg.end_date}
+                      </div>
                     </div>
-                    <div className="text-[11px] text-muted-foreground">
-                      {seg.start_date} → {seg.end_date}
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-6 w-6">
+                        <Edit2 className="h-3 w-3 text-gray-500" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(seg.id)}>
+                        <Trash2 className="h-3 w-3 text-gray-500" />
+                      </Button>
                     </div>
                   </EditableRow>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Collapsible Add Form */}
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="flex items-center gap-2 text-xs font-medium text-gray-700 hover:text-gray-900 py-2"
+          >
+            {showAddForm ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            Add segment manually
+          </button>
+
+          {showAddForm && (
+            <form onSubmit={segAction.handleSubmit} className="flex flex-col gap-3 pt-3 border-t border-gray-200">
+              <input type="hidden" name="school_year_id" value={activeYear?.id ?? ""} />
+              <input type="hidden" name="standard_id" value={selectedStandard} />
+              <input type="hidden" name="segment_type" value={segmentType} />
+              <input type="hidden" name="sequence_number" value={seqNum} />
+
+              <div className="flex flex-col gap-1.5">
+                <Label>Segment name</Label>
+                <Input name="name" placeholder="e.g. Unit 1" className="h-8 text-xs" required />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="flex flex-col gap-1.5">
+                  <Label>Type</Label>
+                  <Select value={segmentType} onValueChange={setSegmentType}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unit">Unit</SelectItem>
+                      <SelectItem value="term">Term</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label>Sequence</Label>
+                  <Select value={seqNum} onValueChange={setSeqNum}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1st</SelectItem>
+                      <SelectItem value="2">2nd</SelectItem>
+                      <SelectItem value="3">3rd</SelectItem>
+                      <SelectItem value="4">4th</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="flex flex-col gap-1.5">
+                  <Label>Start date</Label>
+                  <Input name="start_date" type="date" className="h-8 text-xs" required />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label>End date</Label>
+                  <Input name="end_date" type="date" className="h-8 text-xs" required />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button type="submit" disabled={segAction.loading || !selectedStandard || !activeYear} size="sm" className="h-8 text-xs">
+                  {segAction.loading
+                    ? <><Loader2 className="h-3 w-3 animate-spin" /></>
+                    : <><Plus className="h-3.5 w-3.5" /></>
+                  }
+                  Add
+                </Button>
+                <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setShowAddForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
           )}
         </CardContent>
       </Card>
