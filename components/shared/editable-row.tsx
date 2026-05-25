@@ -52,7 +52,7 @@ export function EditableRow({
       className
     )}>
       <div className="flex-1 min-w-0">{children}</div>
-      <div className="flex shrink-0 items-center gap-1 opacity-45 transition-opacity group-hover:opacity-100">
+      <div className="flex shrink-0 items-center gap-1 opacity-100">
         <Button
           variant="ghost"
           size="icon"

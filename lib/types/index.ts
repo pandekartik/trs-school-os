@@ -114,12 +114,13 @@ export type TimetableSlot = {
   division_id: string;
   subject_id: string;
   teacher_id: string;
-  day_of_week: "MON" | "TUE" | "WED" | "THU" | "FRI";
+  template_slot_id: string | null;
+  day_of_week: string;
   period_number: number;
-  start_time: string;
-  end_time: string;
-  effective_from: string;
-  effective_to: string | null;
+  start_time?: string;
+  end_time?: string;
+  effective_from?: string;
+  effective_to?: string | null;
 };
 
 export type Holiday = {
@@ -188,9 +189,27 @@ export type TemplateSlot = {
   name: string;
   start_time: string;
   end_time: string;
-  slot_type: "period" | "break" | "lunch" | "assembly";
+  slot_type: "period" | "class" | "break" | "lunch" | "assembly";
   display_order: number;
   created_at?: string;
+};
+
+export type DivisionTemplate = {
+  id: string;
+  division_id: string;
+  template_id: string;
+  applies_to: "weekday" | "saturday";
+  created_at: string;
+};
+
+export type TimetableActivation = {
+  id: string;
+  division_id: string;
+  segment_id: string;
+  status: "draft" | "finalized";
+  finalized_at: string | null;
+  finalized_by: string | null;
+  created_at: string;
 };
 
 export type JsonPrimitive = string | number | boolean | null;

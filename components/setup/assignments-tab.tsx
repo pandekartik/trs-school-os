@@ -325,7 +325,7 @@ export function AssignmentsTab({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 rounded-md text-[#525252] opacity-0 hover:bg-[#F5F5F5] group-hover:opacity-100"
+                          className="h-7 w-7 rounded-md text-[#525252] hover:bg-[#F5F5F5]"
                           onClick={() => handleDelete(assignment.id)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -355,7 +355,7 @@ export function AssignmentsTab({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 rounded-md text-[#525252] opacity-0 hover:bg-[#F5F5F5] group-hover:opacity-100"
+                          className="h-7 w-7 rounded-md text-[#525252] hover:bg-[#F5F5F5]"
                           onClick={() => handleDelete(assignment.id)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />

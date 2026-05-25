@@ -146,7 +146,7 @@ export function TeachersTab({ teachers }: { teachers: Teacher[] }) {
                       key={t.id}
                       editForm={<EditTeacherForm t={t} />}
                       onDelete={() => handleDelete(t.id)}
-                      className="min-h-11 rounded-none border-x-0 border-t-0 border-b border-[#F5F5F5] bg-white px-4 py-2 hover:bg-[#FAFAFA] [&>div:last-child]:opacity-0 [&>div:last-child]:group-hover:opacity-100"
+                      className="min-h-11 rounded-none border-x-0 border-t-0 border-b border-[#F5F5F5] bg-white px-4 py-2 hover:bg-[#FAFAFA]"
                     >
                       <div className="flex items-center gap-3">
                         <div

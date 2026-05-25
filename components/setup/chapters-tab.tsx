@@ -392,7 +392,7 @@ export function ChaptersTab({
                     editForm={<EditChapterForm chapter={chapter} onDone={() => router.refresh()} />}
                     onDelete={() => handleDelete(chapter.id)}
                     deleteConfirmText="Delete chapter?"
-                    className="min-h-11 rounded-none border-x-0 border-t-0 border-b border-[#F5F5F5] bg-white px-4 py-0 hover:bg-[#FAFAFA] [&>div:first-child]:min-w-0 [&>div:last-child]:opacity-0 [&>div:last-child]:group-hover:opacity-100"
+                    className="min-h-11 rounded-none border-x-0 border-t-0 border-b border-[#F5F5F5] bg-white px-4 py-0 hover:bg-[#FAFAFA] [&>div:first-child]:min-w-0"
                   >
                     <div className="grid min-h-11 grid-cols-[72px_1.5fr_116px_116px_1fr] items-center gap-0">
                       <div className="text-sm font-medium text-[#171717]">{chapter.chapter_number}</div>
