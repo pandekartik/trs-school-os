@@ -428,9 +428,13 @@ export async function duplicateTimeTemplate(id: string) {
   if (createError || !newTemplate) return { error: createError?.message };
 
   if (slots && slots.length > 0) {
-    const newSlots = slots.map(({ id: _id, template_id, created_at, ...slot }) => ({
+    const newSlots = slots.map((slot) => ({
       template_id: newTemplate.id,
-      ...slot,
+      name: slot.name,
+      start_time: slot.start_time,
+      end_time: slot.end_time,
+      slot_type: slot.slot_type,
+      display_order: slot.display_order,
     }));
 
     const { error: insertSlotsError } = await db
