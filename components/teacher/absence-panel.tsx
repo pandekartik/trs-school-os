@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -172,10 +172,16 @@ export function AbsencePanel({
           </Button>
         </form>
 
-        {/* Recent absences */}
-        {relevantAbsences.length > 0 && (
-          <div className="border-t pt-3">
-            <h4 className="text-xs font-semibold mb-2">Recent Absences</h4>
+        {/* This week absences */}
+        <div className="border-t pt-3">
+          <h4 className="text-xs font-medium uppercase mb-2" style={{ color: "#A3A3A3" }}>
+            This week
+          </h4>
+          {relevantAbsences.length === 0 ? (
+            <p className="text-xs" style={{ color: "#A3A3A3" }}>
+              No absences this week
+            </p>
+          ) : (
             <div className="space-y-2">
               {relevantAbsences.map((absence) => {
                 const substituteDate = new Date(absence.absence_date);
@@ -185,33 +191,28 @@ export function AbsencePanel({
                 });
 
                 return (
-                  <div key={absence.id} className="text-xs bg-muted rounded p-2">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <div>
-                        <div className="font-medium">{dateStr}</div>
-                        <div className="text-muted-foreground">
-                          Sub: {substituteNames.get(absence.substitute_teacher_id)}
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => handleDeleteAbsence(absence)}
-                        disabled={loadingAbsenceId === absence.id}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                  <div key={absence.id} className="text-xs flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1 flex-1 min-w-0">
+                      <span className="font-medium truncate">{selectedTeacherName}</span>
+                      <ArrowRight className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{substituteNames.get(absence.substitute_teacher_id)}</span>
                     </div>
-                    {absence.reason && (
-                      <div className="text-muted-foreground text-xs">{absence.reason}</div>
-                    )}
+                    <span className="text-muted-foreground shrink-0">{dateStr}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-5 w-5 p-0 shrink-0"
+                      onClick={() => handleDeleteAbsence(absence)}
+                      disabled={loadingAbsenceId === absence.id}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
                   </div>
                 );
               })}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
     </Card>
   );

@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { getRole, getTeacherProfile } from "@/lib/auth";
 import { TeacherShell } from "@/components/teacher/teacher-shell";
 import { getTodayIsoDate } from "@/lib/timetable-constants";
-import type { SchoolYear } from "@/lib/types";
+import type { SchoolYear, AcademicSegment, Holiday } from "@/lib/types";
 
 function getMondayOfWeek(date: Date): Date {
   const d = new Date(date);
@@ -19,7 +19,11 @@ function getWeekRange(weekStart: Date) {
   return { start, end };
 }
 
-async function fetchTeacherSchedule(teacherId: string, weekStart: Date) {
+async function fetchTeacherSchedule(
+  teacherId: string,
+  weekStart: Date,
+  schoolYearId?: string
+) {
   const admin = createAdminClient();
   const { start, end } = getWeekRange(weekStart);
 
@@ -36,6 +40,10 @@ async function fetchTeacherSchedule(teacherId: string, weekStart: Date) {
     { data: divisions },
     { data: teachers },
     { data: absences },
+    { data: holidays },
+    { data: academicSegments },
+    { data: divisionTemplates },
+    { data: timetableActivations },
   ] = await Promise.all([
     admin
       .from("period_instance")
@@ -47,15 +55,33 @@ async function fetchTeacherSchedule(teacherId: string, weekStart: Date) {
     admin
       .from("timetable_slot")
       .select("*")
-      .eq("teacher_id", teacherId)
-      .is("effective_to", null),
+      .eq("teacher_id", teacherId),
     admin.from("chapter").select("*"),
     admin.from("chapter_period").select("*"),
     admin.from("subject").select("*"),
     admin.from("standard").select("*"),
     admin.from("division").select("*"),
     admin.from("teacher").select("*"),
-    admin.from("teacher_absence").select("*").eq("teacher_id", teacherId),
+    admin
+      .from("teacher_absence")
+      .select("*")
+      .eq("teacher_id", teacherId)
+      .gte("absence_date", startIso)
+      .lte("absence_date", endIso),
+    schoolYearId
+      ? admin
+          .from("holiday")
+          .select("*")
+          .eq("school_year_id", schoolYearId)
+          .gte("date", startIso)
+          .lte("date", endIso)
+      : (async () => ({ data: [] }))(),
+    admin.from("academic_segment").select("*"),
+    admin.from("division_template").select("*"),
+    admin
+      .from("timetable_activation")
+      .select("*")
+      .eq("status", "finalized"),
   ]);
 
   return {
@@ -68,6 +94,10 @@ async function fetchTeacherSchedule(teacherId: string, weekStart: Date) {
     divisions: divisions || [],
     teachers: teachers || [],
     absences: absences || [],
+    holidays: holidays || [],
+    academicSegments: academicSegments || [],
+    divisionTemplates: divisionTemplates || [],
+    timetableActivations: timetableActivations || [],
   };
 }
 
@@ -117,8 +147,10 @@ export default async function TeacherPage({
     .eq("is_active", true)
     .limit(1);
 
+  let schoolYearId = "";
   if (schoolYears && schoolYears.length > 0) {
     const activeYear = schoolYears[0] as SchoolYear;
+    schoolYearId = activeYear.id;
     const yearStartDate = new Date(activeYear.start_date);
     // Use school year start date if it's after today
     if (yearStartDate > today) {
@@ -135,7 +167,8 @@ export default async function TeacherPage({
 
   const data = await fetchTeacherSchedule(
     teacherId,
-    weekStart
+    weekStart,
+    schoolYearId
   );
 
   return (

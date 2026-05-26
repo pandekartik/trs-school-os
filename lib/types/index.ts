@@ -116,11 +116,7 @@ export type TimetableSlot = {
   teacher_id: string;
   template_slot_id: string | null;
   day_of_week: string;
-  period_number: number;
-  start_time?: string;
-  end_time?: string;
-  effective_from?: string;
-  effective_to?: string | null;
+  period_number?: number;
 };
 
 export type Holiday = {

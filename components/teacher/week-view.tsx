@@ -11,6 +11,7 @@ interface WeekViewProps {
   subjects: any[];
   standards: any[];
   divisions: any[];
+  holidays: any[];
   isTeacher: boolean;
   canLog: boolean;
   loggedBy: string;
@@ -27,6 +28,7 @@ export function WeekView({
   subjects,
   standards,
   divisions,
+  holidays,
   isTeacher,
   canLog,
   loggedBy,
@@ -92,8 +94,9 @@ export function WeekView({
 
         const dayNum = date.getDate();
 
+        const holiday = holidays.find((h: any) => h.date === dateIso);
         const allPeriodsCancelled = dayPeriods.length > 0 && dayPeriods.every(p => p.status === "cancelled");
-        const isHoliday = allPeriodsCancelled;
+        const isHoliday = allPeriodsCancelled || !!holiday;
 
         return (
           <div key={dayLabel} className="flex flex-col">
@@ -105,13 +108,19 @@ export function WeekView({
             >
               <div className="text-xs font-semibold uppercase">{dayLabel}</div>
               <div className="text-lg font-bold">{dayNum}</div>
-              {isHoliday && <div className="text-xs font-medium mt-1">Holiday</div>}
+              {isHoliday && (
+                <div className="text-xs font-medium mt-1 text-red-600">
+                  {holiday?.name || "Holiday"}
+                </div>
+              )}
             </div>
 
             {/* Period cards */}
             {dayPeriods.length === 0 ? (
               <div className="flex items-center justify-center py-8 text-center">
-                <p className="text-xs text-muted-foreground">No periods</p>
+                <p className="text-center" style={{ fontSize: "12px", color: "#A3A3A3" }}>
+                  No classes
+                </p>
               </div>
             ) : (
               <div className="flex flex-col gap-3">

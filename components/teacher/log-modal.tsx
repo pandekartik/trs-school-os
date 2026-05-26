@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle, AlertCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -56,11 +56,20 @@ export function LogModal({
   standard,
   loggedBy,
 }: LogModalProps) {
-  const [status, setStatus] = useState<StatusType | null>(
-    (periodInstance.status as StatusType) || null
-  );
-  const [coverageNote, setCoverageNote] = useState(periodInstance.coverage_note || "");
+  const [status, setStatus] = useState<StatusType | null>(null);
+  const [coverageNote, setCoverageNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      if (["done", "partial", "not_done"].includes(periodInstance.status)) {
+        setStatus(periodInstance.status as StatusType);
+      } else {
+        setStatus(null);
+      }
+      setCoverageNote(periodInstance.coverage_note ?? "");
+    }
+  }, [open, periodInstance]);
 
   const handleSubmit = async () => {
     if (!status) {
@@ -159,10 +168,10 @@ export function LogModal({
           {/* Submit button */}
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting || !status}
+            disabled={isSubmitting || !status || (status && (status === "partial" || status === "not_done") && !coverageNote.trim())}
             className="w-full bg-[#ba2032] hover:bg-[#ba2032]/90"
           >
-            {isSubmitting ? "Logging..." : "Log Period"}
+            {isSubmitting ? "Saving..." : "Log period"}
           </Button>
         </div>
       </DialogContent>

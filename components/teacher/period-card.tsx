@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { ExternalLink, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LogModal } from "@/components/teacher/log-modal";
@@ -41,39 +41,26 @@ export function PeriodCard({
   const isBufferPeriod = periodInstance.is_buffer;
 
   // Determine card border and badge based on status
-  let borderClass = "border-l-4 border-l-gray-300";
-  let badgeColor = "secondary";
-  let badgeIcon: React.ReactNode = null;
+  let borderColor = "#E5E5E5";
   let badgeLabel = "";
 
   if (status === "done") {
-    borderClass = "border-l-4 border-l-green-500";
-    badgeColor = "default";
-    badgeIcon = <CheckCircle className="w-3 h-3" />;
-    badgeLabel = "✓ Done";
+    borderColor = "#16A34A";
+    badgeLabel = "Done";
   } else if (status === "partial") {
-    borderClass = "border-l-4 border-l-amber-500";
-    badgeColor = "secondary";
-    badgeIcon = <AlertCircle className="w-3 h-3" />;
+    borderColor = "#D97706";
     badgeLabel = "Partial";
   } else if (status === "not_done") {
-    borderClass = "border-l-4 border-l-red-500";
-    badgeColor = "destructive";
-    badgeIcon = <XCircle className="w-3 h-3" />;
+    borderColor = "#DC2626";
     badgeLabel = "Not done";
-  } else if (status === "cancelled") {
-    borderClass = "border-l-4 border-l-gray-300 border-dashed";
-    badgeColor = "secondary";
-    badgeLabel = "Cancelled";
   } else if (status === "unlogged") {
-    borderClass = "border-l-4 border-l-orange-500";
-    badgeColor = "secondary";
-    badgeIcon = <AlertCircle className="w-3 h-3" />;
-    badgeLabel = "⚠ Unlogged";
+    borderColor = "#EA580C";
+    badgeLabel = "Unlogged";
+  } else if (status === "cancelled") {
+    borderColor = "#A3A3A3";
+    badgeLabel = "Cancelled";
   } else if (isBufferPeriod) {
-    borderClass = "border-l-4 border-l-gray-300 border-dashed";
-    badgeColor = "secondary";
-    badgeLabel = "Buffer";
+    borderColor = "#E5E5E5";
   }
 
   const periodTime = PERIOD_TIMES.find((p) => p.period === periodNumber);
@@ -95,9 +82,10 @@ export function PeriodCard({
   return (
     <>
       <div
-        className={`rounded-lg border p-3 ${borderClass} ${
+        className={`rounded-lg border p-3 ${
           isCancelled ? "opacity-60 bg-muted" : "bg-card"
         }`}
+        style={{ borderLeft: `4px solid ${borderColor}` }}
       >
         {/* Header with badge */}
         <div className="flex items-start justify-between gap-2 mb-2">
@@ -107,9 +95,8 @@ export function PeriodCard({
             </div>
           </div>
           {badgeLabel && (
-            <Badge variant={badgeColor as any} className="shrink-0 gap-1">
-              {badgeIcon}
-              <span>{badgeLabel}</span>
+            <Badge variant="outline" className="shrink-0 text-xs">
+              {badgeLabel}
             </Badge>
           )}
         </div>
@@ -141,30 +128,37 @@ export function PeriodCard({
 
         {/* Coverage note */}
         {periodInstance.coverage_note && (
-          <div className="mb-2 text-xs text-muted-foreground bg-muted rounded px-2 py-1">
+          <div
+            className="mb-2 rounded px-2 py-1 italic mt-2"
+            style={{ fontSize: "12px", color: "#525252", backgroundColor: "#F5F5F5" }}
+          >
             {periodInstance.coverage_note}
           </div>
         )}
 
         {/* Logged time */}
         {isLogged && periodInstance.logged_at && (
-          <div className="mb-3 text-xs text-muted-foreground">
-            Logged {new Date(periodInstance.logged_at).toLocaleDateString()}
+          <div className="mb-3 text-xs" style={{ color: "#A3A3A3" }}>
+            Logged at {new Date(periodInstance.logged_at).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })}
           </div>
         )}
 
         {/* Action buttons */}
         {!isCancelled && (
           <div className="flex gap-2">
-            {chapterPeriod?.lesson_plan_url && chapterPeriod?.is_published && (
+            {chapterPeriod && chapterPeriod.is_published && chapterPeriod.lesson_plan_url && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="flex-1 h-8 text-xs"
                 onClick={handleViewLesson}
               >
-                <Download className="w-3 h-3 mr-1" />
-                View Plan
+                <ExternalLink className="w-3 h-3 mr-1" />
+                View plan
               </Button>
             )}
 
@@ -175,7 +169,7 @@ export function PeriodCard({
                 className="flex-1 h-8 text-xs"
                 onClick={() => setIsLogModalOpen(true)}
               >
-                Log Period
+                Log period
               </Button>
             )}
 

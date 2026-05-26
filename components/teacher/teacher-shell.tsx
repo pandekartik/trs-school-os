@@ -29,6 +29,10 @@ interface TeacherData {
   divisions: any[];
   teachers: any[];
   absences: any[];
+  holidays: any[];
+  academicSegments: any[];
+  divisionTemplates: any[];
+  timetableActivations: any[];
 }
 
 interface TeacherShellProps {
@@ -142,8 +146,9 @@ export function TeacherShell({
           subjects={data.subjects}
           standards={data.standards}
           divisions={data.divisions}
+          holidays={data.holidays}
           isTeacher={role === "teacher"}
-          canLog={role === "admin"}
+          canLog={role === "admin" || role === "teacher"}
           loggedBy={currentUserProfile.id}
         />
       </div>

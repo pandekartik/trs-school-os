@@ -29,7 +29,6 @@ export async function createTimetableSlot(formData: FormData) {
   const teacher_id = String(formData.get("teacher_id") ?? "");
   const day_of_week = String(formData.get("day_of_week") ?? "") as TimetableDay;
   const period_number = parseInt(String(formData.get("period_number") ?? "0"), 10);
-  const effective_from = String(formData.get("effective_from") ?? getTodayIsoDate());
 
   const time = getPeriodTime(period_number);
   if (!time) return { error: "Invalid period number" };
@@ -41,15 +40,14 @@ export async function createTimetableSlot(formData: FormData) {
     .eq("division_id", division_id)
     .eq("day_of_week", day_of_week)
     .eq("period_number", period_number)
-    .is("effective_to", null)
     .maybeSingle();
 
   if (existing) {
-    const { error: closeError } = await db
+    const { error: deleteError } = await db
       .from("timetable_slot")
-      .update({ effective_to: getTodayIsoDate() })
+      .delete()
       .eq("id", existing.id);
-    if (closeError) return { error: closeError.message };
+    if (deleteError) return { error: deleteError.message };
   }
 
   const { error } = await db.from("timetable_slot").insert({
@@ -59,10 +57,6 @@ export async function createTimetableSlot(formData: FormData) {
     teacher_id,
     day_of_week,
     period_number,
-    start_time: time.start,
-    end_time: time.end,
-    effective_from,
-    effective_to: null,
   });
 
   if (error) return { error: error.message };
@@ -74,7 +68,7 @@ export async function deleteTimetableSlot(id: string) {
   const db = await getDb();
   const { error } = await db
     .from("timetable_slot")
-    .update({ effective_to: getTodayIsoDate() })
+    .delete()
     .eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/timetable");
@@ -146,7 +140,6 @@ export async function generateSchedule(
     .select("*")
     .eq("division_id", divisionId)
     .eq("school_year_id", schoolYearId)
-    .is("effective_to", null)
     .order("day_of_week")
     .order("period_number");
   if (slotError) return { success: false, error: slotError.message };
@@ -245,7 +238,7 @@ export async function generateSchedule(
 
   const slotByDay = new Map<TimetableDay, typeof activeSlots>();
   for (const day of TIMETABLE_DAYS) {
-    slotByDay.set(day, (activeSlots ?? []).filter((slot) => slot.day_of_week === day));
+    slotByDay.set(day, (activeSlots ?? []).filter((slot) => slot.day_of_week === day.toLowerCase()));
   }
 
   const rows: Array<Record<string, unknown>> = [];
@@ -626,69 +619,24 @@ export async function finalizeTimetable(
 
   if (activationError) return { error: activationError.message };
 
-  // Generate period instances from timetable slots
-  const [{ data: segment }, { data: timetableSlots }, { data: holidays }] = await Promise.all([
-    db
-      .from("academic_segment")
-      .select("start_date, end_date")
-      .eq("id", segmentId)
-      .single(),
-    db
-      .from("timetable_slot")
-      .select("*")
-      .eq("division_id", divisionId),
-    db
-      .from("holiday")
-      .select("date"),
-  ]);
+  // Get school year ID for schedule generation
+  const { data: segment } = await db
+    .from("academic_segment")
+    .select("school_year_id")
+    .eq("id", segmentId)
+    .single();
 
-  if (!segment) return { error: "Segment not found" };
-  if (!timetableSlots || timetableSlots.length === 0) return { success: true };
+  if (!segment?.school_year_id) return { error: "School year not found" };
 
-  const dayMap: Record<string, string> = {
-    mon: "monday",
-    tue: "tuesday",
-    wed: "wednesday",
-    thu: "thursday",
-    fri: "friday",
-    sat: "saturday",
-    sun: "sunday",
-  };
+  // Generate period instances with chapter assignments
+  const scheduleResult = await generateSchedule(
+    divisionId,
+    segmentId,
+    segment.school_year_id,
+    true // overwrite existing
+  );
 
-  const holidayDates = new Set((holidays || []).map((h) => h.date));
-  const startDate = new Date(segment.start_date);
-  const endDate = new Date(segment.end_date);
-  const periodInstances = [];
-
-  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-    const dateStr = d.toISOString().split("T")[0];
-    if (holidayDates.has(dateStr)) continue;
-
-    const dayName = d.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
-    const dayAbbr = dayName.slice(0, 3);
-
-    for (const slot of timetableSlots) {
-      if (slot.day_of_week !== dayAbbr) continue;
-
-      periodInstances.push({
-        division_id: divisionId,
-        teacher_id: slot.teacher_id,
-        subject_id: slot.subject_id,
-        date: dateStr,
-        period_number: slot.period_number,
-      });
-    }
-  }
-
-  if (periodInstances.length > 0) {
-    const { error: insertError } = await db
-      .from("period_instance")
-      .upsert(periodInstances, { onConflict: "division_id,date,period_number" });
-
-    if (insertError) {
-      console.error("Error inserting period instances:", insertError);
-    }
-  }
+  if (!scheduleResult.success) return scheduleResult;
 
   revalidatePath("/timetable/builder");
   revalidatePath("/teacher");
