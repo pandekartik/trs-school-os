@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { getRole, getTeacherProfile } from "@/lib/auth";
 import { TeacherShell } from "@/components/teacher/teacher-shell";
 import { getTodayIsoDate } from "@/lib/timetable-constants";
+import type { SchoolYear } from "@/lib/types";
 
 function getMondayOfWeek(date: Date): Date {
   const d = new Date(date);
@@ -104,9 +105,26 @@ export default async function TeacherPage({
     }
   }
 
-  // Parse week parameter or use current week
+  // Parse week parameter or use school year start week
   const today = new Date(getTodayIsoDate());
   let weekStart = getMondayOfWeek(today);
+
+  // Fetch active school year and use its start date if available
+  const admin = createAdminClient();
+  const { data: schoolYears } = await admin
+    .from("school_year")
+    .select("*")
+    .eq("is_active", true)
+    .limit(1);
+
+  if (schoolYears && schoolYears.length > 0) {
+    const activeYear = schoolYears[0] as SchoolYear;
+    const yearStartDate = new Date(activeYear.start_date);
+    // Use school year start date if it's after today
+    if (yearStartDate > today) {
+      weekStart = getMondayOfWeek(yearStartDate);
+    }
+  }
 
   if (params.week) {
     const weekDate = new Date(String(params.week));

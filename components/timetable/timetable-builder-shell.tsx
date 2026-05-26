@@ -15,6 +15,7 @@ import {
 import {
   assignDivisionTemplate,
   draftTimetable,
+  randomlyAssignSlots,
 } from "@/lib/actions/timetable";
 import type {
   AcademicSegment,
@@ -126,6 +127,19 @@ export function TimetableBuilderShell({
     });
   }
 
+  function handleRandomAssign() {
+    if (!selectedDivisionId) return;
+    const confirmed = window.confirm("This will randomly assign subjects and teachers to all empty slots. Continue?");
+    if (!confirmed) return;
+
+    startTransition(async () => {
+      const result = await randomlyAssignSlots(selectedDivisionId);
+      if (result?.error) toast.error("Random assignment failed", { description: result.error });
+      else if (result?.warning) toast.success("Random assignment completed", { description: result.warning });
+      else toast.success("All slots randomly assigned");
+    });
+  }
+
   return (
     <div className="min-h-full bg-[#FAFAFA]">
       <div className="mb-6">
@@ -141,10 +155,10 @@ export function TimetableBuilderShell({
               <button
                 key={standard.id}
                 type="button"
-                className={[
-                  "h-7 rounded-md px-3 text-xs font-medium",
-                  selected ? "bg-[#171717] text-white" : "bg-[#F5F5F5] text-[#525252]",
-                ].join(" ")}
+                className={`h-7 rounded-md px-3 text-xs font-medium transition-colors ${
+                  selected ? "text-white" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
+                }`}
+                style={selected ? { backgroundColor: "var(--color-brand)" } : undefined}
                 onClick={() => {
                   setSelectedStandardId(standard.id);
                   setSelectedDivisionId(null);
@@ -164,10 +178,10 @@ export function TimetableBuilderShell({
                 <button
                   key={division.id}
                   type="button"
-                  className={[
-                    "h-7 rounded-md px-3 text-xs font-medium",
-                    selected ? "bg-[#171717] text-white" : "bg-[#F5F5F5] text-[#525252]",
-                  ].join(" ")}
+                  className={`h-7 rounded-md px-3 text-xs font-medium transition-colors ${
+                    selected ? "text-white" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
+                  }`}
+                  style={selected ? { backgroundColor: "var(--color-brand)" } : undefined}
                   onClick={() => setSelectedDivisionId(division.id)}
                 >
                   Div {division.name}
@@ -186,10 +200,10 @@ export function TimetableBuilderShell({
       {selectedDivision && (
         <div className="mb-4 flex flex-wrap items-center gap-4 rounded-lg border border-[#E5E5E5] bg-white px-4 py-3 text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-[#525252]">Weekday template:</span>
-            <span className="font-medium text-[#171717]">{weekdayTemplate?.name ?? "Not assigned"}</span>
+            <span style={{ color: "var(--color-text-secondary)" }}>Weekday template:</span>
+            <span style={{ color: "var(--color-text-primary)" }} className="font-medium">{weekdayTemplate?.name ?? "Not assigned"}</span>
             <Select value={weekdayTemplate?.id ?? ""} onValueChange={(value) => handleTemplateAssign(value, "weekday")}>
-              <SelectTrigger className="h-8 w-28 rounded-md border-[#D4D4D4] text-xs">
+              <SelectTrigger style={{ borderColor: "var(--color-border)" }} className="h-8 w-40 rounded-md text-xs">
                 <SelectValue placeholder={weekdayTemplate ? "Change" : "Assign"} />
               </SelectTrigger>
               <SelectContent>
@@ -202,10 +216,10 @@ export function TimetableBuilderShell({
             </Select>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[#525252]">Saturday template:</span>
-            <span className="font-medium text-[#171717]">{saturdayTemplate?.name ?? "Not assigned"}</span>
+            <span style={{ color: "var(--color-text-secondary)" }}>Saturday template:</span>
+            <span style={{ color: "var(--color-text-primary)" }} className="font-medium">{saturdayTemplate?.name ?? "Not assigned"}</span>
             <Select value={saturdayTemplate?.id ?? ""} onValueChange={(value) => handleTemplateAssign(value, "saturday")}>
-              <SelectTrigger className="h-8 w-28 rounded-md border-[#D4D4D4] text-xs">
+              <SelectTrigger style={{ borderColor: "var(--color-border)" }} className="h-8 w-40 rounded-md text-xs">
                 <SelectValue placeholder={saturdayTemplate ? "Change" : "Assign"} />
               </SelectTrigger>
               <SelectContent>
@@ -259,14 +273,25 @@ export function TimetableBuilderShell({
                   Edit
                 </Button>
               ) : (
-                <Button
-                  type="button"
-                  className="h-8 rounded-md bg-[#ba2032] text-white hover:bg-[#ba2032]"
-                  onClick={() => setShowFinalizeModal(true)}
-                  disabled={!activeSchoolYear}
-                >
-                  Finalize
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="h-8 rounded-md border-[#E5E5E5] bg-[#F5F5F5] text-[#525252] text-xs"
+                    onClick={handleRandomAssign}
+                    disabled={isPending}
+                  >
+                    Random Fill (temp)
+                  </Button>
+                  <Button
+                    type="button"
+                    className="h-8 rounded-md bg-[#ba2032] text-white hover:bg-[#ba2032]"
+                    onClick={() => setShowFinalizeModal(true)}
+                    disabled={!activeSchoolYear}
+                  >
+                    Finalize
+                  </Button>
+                </>
               )}
             </div>
           </div>

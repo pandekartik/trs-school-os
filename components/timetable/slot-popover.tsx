@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo, useState, useTransition } from "react";
+import { ReactNode, useMemo, useState, useTransition, useEffect, useRef } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,8 @@ type SlotPopoverProps = {
   subjects: Subject[];
   teachers: Teacher[];
   teacherAssignments: TeacherAssignment[];
+  openSlotId?: string | null;
+  onOpenChange?: (slotId: string | null) => void;
 };
 
 const DAY_LABELS: Record<string, string> = {
@@ -55,11 +57,24 @@ export function SlotPopover({
   subjects,
   teachers,
   teacherAssignments,
+  openSlotId,
+  onOpenChange,
 }: SlotPopoverProps) {
-  const [open, setOpen] = useState(false);
+  const slotKey = `${division.id}-${slot.id}-${day}`;
+  const open = openSlotId === slotKey;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [positionBottom, setPositionBottom] = useState(false);
   const [subjectId, setSubjectId] = useState(savedSlot?.subject_id ?? "");
   const [teacherId, setTeacherId] = useState(savedSlot?.teacher_id ?? "");
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (open && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      // Check if there's enough space below for the popover (estimate ~200px)
+      setPositionBottom(rect.bottom + 200 > window.innerHeight);
+    }
+  }, [open]);
 
   const divisionSubjects = subjects
     .filter((subject) => subject.standard_id === division.standard_id)
@@ -89,7 +104,7 @@ export function SlotPopover({
         return;
       }
       toast.success("Slot saved");
-      setOpen(false);
+      onOpenChange?.(null);
     });
   }
 
@@ -101,16 +116,18 @@ export function SlotPopover({
         return;
       }
       toast.success("Slot cleared");
-      setOpen(false);
+      onOpenChange?.(null);
     });
   }
 
   return (
-    <div className="relative" onClick={() => setOpen(true)}>
+    <div ref={containerRef} className="relative" onClick={() => onOpenChange?.(slotKey)}>
       {children}
       {open && (
         <div
-          className="absolute left-2 top-2 z-30 w-[280px] rounded-lg border border-[#E5E5E5] bg-white p-3 shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
+          className={`absolute left-2 z-50 w-[280px] rounded-lg border border-[#E5E5E5] bg-white p-3 shadow-[0_4px_16px_rgba(0,0,0,0.08)] ${
+            positionBottom ? "bottom-2" : "top-2"
+          }`}
           onClick={(event) => event.stopPropagation()}
         >
           <div className="mb-3 border-b border-[#F5F5F5] pb-2">
@@ -182,7 +199,7 @@ export function SlotPopover({
                   type="button"
                   variant="secondary"
                   className="h-8 rounded-md border-[#E5E5E5] bg-[#F5F5F5] text-[#171717]"
-                  onClick={() => setOpen(false)}
+                  onClick={() => onOpenChange?.(null)}
                   disabled={isPending}
                 >
                   Cancel

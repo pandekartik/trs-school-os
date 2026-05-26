@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Pencil, Plus } from "lucide-react";
 import type {
   Division,
@@ -52,6 +53,7 @@ export function TimetableGrid({
   teacherAssignments,
 }: TimetableGridProps) {
   const days = template.days;
+  const [openSlotId, setOpenSlotId] = useState<string | null>(null);
 
   return (
     <div className="overflow-hidden rounded-lg border border-[#E5E5E5] bg-white">
@@ -107,6 +109,8 @@ export function TimetableGrid({
                       subjects={subjects}
                       teachers={teachers}
                       teacherAssignments={teacherAssignments}
+                      openSlotId={openSlotId}
+                      onOpenChange={setOpenSlotId}
                     >
                       <button
                         type="button"

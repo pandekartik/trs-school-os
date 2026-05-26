@@ -207,6 +207,7 @@ export function TemplateSlotEditor({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="period">Period</SelectItem>
+                      <SelectItem value="class">Class</SelectItem>
                       <SelectItem value="break">Break</SelectItem>
                       <SelectItem value="lunch">Lunch</SelectItem>
                       <SelectItem value="assembly">Assembly</SelectItem>
@@ -302,6 +303,7 @@ export function TemplateSlotEditor({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="period">Period</SelectItem>
+                <SelectItem value="class">Class</SelectItem>
                 <SelectItem value="break">Break</SelectItem>
                 <SelectItem value="lunch">Lunch</SelectItem>
                 <SelectItem value="assembly">Assembly</SelectItem>

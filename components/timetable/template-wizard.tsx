@@ -17,12 +17,31 @@ import { createTimeTemplate, saveAllSlots } from "@/lib/actions/timetable";
 
 const DAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+function formatTime24to12(time24: string): string {
+  if (!time24) return "";
+  const [hours, minutes] = time24.split(":");
+  const h = parseInt(hours, 10);
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 || 12;
+  return `${h12.toString().padStart(2, "0")}:${minutes} ${period}`;
+}
+
+function formatTime12to24(time12: string): string {
+  if (!time12) return "";
+  const [time, period] = time12.split(" ");
+  const [hours, minutes] = time.split(":");
+  let h = parseInt(hours, 10);
+  if (period === "PM" && h !== 12) h += 12;
+  if (period === "AM" && h === 12) h = 0;
+  return `${h.toString().padStart(2, "0")}:${minutes}`;
+}
+
 type SlotRow = {
   id: string;
   name: string;
   start_time: string;
   end_time: string;
-  slot_type: "period" | "break" | "lunch" | "assembly";
+  slot_type: "period" | "class" | "break" | "lunch" | "assembly";
   display_order: number;
 };
 
@@ -104,10 +123,16 @@ export function TemplateWizard({
   const handleEditSlot = (
     index: number,
     field: keyof SlotRow,
-    value: string | "period" | "break" | "lunch" | "assembly"
+    value: string | "period" | "class" | "break" | "lunch" | "assembly"
   ) => {
     const newSlots = [...slots];
     newSlots[index] = { ...newSlots[index], [field]: value };
+
+    // Auto-fill next period's start time if current slot's end time changed
+    if (field === "end_time" && index < newSlots.length - 1) {
+      newSlots[index + 1].start_time = value as string;
+    }
+
     setSlots(newSlots);
   };
 
@@ -195,7 +220,7 @@ export function TemplateWizard({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-[10px] shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-[10px] shadow-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-8 py-6">
           <div className="flex items-center justify-between mb-4">
@@ -218,19 +243,25 @@ export function TemplateWizard({
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
                     s === step
-                      ? "bg-red-600 text-white"
+                      ? "text-white"
                       : s < step
-                        ? "bg-red-600 text-white"
+                        ? "text-white"
                         : "bg-gray-200 text-gray-600"
                   }`}
+                  style={
+                    s === step || s < step
+                      ? { backgroundColor: "var(--color-brand)" }
+                      : undefined
+                  }
                 >
                   {s < step ? "✓" : s}
                 </div>
                 {s < 3 && (
                   <div
                     className={`w-12 h-0.5 ${
-                      s < step ? "bg-red-600" : "bg-gray-200"
+                      s < step ? "bg-gray-200" : "bg-gray-200"
                     }`}
+                    style={s < step ? { backgroundColor: "var(--color-brand)" } : undefined}
                   />
                 )}
               </div>
@@ -273,9 +304,14 @@ export function TemplateWizard({
                       disabled={loading}
                       className={`w-10 h-10 rounded text-xs font-medium transition-colors ${
                         selectedDays.includes(day.toLowerCase())
-                          ? "bg-gray-900 text-white"
+                          ? "text-white"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
+                      style={
+                        selectedDays.includes(day.toLowerCase())
+                          ? { backgroundColor: "var(--color-brand)" }
+                          : undefined
+                      }
                     >
                       {day}
                     </button>
@@ -357,25 +393,35 @@ export function TemplateWizard({
                       className="h-8 text-xs flex-1"
                     />
 
-                    <Input
-                      type="time"
-                      value={slot.start_time}
-                      onChange={(e) =>
-                        handleEditSlot(index, "start_time", e.target.value)
-                      }
-                      className="h-8 text-xs w-20"
-                    />
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="time"
+                        value={slot.start_time}
+                        onChange={(e) =>
+                          handleEditSlot(index, "start_time", e.target.value)
+                        }
+                        className="h-8 text-xs w-24"
+                      />
+                      <span className="text-xs text-gray-400 whitespace-nowrap">
+                        {formatTime24to12(slot.start_time)}
+                      </span>
+                    </div>
 
                     <span className="text-xs text-gray-400">—</span>
 
-                    <Input
-                      type="time"
-                      value={slot.end_time}
-                      onChange={(e) =>
-                        handleEditSlot(index, "end_time", e.target.value)
-                      }
-                      className="h-8 text-xs w-20"
-                    />
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="time"
+                        value={slot.end_time}
+                        onChange={(e) =>
+                          handleEditSlot(index, "end_time", e.target.value)
+                        }
+                        className="h-8 text-xs w-24"
+                      />
+                      <span className="text-xs text-gray-400 whitespace-nowrap">
+                        {formatTime24to12(slot.end_time)}
+                      </span>
+                    </div>
 
                     <Select
                       value={slot.slot_type}
@@ -383,7 +429,7 @@ export function TemplateWizard({
                         handleEditSlot(
                           index,
                           "slot_type",
-                          value as "period" | "break" | "lunch" | "assembly"
+                          value as "period" | "class" | "break" | "lunch" | "assembly"
                         )
                       }
                     >
@@ -392,6 +438,7 @@ export function TemplateWizard({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="period">Period</SelectItem>
+                        <SelectItem value="class">Class</SelectItem>
                         <SelectItem value="break">Break</SelectItem>
                         <SelectItem value="lunch">Lunch</SelectItem>
                         <SelectItem value="assembly">Assembly</SelectItem>
@@ -467,7 +514,16 @@ export function TemplateWizard({
 
           {step < 3 ? (
             <Button
-              className="h-8 text-xs bg-red-600 hover:bg-red-700 text-white"
+              className="h-8 text-xs text-white"
+              style={{
+                backgroundColor: "var(--color-brand)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "var(--color-brand-hover)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "var(--color-brand)";
+              }}
               onClick={step === 1 ? handleStep1Next : handleStep2Next}
               disabled={
                 loading ||
@@ -485,7 +541,16 @@ export function TemplateWizard({
             </Button>
           ) : (
             <Button
-              className="h-8 text-xs bg-red-600 hover:bg-red-700 text-white"
+              className="h-8 text-xs text-white"
+              style={{
+                backgroundColor: "var(--color-brand)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "var(--color-brand-hover)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "var(--color-brand)";
+              }}
               onClick={handleSaveTemplate}
               disabled={loading || slots.length === 0}
             >

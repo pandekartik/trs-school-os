@@ -359,10 +359,21 @@ export async function saveAllSlots(
   if (deleteError) return { error: deleteError.message };
 
   if (slots.length > 0) {
-    const slotsData = slots.map((slot) => ({
-      template_id: templateId,
-      ...slot,
-    }));
+    const validSlotTypes = ["period", "class", "break", "lunch", "assembly"];
+    const slotsData = slots.map((slot) => {
+      const normalizedType = slot.slot_type.toLowerCase().trim();
+      if (!validSlotTypes.includes(normalizedType)) {
+        throw new Error(`Invalid slot_type: "${slot.slot_type}". Must be one of: ${validSlotTypes.join(", ")}`);
+      }
+      return {
+        template_id: templateId,
+        name: slot.name,
+        start_time: slot.start_time,
+        end_time: slot.end_time,
+        slot_type: normalizedType,
+        display_order: slot.display_order,
+      };
+    });
 
     const { error: insertError } = await db
       .from("template_slot")
@@ -599,7 +610,8 @@ export async function finalizeTimetable(
   userId: string
 ) {
   const db = await getDb();
-  const { error } = await db
+
+  const { error: activationError } = await db
     .from("timetable_activation")
     .upsert(
       {
@@ -612,8 +624,74 @@ export async function finalizeTimetable(
       { onConflict: "division_id,segment_id" }
     );
 
-  if (error) return { error: error.message };
+  if (activationError) return { error: activationError.message };
+
+  // Generate period instances from timetable slots
+  const [{ data: segment }, { data: timetableSlots }, { data: holidays }] = await Promise.all([
+    db
+      .from("academic_segment")
+      .select("start_date, end_date")
+      .eq("id", segmentId)
+      .single(),
+    db
+      .from("timetable_slot")
+      .select("*")
+      .eq("division_id", divisionId),
+    db
+      .from("holiday")
+      .select("date"),
+  ]);
+
+  if (!segment) return { error: "Segment not found" };
+  if (!timetableSlots || timetableSlots.length === 0) return { success: true };
+
+  const dayMap: Record<string, string> = {
+    mon: "monday",
+    tue: "tuesday",
+    wed: "wednesday",
+    thu: "thursday",
+    fri: "friday",
+    sat: "saturday",
+    sun: "sunday",
+  };
+
+  const holidayDates = new Set((holidays || []).map((h) => h.date));
+  const startDate = new Date(segment.start_date);
+  const endDate = new Date(segment.end_date);
+  const periodInstances = [];
+
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const dateStr = d.toISOString().split("T")[0];
+    if (holidayDates.has(dateStr)) continue;
+
+    const dayName = d.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+    const dayAbbr = dayName.slice(0, 3);
+
+    for (const slot of timetableSlots) {
+      if (slot.day_of_week !== dayAbbr) continue;
+
+      periodInstances.push({
+        division_id: divisionId,
+        teacher_id: slot.teacher_id,
+        subject_id: slot.subject_id,
+        date: dateStr,
+        period_number: slot.period_number,
+      });
+    }
+  }
+
+  if (periodInstances.length > 0) {
+    const { error: insertError } = await db
+      .from("period_instance")
+      .upsert(periodInstances, { onConflict: "division_id,date,period_number" });
+
+    if (insertError) {
+      console.error("Error inserting period instances:", insertError);
+    }
+  }
+
   revalidatePath("/timetable/builder");
+  revalidatePath("/teacher");
   return { success: true };
 }
 
@@ -733,4 +811,106 @@ export async function getPreflightCheck(divisionId: string, segmentId: string) {
   }
 
   return { hard_blocks, warnings };
+}
+
+export async function randomlyAssignSlots(divisionId: string) {
+  const db = await getDb();
+
+  const { data: division } = await db
+    .from("division")
+    .select("standard_id")
+    .eq("id", divisionId)
+    .single();
+
+  if (!division) return { error: "Division not found" };
+
+  const [{ data: activeSchoolYears }, { data: divisionTemplates }, { data: subjects }, { data: teacherAssignments }] = await Promise.all([
+    db
+      .from("school_year")
+      .select("id")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(1),
+    db
+      .from("division_template")
+      .select("template_id")
+      .eq("division_id", divisionId)
+      .eq("applies_to", "weekday"),
+    db
+      .from("subject")
+      .select("id")
+      .eq("standard_id", division.standard_id),
+    db
+      .from("teacher_assignment")
+      .select("*")
+      .eq("division_id", divisionId),
+  ]);
+
+  if (!activeSchoolYears?.[0]) return { error: "No active school year" };
+  if (!divisionTemplates?.[0]) return { error: "No template assigned" };
+  if (!subjects || subjects.length === 0) return { error: "No subjects found" };
+
+  const schoolYearId = activeSchoolYears[0].id;
+  const templateId = divisionTemplates[0].template_id;
+
+  const [{ data: template }, { data: templateSlots }] = await Promise.all([
+    db
+      .from("time_template")
+      .select("days")
+      .eq("id", templateId)
+      .single(),
+    db
+      .from("template_slot")
+      .select("*")
+      .eq("template_id", templateId)
+      .in("slot_type", ["period", "class"]),
+  ]);
+
+  if (!template?.days) return { error: "Template days not found" };
+
+  const slots = templateSlots || [];
+  const errors: string[] = [];
+
+  for (const slot of slots) {
+    for (const day of template.days) {
+      const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+      const assignmentsForSubject = teacherAssignments?.filter(
+        (a) => a.subject_id === randomSubject.id
+      ) || [];
+
+      if (assignmentsForSubject.length === 0) {
+        errors.push(`No teacher assigned for ${randomSubject.name}`);
+        continue;
+      }
+
+      const randomAssignment = assignmentsForSubject[Math.floor(Math.random() * assignmentsForSubject.length)];
+
+      const { error } = await db
+        .from("timetable_slot")
+        .upsert(
+          {
+            school_year_id: schoolYearId,
+            division_id: divisionId,
+            template_slot_id: slot.id,
+            subject_id: randomSubject.id,
+            teacher_id: randomAssignment.teacher_id,
+            day_of_week: day,
+            period_number: slot.display_order,
+          },
+          { onConflict: "division_id,template_slot_id,day_of_week" }
+        );
+
+      if (error) {
+        errors.push(`Failed to assign ${slot.name} on ${day}: ${error.message}`);
+      }
+    }
+  }
+
+  revalidatePath("/timetable/builder");
+
+  if (errors.length > 0) {
+    return { success: true, warning: `Assigned with ${errors.length} error(s): ${errors.join("; ")}` };
+  }
+
+  return { success: true };
 }
