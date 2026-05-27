@@ -85,7 +85,7 @@ export default function SignInPage() {
       {/* Right — form */}
       <div
         className="flex flex-col items-center justify-center p-12"
-        style={{ background: "var(--color-background)" }}
+        style={{ background: "var(--brand-light)" }}
       >
         <div className="w-full max-w-sm flex flex-col gap-8">
           <div className="flex flex-col gap-1.5">
