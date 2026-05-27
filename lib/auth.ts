@@ -18,14 +18,27 @@ export async function getUser() {
 
 export async function getTeacherProfile() {
   const user = await getUser();
-  if (!user) return null;
+  if (!user) {
+    console.warn("[getTeacherProfile] No user found");
+    return null;
+  }
 
   const admin = createAdminClient();
-  const { data } = await admin
+  const { data, error } = await admin
     .from("teacher")
     .select("*")
     .eq("auth_user_id", user.id)
-    .single();
+    .maybeSingle();
+
+  if (error) {
+    console.error("[getTeacherProfile] Query error:", error);
+    return null;
+  }
+
+  if (!data) {
+    console.warn("[getTeacherProfile] No teacher record found for user:", user.id);
+    return null;
+  }
 
   return data;
 }
