@@ -48,7 +48,7 @@ export default function SignInPage() {
             </div>
             <h1
               className="text-4xl font-bold leading-tight"
-              style={{ color: "#f0dede", fontFamily: "var(--font-kumbh), sans-serif" }}
+              style={{ color: "var(--brand)", fontFamily: "var(--font-kumbh), sans-serif" }}
             >
               The operating system<br />for The Rosary School.
             </h1>
@@ -85,7 +85,7 @@ export default function SignInPage() {
       {/* Right — form */}
       <div
         className="flex flex-col items-center justify-center p-12"
-        style={{ background: "var(--brand-light)" }}
+        style={{ background: "#f5f2eb" }}
       >
         <div className="w-full max-w-sm flex flex-col gap-8">
           <div className="flex flex-col gap-1.5">
