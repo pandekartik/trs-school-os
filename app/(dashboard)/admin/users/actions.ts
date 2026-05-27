@@ -10,7 +10,7 @@ type CreateUserResult =
 
 export async function createUserAccount(formData: FormData): Promise<CreateUserResult> {
   const role = await getRole();
-  if (role !== "admin") {
+  if (role !== "admin" && role !== "super_admin") {
     return { error: "Unauthorized" };
   }
 
@@ -66,7 +66,7 @@ type DeleteUserResult = { success: true } | { error: string };
 
 export async function deleteUserAccount(teacherId: string, authUserId: string): Promise<DeleteUserResult> {
   const role = await getRole();
-  if (role !== "admin") {
+  if (role !== "admin" && role !== "super_admin") {
     return { error: "Unauthorized" };
   }
 
