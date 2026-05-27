@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
@@ -86,7 +85,7 @@ export default function SignInPage() {
       {/* Right — form */}
       <div
         className="flex flex-col items-center justify-center p-12"
-        style={{ background: "#f5f2eb" }}
+        style={{ background: "var(--color-background)" }}
       >
         <div className="w-full max-w-sm flex flex-col gap-8">
           <div className="flex flex-col gap-1.5">
@@ -137,8 +136,7 @@ export default function SignInPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-10"
-              style={{ background: "#ba2032", color: "#fff" }}
+              className="w-full"
             >
               {loading
                 ? <><Loader2 className="h-4 w-4 animate-spin" />Signing in...</>
@@ -147,17 +145,8 @@ export default function SignInPage() {
             </Button>
           </form>
 
-          <div className="flex items-center justify-between gap-3 text-xs">
-            <Link href="/reset-password" className="font-medium hover:underline" style={{ color: "#ba2032" }}>
-              Forgot password?
-            </Link>
-            <span style={{ color: "#7a7266" }}>
-              Invite only access
-            </span>
-          </div>
-
-          <p className="text-center text-xs" style={{ color: "#7a7266" }}>
-            Invite only access. Contact an administrator if you need an account.
+          <p className="text-center text-xs text-muted-foreground">
+            Access is by invitation only. Contact your administrator.
           </p>
         </div>
       </div>
