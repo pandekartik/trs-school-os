@@ -18,6 +18,7 @@ import { Loader2, Plus, Users } from "lucide-react";
 import { toast } from "sonner";
 
 const roleMeta: Record<UserRole, { color: string; border: string; bg: string; avatar: string }> = {
+  super_admin: { color: "#ba2032", border: "#f0b0b7", bg: "#fce8ea", avatar: "#fce8ea" },
   admin:       { color: "#ba2032", border: "#f0b0b7", bg: "#fce8ea", avatar: "#fce8ea" },
   coordinator: { color: "#185FA5", border: "#b5d4f4", bg: "#e6f1fb", avatar: "#e6f1fb" },
   teacher:     { color: "#16803c", border: "#bbf7d0", bg: "#f0fdf4", avatar: "#f0fdf4" },
@@ -31,13 +32,12 @@ function initials(name: string) {
 }
 
 function EditTeacherForm({ t }: { t: Teacher }) {
-  const [role, setRole] = useState<UserRole>(t.role);
   const action = useAction((fd) => updateTeacher(t.id, fd), {
     successMessage: "Teacher updated",
   });
   return (
     <form onSubmit={action.handleSubmit} className="flex flex-col gap-3">
-      <input type="hidden" name="role" value={role} />
+      <input type="hidden" name="role" value="teacher" />
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col gap-1.5">
           <Label>Name</Label>
@@ -46,17 +46,6 @@ function EditTeacherForm({ t }: { t: Teacher }) {
         <div className="flex flex-col gap-1.5">
           <Label>Phone</Label>
           <Input name="phone" defaultValue={t.phone ?? ""} className="h-8 rounded-md border-[#D4D4D4] text-xs" />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label>Role</Label>
-          <Select value={role} onValueChange={(value) => setRole(value as typeof role)}>
-            <SelectTrigger className="h-8 rounded-md border-[#D4D4D4] text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="teacher">Teacher</SelectItem>
-              <SelectItem value="coordinator">Coordinator</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
       <Button type="submit" size="sm" className="h-8 w-fit rounded-md bg-[#ba2032] text-xs text-white hover:bg-[#ba2032]" disabled={action.loading}>
@@ -67,7 +56,6 @@ function EditTeacherForm({ t }: { t: Teacher }) {
 }
 
 export function TeachersTab({ teachers }: { teachers: Teacher[] }) {
-  const [role, setRole] = useState("teacher");
   const teacherAction = useAction(createTeacher, { successMessage: "Teacher added" });
 
   async function handleDelete(id: string) {
@@ -90,7 +78,7 @@ export function TeachersTab({ teachers }: { teachers: Teacher[] }) {
           </CardHeader>
           <CardContent className="p-4">
             <form onSubmit={teacherAction.handleSubmit} className="flex flex-col gap-3">
-              <input type="hidden" name="role" value={role} />
+              <input type="hidden" name="role" value="teacher" />
               <div className="flex flex-col gap-1.5">
                 <Label>Full name</Label>
                 <Input name="name" placeholder="e.g. Ms. Sharma" className="h-8 rounded-md border-[#D4D4D4]" required />
@@ -102,17 +90,6 @@ export function TeachersTab({ teachers }: { teachers: Teacher[] }) {
               <div className="flex flex-col gap-1.5">
                 <Label>Phone</Label>
                 <Input name="phone" placeholder="+91 98765 43210" className="h-8 rounded-md border-[#D4D4D4]" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>Role</Label>
-                <Select value={role} onValueChange={(value) => setRole(value as typeof role)}>
-                  <SelectTrigger className="h-8 rounded-md border-[#D4D4D4]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="teacher">Teacher</SelectItem>
-                    <SelectItem value="coordinator">Coordinator</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <Button type="submit" disabled={teacherAction.loading} className="h-8 w-full rounded-md bg-[#ba2032] text-white hover:bg-[#ba2032]">
                 {teacherAction.loading

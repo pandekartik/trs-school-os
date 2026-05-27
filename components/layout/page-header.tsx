@@ -101,7 +101,7 @@ interface ShellTopbarProps {
 export function ShellTopbar({ role, schoolYearName }: ShellTopbarProps) {
   const pathname = usePathname();
   const meta = getRouteMeta(pathname);
-  const badgeRole = role ?? "teacher";
+  const badgeRole = role === "super_admin" ? "admin" : (role ?? "teacher");
 
   return (
     <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-surface pl-1 pr-4">

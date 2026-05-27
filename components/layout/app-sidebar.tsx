@@ -37,6 +37,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/role-access";
+import { ActivitySquare } from "lucide-react";
 
 type NavItem = {
   title: string;
@@ -50,40 +51,41 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: "ADMIN",
     items: [
-      { title: "Dashboard", href: "/admin", icon: LayoutDashboard, roles: ["admin"] },
-      { title: "Users", href: "/admin/users", icon: Users, roles: ["admin"] },
+      { title: "Dashboard", href: "/admin", icon: LayoutDashboard, roles: ["super_admin", "admin"] },
+      { title: "Users", href: "/admin/users", icon: Users, roles: ["super_admin"] },
+      { title: "Activity", href: "/admin/activity", icon: ActivitySquare, roles: ["super_admin"] },
     ],
   },
   {
     label: "SETUP",
     items: [
-      { title: "School Year", href: "/setup/school-year", icon: CalendarRange, roles: ["admin"] },
-      { title: "Standards", href: "/setup/standards", icon: Building2, roles: ["admin"] },
-      { title: "Segments", href: "/setup/segments", icon: Layers, roles: ["admin"] },
-      { title: "Subjects", href: "/setup/subjects", icon: BookOpen, roles: ["admin"] },
-      { title: "Teachers", href: "/setup/teachers", icon: GraduationCap, roles: ["admin"] },
-      { title: "Chapters", href: "/setup/chapters", icon: FileText, roles: ["admin"] },
-      { title: "Teacher Allocation", href: "/setup/teacher-allocation", icon: UserCheck, roles: ["admin"] },
+      { title: "School Year", href: "/setup/school-year", icon: CalendarRange, roles: ["super_admin", "admin"] },
+      { title: "Standards", href: "/setup/standards", icon: Building2, roles: ["super_admin", "admin"] },
+      { title: "Segments", href: "/setup/segments", icon: Layers, roles: ["super_admin", "admin"] },
+      { title: "Subjects", href: "/setup/subjects", icon: BookOpen, roles: ["super_admin", "admin"] },
+      { title: "Teachers", href: "/setup/teachers", icon: GraduationCap, roles: ["super_admin", "admin"] },
+      { title: "Chapters", href: "/setup/chapters", icon: FileText, roles: ["super_admin", "admin"] },
+      { title: "Teacher Allocation", href: "/setup/teacher-allocation", icon: UserCheck, roles: ["super_admin", "admin"] },
     ],
   },
   {
     label: "TIMETABLE",
     items: [
-      { title: "Time Templates", href: "/timetable/templates", icon: Clock, roles: ["admin"] },
-      { title: "Timetable", href: "/timetable/builder", icon: CalendarDays, roles: ["admin"] },
-      { title: "Holidays", href: "/timetable/holidays", icon: CalendarOff, roles: ["admin"] },
+      { title: "Time Templates", href: "/timetable/templates", icon: Clock, roles: ["super_admin", "admin"] },
+      { title: "Timetable", href: "/timetable/builder", icon: CalendarDays, roles: ["super_admin", "admin"] },
+      { title: "Holidays", href: "/timetable/holidays", icon: CalendarOff, roles: ["super_admin", "admin"] },
     ],
   },
   {
     label: "CONTENT",
     items: [
-      { title: "Content", href: "/content", icon: Upload, roles: ["admin", "coordinator"] },
+      { title: "Content", href: "/content", icon: Upload, roles: ["super_admin", "admin", "coordinator"] },
     ],
   },
   {
     label: "OPERATIONS",
     items: [
-      { title: "Teacher View", href: "/teacher", icon: CalendarCheck, roles: ["admin", "coordinator", "teacher"] },
+      { title: "Teacher View", href: "/teacher", icon: CalendarCheck, roles: ["super_admin", "admin", "coordinator", "teacher"] },
     ],
   },
 ];
@@ -100,6 +102,7 @@ const sidebarStyle = {
 } as CSSProperties;
 
 const roleTone: Record<UserRole, string> = {
+  super_admin: "bg-brand",
   admin: "bg-brand",
   coordinator: "bg-info",
   teacher: "bg-success",

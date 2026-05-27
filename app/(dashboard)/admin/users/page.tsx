@@ -5,7 +5,7 @@ import { UserManagement } from "@/components/admin/user-management";
 
 export default async function AdminUsersPage() {
   const role = await getRole();
-  if (role !== "admin") redirect("/admin");
+  if (role !== "super_admin") redirect("/admin");
 
   const db = await createServerClient();
   const { data: users } = await db

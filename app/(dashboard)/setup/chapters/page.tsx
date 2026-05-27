@@ -5,7 +5,7 @@ import { ChaptersTab } from "@/components/setup/chapters-tab";
 
 export default async function ChaptersPage() {
   const role = await getRole();
-  if (role !== "admin") redirect(role === "coordinator" ? "/content" : "/teacher");
+  if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const db = await createServerClient();
 

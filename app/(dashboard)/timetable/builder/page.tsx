@@ -12,7 +12,7 @@ import type {
 
 export default async function TimetableBuilderPage() {
   const role = await getRole();
-  if (role !== "admin") redirect(role ? getLandingRoute(role) : "/sign-in");
+  if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const db = await createServerClient();
   const profile = await getTeacherProfile();
@@ -33,7 +33,7 @@ export default async function TimetableBuilderPage() {
     db.from("standard").select("*").order("grade"),
     db.from("division").select("*").order("name"),
     db.from("subject").select("*").order("name"),
-    db.from("teacher").select("*").order("name"),
+    db.from("teacher").select("*").eq("role", "teacher").order("name"),
     db.from("teacher_assignment").select("*"),
     db.from("time_template").select("*, template_slot(*)").order("created_at", { ascending: false }),
     db.from("division_template").select("*"),

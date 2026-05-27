@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { getRole } from "@/lib/auth";
+import type { UserRole } from "@/lib/role-access";
 import { getTodayIsoDate } from "@/lib/timetable-constants";
 import { DashboardShell } from "@/components/admin/dashboard-shell";
 import { flagUnloggedPeriods } from "@/lib/actions/admin";
@@ -14,8 +15,10 @@ function getMondayOfWeek(date: Date): Date {
 
 export default async function AdminPage() {
   const role = await getRole();
-  if (role === "teacher") redirect("/teacher");
-  if (!role) redirect("/sign-in");
+  if (!["super_admin", "admin"].includes(role ?? "")) {
+    const fallback = role === "coordinator" ? "/content" : "/teacher";
+    redirect(fallback);
+  }
 
   // Flag unlogged periods first
   await flagUnloggedPeriods();
@@ -93,7 +96,7 @@ export default async function AdminPage() {
 
   return (
     <DashboardShell
-      role={role}
+      role={role as UserRole}
       activeSchoolYear={activeSchoolYears?.[0] ?? null}
       teachers={teachers ?? []}
       standards={standards ?? []}

@@ -37,6 +37,16 @@ export function TimeTemplatesShell({
 
   const expandedTemplate = templates.find((t) => t.id === expandedTemplateId);
 
+  const weekdayTemplate = templates.find((t) => {
+    const days = t.days.map((d) => d.toLowerCase());
+    return days.length === 5 && days.includes("monday") && days.includes("friday") && !days.includes("saturday");
+  });
+
+  const saturdayTemplate = templates.find((t) => {
+    const days = t.days.map((d) => d.toLowerCase());
+    return days.includes("saturday") && days.length === 1;
+  });
+
   const handleDelete = async (id: string) => {
     const result = await deleteTimeTemplate(id);
     if (result.error) {
@@ -97,7 +107,30 @@ export function TimeTemplatesShell({
               </Button>
             </div>
           ) : (
-            <div className="flex flex-col gap-0">
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-2 pb-3 border-b">
+                {weekdayTemplate && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => setExpandedTemplateId(weekdayTemplate.id)}
+                  >
+                    Edit Weekday Template
+                  </Button>
+                )}
+                {saturdayTemplate && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => setExpandedTemplateId(saturdayTemplate.id)}
+                  >
+                    Edit Saturday Template
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-col gap-0">
               {templates.map((template) => (
                 <div
                   key={template.id}
@@ -171,6 +204,7 @@ export function TimeTemplatesShell({
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           )}
         </CardContent>

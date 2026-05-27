@@ -5,7 +5,7 @@ import { TimeTemplatesShell } from "@/components/timetable/time-templates-shell"
 
 export default async function TimeTemplatesPage() {
   const role = await getRole();
-  if (role !== "admin") redirect(role === "coordinator" ? "/content" : "/teacher");
+  if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const db = await createServerClient();
 

@@ -21,7 +21,7 @@ type UserRow = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "coordinator" | "teacher" | string;
+  role: "super_admin" | "admin" | "coordinator" | "teacher" | string;
   is_active: boolean;
   created_at: string;
   auth_user_id: string | null;
@@ -32,6 +32,7 @@ type Props = {
 };
 
 const roleMeta: Record<string, { label: string; border: string; bg: string; color: string }> = {
+  super_admin: { label: "Super Admin", border: "#f0b0b7", bg: "#fce8ea", color: "#a01b2b" },
   admin: { label: "Admin", border: "#f0b0b7", bg: "#fce8ea", color: "#a01b2b" },
   coordinator: { label: "Coordinator", border: "#b5d4f4", bg: "#e6f1fb", color: "#185FA5" },
   teacher: { label: "Teacher", border: "#c0dd97", bg: "#eaf3de", color: "#3B6D11" },

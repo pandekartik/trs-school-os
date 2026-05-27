@@ -786,7 +786,7 @@ export async function randomlyAssignSlots(divisionId: string) {
       .eq("applies_to", "weekday"),
     db
       .from("subject")
-      .select("id")
+      .select("id, name")
       .eq("standard_id", division.standard_id),
     db
       .from("teacher_assignment")

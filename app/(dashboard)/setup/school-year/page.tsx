@@ -5,7 +5,7 @@ import { SchoolYearTab } from "@/components/setup/school-year-tab";
 
 export default async function SchoolYearPage() {
   const role = await getRole();
-  if (role !== "admin") redirect(role === "coordinator" ? "/content" : "/teacher");
+  if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const db = await createServerClient();
 

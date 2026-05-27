@@ -17,10 +17,7 @@ export function useAction(
 ) {
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formData = new FormData(form);
+  async function submitFormData(formData: FormData, form?: HTMLFormElement) {
     setLoading(true);
     try {
       const result = await action(formData);
@@ -30,17 +27,25 @@ export function useAction(
         });
       } else {
         toast.success(options?.successMessage ?? "Saved successfully");
-        form.reset();
+        form?.reset();
         options?.onSuccess?.();
       }
+      return result;
     } catch {
       toast.error("Unexpected error", {
         description: "Please try again or contact support.",
       });
+      return { error: "Unexpected error" };
     } finally {
       setLoading(false);
     }
   }
 
-  return { loading, handleSubmit };
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    await submitFormData(new FormData(form), form);
+  }
+
+  return { loading, handleSubmit, submitFormData };
 }

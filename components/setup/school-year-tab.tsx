@@ -33,7 +33,6 @@ import {
 import { Loader2, Plus, Calendar, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useRef } from "react";
-import { cn } from "@/lib/utils";
 
 function EditYearForm({
   year,
@@ -56,9 +55,8 @@ function EditYearForm({
 
   const handleConfirm = async () => {
     if (formRef.current) {
-      const formData = new FormData(formRef.current);
-      await action.handleSubmit(formData as any);
-      setConfirming(false);
+      const result = await action.submitFormData(new FormData(formRef.current));
+      if (!result?.error) setConfirming(false);
     }
   };
 
@@ -233,7 +231,7 @@ function EditableYearRow({ year, onDelete }: EditableRowProps) {
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete school year?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete "{year.name}"? This action
+                  Are you sure you want to delete &quot;{year.name}&quot;? This action
                   cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
@@ -274,10 +272,11 @@ export function SchoolYearTab({ schoolYears }: { schoolYears: SchoolYear[] }) {
 
   const handleConfirmCreate = async () => {
     if (formRef.current) {
-      const formData = new FormData(formRef.current);
-      await syAction.handleSubmit(formData as any);
-      setConfirmCreate(false);
-      formRef.current.reset();
+      const result = await syAction.submitFormData(new FormData(formRef.current));
+      if (!result?.error) {
+        setConfirmCreate(false);
+        formRef.current.reset();
+      }
     }
   };
 

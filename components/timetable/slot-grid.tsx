@@ -234,7 +234,7 @@ export function SlotGrid({
                             </div>
                           </div>
                             <div className="text-[10px] text-muted-foreground">
-                              {slot.start_time} - {slot.end_time}
+                              {periodTime.start} - {periodTime.end}
                             </div>
                           </div>
                         ) : (

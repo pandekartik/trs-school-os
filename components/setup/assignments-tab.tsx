@@ -30,6 +30,7 @@ interface AssignmentsTabProps {
 }
 
 const roleColors: Record<UserRole, { color: string; border: string; bg: string }> = {
+  super_admin: { color: "#ba2032", border: "#f0b0b7", bg: "#fce8ea" },
   admin:       { color: "#ba2032", border: "#f0b0b7", bg: "#fce8ea" },
   coordinator: { color: "#185FA5", border: "#b5d4f4", bg: "#e6f1fb" },
   teacher:     { color: "#16803c", border: "#bbf7d0", bg: "#f0fdf4" },

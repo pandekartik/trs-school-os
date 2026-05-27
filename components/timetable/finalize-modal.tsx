@@ -86,8 +86,12 @@ export function FinalizeModal({
     if (!selectedSegmentId || hardBlocks.length > 0) return;
     startTransition(async () => {
       const result = await finalizeTimetable(division.id, selectedSegmentId, currentTeacherId);
-      if (result?.error) {
+      if (result && "error" in result) {
         toast.error("Could not finalize timetable", { description: result.error });
+        return;
+      }
+      if (result && "success" in result && !result.success) {
+        toast.error("Could not finalize timetable");
         return;
       }
       toast.success("Timetable finalized — teachers can now see their schedule");

@@ -118,16 +118,17 @@ export default async function TeacherPage({
   if (role === "teacher") {
     // Teacher can only see their own schedule
     teacherId = profile.id;
-  } else if (role === "admin" || role === "coordinator") {
-    // Admin/Coordinator can view any teacher
+  } else if (role === "admin" || role === "coordinator" || role === "super_admin") {
+    // Admin/Coordinator/Super Admin can view any teacher
     if (params.teacher) {
       teacherId = String(params.teacher);
     } else {
-      // Default to first teacher
+      // Default to first teacher with role='teacher'
       const admin = createAdminClient();
       const { data: teachers } = await admin
         .from("teacher")
         .select("id")
+        .eq("role", "teacher")
         .limit(1);
       if (teachers?.[0]) {
         teacherId = teachers[0].id;

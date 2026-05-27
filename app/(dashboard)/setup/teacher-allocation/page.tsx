@@ -5,7 +5,7 @@ import { AssignmentsTab } from "@/components/setup/assignments-tab";
 
 export default async function TeacherAllocationPage() {
   const role = await getRole();
-  if (role !== "admin") redirect(role === "coordinator" ? "/content" : "/teacher");
+  if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const db = await createServerClient();
 
@@ -21,7 +21,7 @@ export default async function TeacherAllocationPage() {
     db.from("standard").select("*").order("grade"),
     db.from("division").select("*").order("name"),
     db.from("subject").select("*").order("name"),
-    db.from("teacher").select("*").order("name"),
+    db.from("teacher").select("*").eq("role", "teacher").order("name"),
     db.from("teacher_assignment").select("*"),
   ]);
 

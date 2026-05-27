@@ -5,7 +5,7 @@ import { HolidaysShell } from "@/components/timetable/holidays-shell";
 
 export default async function HolidaysPage() {
   const role = await getRole();
-  if (role !== "admin") redirect(role === "coordinator" ? "/content" : "/teacher");
+  if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const db = await createServerClient();
 

@@ -1,9 +1,13 @@
 import { getRole } from "@/lib/auth";
 import { createServerClient } from "@/lib/supabase-server";
 import { ContentShell } from "@/components/content/content-shell";
+import { redirect } from "next/navigation";
 
 export default async function ContentPage() {
-  await getRole();
+  const role = await getRole();
+  if (!["super_admin", "admin", "coordinator"].includes(role ?? "")) {
+    redirect("/teacher");
+  }
 
   const db = await createServerClient();
 
