@@ -116,7 +116,7 @@ function getInitials(name: string) {
 }
 
 function isActivePath(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return pathname === href || (href !== "/admin" && pathname.startsWith(href + "/"));
 }
 
 interface AppSidebarProps {
@@ -131,6 +131,15 @@ export function AppSidebar({ role, teacherName }: AppSidebarProps) {
 
   async function handleSignOut() {
     const supabase = createClient();
+
+    await fetch("/api/audit/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "user.signed_out" }),
+    }).catch(() => {
+      // Silently fail if audit logging fails
+    });
+
     await supabase.auth.signOut();
     router.push("/sign-in");
     router.refresh();

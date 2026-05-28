@@ -28,6 +28,13 @@ export default function SignInPage() {
       setError(error.message);
       setLoading(false);
     } else {
+      await fetch("/api/audit/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "user.signed_in" }),
+      }).catch(() => {
+        // Silently fail if audit logging fails
+      });
       router.push("/");
       router.refresh();
     }

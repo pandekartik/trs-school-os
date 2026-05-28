@@ -1,28 +1,29 @@
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { getRole } from "@/lib/auth";
-import { UserManagement } from "@/components/admin/user-management";
+import { UsersShell } from "@/components/admin/users-shell";
 
 export default async function AdminUsersPage() {
   const role = await getRole();
   if (role !== "super_admin") redirect("/admin");
 
-  const db = await createServerClient();
-  const { data: users } = await db
+  const adminDb = createAdminClient();
+
+  const { data: teachers } = await adminDb
     .from("teacher")
-    .select("id, name, email, role, is_active, created_at, auth_user_id")
+    .select("id, name, email, phone, role, is_active, auth_user_id, created_at")
     .order("created_at", { ascending: false });
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Users</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Invite-only user management for TRS internal staff.
-        </p>
-      </div>
+  const { data: authUsers } = await adminDb.auth.admin.listUsers();
 
-      <UserManagement users={users ?? []} />
-    </div>
-  );
+  const mergedTeachers = (teachers ?? []).map((teacher) => {
+    const authUser = authUsers?.users.find((u) => u.id === teacher.auth_user_id);
+    return {
+      ...teacher,
+      last_sign_in_at: authUser?.last_sign_in_at,
+      email_confirmed_at: authUser?.email_confirmed_at,
+    };
+  });
+
+  return <UsersShell teachers={mergedTeachers} />;
 }
