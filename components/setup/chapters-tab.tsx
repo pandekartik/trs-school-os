@@ -25,7 +25,7 @@ type ChaptersTabProps = {
 
 function effectivePeriods(value: string | number) {
   const allocated = Number(value) || 0;
-  return Math.floor(allocated * 0.8);
+  return Math.ceil(allocated * 1.3);
 }
 
 function EditChapterForm({
@@ -80,7 +80,7 @@ function EditChapterForm({
             className="h-8 rounded-md border-[#D4D4D4] text-xs"
             required
           />
-          <p className="text-[11px] text-[#737373]">{effectivePeriods(allocatedPeriods)} effective periods (80%)</p>
+          <p className="text-[11px] text-[#737373]">{effectivePeriods(allocatedPeriods)} effective periods</p>
         </div>
         <div className="flex flex-col gap-1.5">
           <Label>Comments</Label>
@@ -140,7 +140,7 @@ function AddChapterForm({
               className="h-8 rounded-md border-[#D4D4D4] text-xs"
               required
             />
-            <p className="text-[11px] text-[#737373]">{effectivePeriods(allocatedPeriods)} effective periods (80%)</p>
+            <p className="text-[11px] text-[#737373]">{effectivePeriods(allocatedPeriods)} effective periods</p>
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Comments optional</Label>

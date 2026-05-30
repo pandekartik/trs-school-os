@@ -615,7 +615,7 @@ export async function createChapter(formData: FormData) {
   const { error } = await db.from("chapter").insert({
     subject_id, academic_segment_id, chapter_number,
     name, allocated_periods,
-    comments, display_order: chapter_number,
+    comments,
   });
   if (error) return { error: error.message };
 
@@ -649,7 +649,6 @@ export async function updateChapter(id: string, formData: FormData) {
     .update({
       name, allocated_periods,
       comments, chapter_number,
-      display_order: chapter_number,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
