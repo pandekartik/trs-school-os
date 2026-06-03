@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, ArrowRight } from "lucide-react";
+import { Trash2, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,7 +168,14 @@ export function AbsencePanel({
             disabled={isSubmitting || !absenceDate || !substituteTeacherId}
             className="w-full h-8 text-xs bg-[#ba2032] hover:bg-[#ba2032]/90"
           >
-            {isSubmitting ? "Marking..." : "Mark Absence"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                Marking...
+              </>
+            ) : (
+              "Mark Absence"
+            )}
           </Button>
         </form>
 

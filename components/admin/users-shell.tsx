@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -136,7 +135,7 @@ export function UsersShell({ teachers }: Props) {
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">Users</h1>
+            <h1 className="text-2xl font-semibold">Users <span className="text-base font-normal text-muted-foreground">({teachers.length})</span></h1>
             <p className="text-sm text-muted-foreground mt-1">Manage user accounts and access.</p>
           </div>
           <Button onClick={handleAddUser} className="gap-2">
@@ -145,118 +144,110 @@ export function UsersShell({ teachers }: Props) {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>All users</CardTitle>
-              <Badge variant="outline">{teachers.length}</Badge>
+        <div className="border border-border rounded-lg overflow-hidden">
+          {teachers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+              <Users className="size-10 text-muted-foreground" />
+              <div>
+                <p className="font-medium">No users yet</p>
+                <p className="text-sm text-muted-foreground">Add your first user</p>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            {teachers.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                <Users className="size-10 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">No users yet</p>
-                  <p className="text-sm text-muted-foreground">Add your first user</p>
-                </div>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>USER</TableHead>
-                      <TableHead>ROLE</TableHead>
-                      <TableHead>STATUS</TableHead>
-                      <TableHead>AUTH</TableHead>
-                      <TableHead>CREATED</TableHead>
-                      <TableHead className="w-20">ACTIONS</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {teachers.map((teacher) => (
-                      <TableRow key={teacher.id} className="cursor-pointer hover:bg-muted/50">
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className={cn("flex size-8 items-center justify-center rounded-full text-xs font-semibold text-white", roleBadgeColor[teacher.role] || "bg-slate-400")}>
-                              {getInitials(teacher.name)}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-medium text-sm">{teacher.name}</p>
-                              <p className="text-xs text-muted-foreground">{teacher.email}</p>
-                            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b">
+                    <TableHead>USER</TableHead>
+                    <TableHead>ROLE</TableHead>
+                    <TableHead>STATUS</TableHead>
+                    <TableHead>AUTH</TableHead>
+                    <TableHead>CREATED</TableHead>
+                    <TableHead className="w-20">ACTIONS</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {teachers.map((teacher) => (
+                    <TableRow key={teacher.id} className="hover:bg-muted/30">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className={cn("flex size-8 items-center justify-center rounded-full text-xs font-semibold text-white", roleBadgeColor[teacher.role] || "bg-slate-400")}>
+                            {getInitials(teacher.name)}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">
-                            {teacher.role.replace(/_/g, " ")}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={teacher.is_active ? "default" : "secondary"} className="text-xs">
-                            {teacher.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {teacher.auth_user_id ? (
-                            <div>
-                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">Linked</Badge>
-                              {teacher.last_sign_in_at && (
-                                <p className="text-xs text-muted-foreground mt-1">{formatDate(teacher.last_sign_in_at)}</p>
-                              )}
-                            </div>
-                          ) : (
-                            <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">Unlinked</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {formatDate(teacher.created_at)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8"
-                              onClick={() => handleEditUser(teacher)}
-                              title="Edit user"
-                            >
-                              <Pencil className="size-4" />
-                            </Button>
-                            {teacher.auth_user_id && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8"
-                                onClick={() => handleChangePassword(teacher)}
-                                title="Change password"
-                              >
-                                <Key className="size-4" />
-                              </Button>
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm">{teacher.name}</p>
+                            <p className="text-xs text-muted-foreground">{teacher.email}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs font-normal">
+                          {teacher.role.replace(/_/g, " ")}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={teacher.is_active ? "default" : "secondary"} className="text-xs font-normal">
+                          {teacher.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {teacher.auth_user_id ? (
+                          <div>
+                            <Badge variant="secondary" className="text-xs font-normal">Linked</Badge>
+                            {teacher.last_sign_in_at && (
+                              <p className="text-xs text-muted-foreground mt-1">{formatDate(teacher.last_sign_in_at)}</p>
                             )}
+                          </div>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs font-normal">Unlinked</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {formatDate(teacher.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="size-8 p-0"
+                            onClick={() => handleEditUser(teacher)}
+                            title="Edit user"
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          {teacher.auth_user_id && (
                             <Button
                               variant="ghost"
-                              size="icon"
-                              className="size-8 text-muted-foreground hover:text-destructive"
-                              onClick={() => {
-                                setUserToDelete(teacher);
-                                setDeleteDialogOpen(true);
-                              }}
-                              title="Deactivate user"
+                              size="sm"
+                              className="size-8 p-0"
+                              onClick={() => handleChangePassword(teacher)}
+                              title="Change password"
                             >
-                              <Trash2 className="size-4" />
+                              <Key className="size-4" />
                             </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="size-8 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => {
+                              setUserToDelete(teacher);
+                              setDeleteDialogOpen(true);
+                            }}
+                            title="Deactivate user"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
       </div>
 
       {panelOpen && (

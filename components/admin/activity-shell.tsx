@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -218,7 +217,7 @@ export function ActivityShell({ initialLogs, teachers }: Props) {
         </p>
       </div>
 
-      <div className="flex gap-2 items-end bg-surface-2 p-4 rounded-lg">
+      <div className="flex gap-2 items-end bg-muted/40 p-4 rounded-lg">
         <div className="flex-1">
           <label className="text-xs font-medium text-muted-foreground block mb-2">User</label>
           <Select value={filterUser} onValueChange={setFilterUser}>
@@ -293,12 +292,13 @@ export function ActivityShell({ initialLogs, teachers }: Props) {
         </Button>
       </div>
 
-      <div className="text-xs text-muted-foreground">
-        {filteredLogs.length} of {logs.length} events shown
+      <div className="flex items-center justify-between px-0.5">
+        <div className="text-xs text-muted-foreground">
+          {filteredLogs.length} of {logs.length} events shown
+        </div>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
+      <div className="border border-border rounded-lg overflow-hidden">
           {filteredLogs.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
               <ActivitySquare className="size-10 text-muted-foreground" />
@@ -411,8 +411,7 @@ export function ActivityShell({ initialLogs, teachers }: Props) {
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { PeriodCard } from "@/components/teacher/period-card";
 
 interface WeekViewProps {
@@ -33,6 +34,21 @@ export function WeekView({
   canLog,
   loggedBy,
 }: WeekViewProps) {
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+
+  // Default to today's day
+  useEffect(() => {
+    if (selectedDayIndex === null) {
+      const today = new Date().toISOString().split("T")[0];
+      const todayIndex = DAYS.findIndex((_, idx) => {
+        const date = new Date(weekStart);
+        date.setDate(date.getDate() + idx);
+        return date.toISOString().split("T")[0] === today;
+      });
+      setSelectedDayIndex(todayIndex >= 0 ? todayIndex : 0);
+    }
+  }, [weekStart, selectedDayIndex]);
+
   const createLookup = (arr: any[], key: string) => {
     const map = new Map();
     arr.forEach((item) => map.set(item.id, item));
@@ -81,84 +97,192 @@ export function WeekView({
     );
   }
 
+  // Helper to render a day's content
+  const renderDayContent = (dayIndex: number) => {
+    const date = new Date(weekStart);
+    date.setDate(date.getDate() + dayIndex);
+    const dateIso = date.toISOString().split("T")[0];
+    const dayPeriods = periodsByDate.get(dateIso) || [];
+    const today = new Date().toISOString().split("T")[0];
+    const isToday = dateIso === today;
+    const dayNum = date.getDate();
+    const holiday = holidays.find((h: any) => h.date === dateIso);
+    const allPeriodsCancelled = dayPeriods.length > 0 && dayPeriods.every(p => p.status === "cancelled");
+    const isHoliday = allPeriodsCancelled || !!holiday;
+
+    return (
+      <div key={dayIndex} className="flex flex-col">
+        {/* Date header - mobile visible, desktop hidden */}
+        <div
+          className={`md:hidden text-center py-3 mb-4 rounded-lg transition ${
+            isToday ? "bg-[#ba2032] text-white" : "bg-muted text-muted-foreground"
+          }`}
+        >
+          <div className="text-xs font-semibold uppercase">{DAYS[dayIndex]}</div>
+          <div className="text-lg font-bold">{dayNum}</div>
+          {isHoliday && (
+            <div className="text-xs font-medium mt-1 text-red-600">
+              {holiday?.name || "Holiday"}
+            </div>
+          )}
+        </div>
+
+        {/* Period cards */}
+        {dayPeriods.length === 0 ? (
+          <div className="flex items-center justify-center py-8 text-center">
+            <p className="text-center" style={{ fontSize: "12px", color: "#A3A3A3" }}>
+              No classes
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {dayPeriods.map((instance) => {
+              const slot = timetableSlots.find((s) => s.id === instance.timetable_slot_id);
+              const subject = slot ? subjectMap.get(slot.subject_id) : null;
+              const division = slot ? divisionMap.get(slot.division_id) : null;
+              const standard = division ? standardMap.get(division.standard_id) : null;
+              const chapter = instance.chapter_id ? chapterMap.get(instance.chapter_id) : null;
+              const chapterPeriod = chapter
+                ? Array.from(chapterPeriodMap.values()).find(
+                    (cp) =>
+                      cp.chapter_id === chapter.id &&
+                      cp.period_number === instance.chapter_period_sequence
+                  )
+                : null;
+
+              return (
+                <PeriodCard
+                  key={instance.id}
+                  periodInstance={instance}
+                  slot={slot}
+                  chapter={chapter}
+                  chapterPeriod={chapterPeriod}
+                  subject={subject}
+                  standard={standard}
+                  division={division}
+                  isTeacher={isTeacher}
+                  canLog={canLog}
+                  loggedBy={loggedBy}
+                />
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="grid grid-cols-5 gap-4">
-      {DAYS.map((dayLabel, dayIndex) => {
-        const date = new Date(weekStart);
-        date.setDate(date.getDate() + dayIndex);
-        const dateIso = date.toISOString().split("T")[0];
+    <>
+      {/* Mobile day selector tabs */}
+      <div className="md:hidden mb-4 flex gap-2 overflow-x-auto pb-2">
+        {DAYS.map((dayLabel, dayIndex) => {
+          const date = new Date(weekStart);
+          date.setDate(date.getDate() + dayIndex);
+          const dateIso = date.toISOString().split("T")[0];
+          const today = new Date().toISOString().split("T")[0];
+          const isToday = dateIso === today;
+          const isSelected = selectedDayIndex === dayIndex;
 
-        const dayPeriods = periodsByDate.get(dateIso) || [];
-        const today = new Date().toISOString().split("T")[0];
-        const isToday = dateIso === today;
-
-        const dayNum = date.getDate();
-
-        const holiday = holidays.find((h: any) => h.date === dateIso);
-        const allPeriodsCancelled = dayPeriods.length > 0 && dayPeriods.every(p => p.status === "cancelled");
-        const isHoliday = allPeriodsCancelled || !!holiday;
-
-        return (
-          <div key={dayLabel} className="flex flex-col">
-            {/* Date header */}
-            <div
-              className={`text-center py-3 mb-4 rounded-lg transition ${
-                isToday ? "bg-[#ba2032] text-white" : "bg-muted text-muted-foreground"
+          return (
+            <button
+              key={dayIndex}
+              onClick={() => setSelectedDayIndex(dayIndex)}
+              className={`shrink-0 px-3 py-2 rounded-full text-xs font-medium transition ${
+                isSelected
+                  ? "bg-[#ba2032] text-white"
+                  : isToday
+                  ? "border border-[#ba2032] text-[#ba2032]"
+                  : "border border-muted-foreground text-muted-foreground hover:border-foreground"
               }`}
             >
-              <div className="text-xs font-semibold uppercase">{dayLabel}</div>
-              <div className="text-lg font-bold">{dayNum}</div>
-              {isHoliday && (
-                <div className="text-xs font-medium mt-1 text-red-600">
-                  {holiday?.name || "Holiday"}
+              {dayLabel} {date.getDate()}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Mobile single day view */}
+      <div className="md:hidden">
+        {selectedDayIndex !== null && renderDayContent(selectedDayIndex)}
+      </div>
+
+      {/* Desktop grid view */}
+      <div className="hidden md:grid grid-cols-5 gap-4">
+        {DAYS.map((dayLabel, dayIndex) => {
+          const date = new Date(weekStart);
+          date.setDate(date.getDate() + dayIndex);
+          const dateIso = date.toISOString().split("T")[0];
+          const dayPeriods = periodsByDate.get(dateIso) || [];
+          const today = new Date().toISOString().split("T")[0];
+          const isToday = dateIso === today;
+          const dayNum = date.getDate();
+          const holiday = holidays.find((h: any) => h.date === dateIso);
+          const allPeriodsCancelled = dayPeriods.length > 0 && dayPeriods.every(p => p.status === "cancelled");
+          const isHoliday = allPeriodsCancelled || !!holiday;
+
+          return (
+            <div key={dayLabel} className="flex flex-col">
+              {/* Date header */}
+              <div
+                className={`text-center py-3 mb-4 rounded-lg transition ${
+                  isToday ? "bg-[#ba2032] text-white" : "bg-muted text-muted-foreground"
+                }`}
+              >
+                <div className="text-xs font-semibold uppercase">{dayLabel}</div>
+                <div className="text-lg font-bold">{dayNum}</div>
+                {isHoliday && (
+                  <div className="text-xs font-medium mt-1 text-red-600">
+                    {holiday?.name || "Holiday"}
+                  </div>
+                )}
+              </div>
+
+              {/* Period cards */}
+              {dayPeriods.length === 0 ? (
+                <div className="flex items-center justify-center py-8 text-center">
+                  <p className="text-center" style={{ fontSize: "12px", color: "#A3A3A3" }}>
+                    No classes
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {dayPeriods.map((instance) => {
+                    const slot = timetableSlots.find((s) => s.id === instance.timetable_slot_id);
+                    const subject = slot ? subjectMap.get(slot.subject_id) : null;
+                    const division = slot ? divisionMap.get(slot.division_id) : null;
+                    const standard = division ? standardMap.get(division.standard_id) : null;
+                    const chapter = instance.chapter_id ? chapterMap.get(instance.chapter_id) : null;
+                    const chapterPeriod = chapter
+                      ? Array.from(chapterPeriodMap.values()).find(
+                          (cp) =>
+                            cp.chapter_id === chapter.id &&
+                            cp.period_number === instance.chapter_period_sequence
+                        )
+                      : null;
+
+                    return (
+                      <PeriodCard
+                        key={instance.id}
+                        periodInstance={instance}
+                        slot={slot}
+                        chapter={chapter}
+                        chapterPeriod={chapterPeriod}
+                        subject={subject}
+                        standard={standard}
+                        division={division}
+                        isTeacher={isTeacher}
+                        canLog={canLog}
+                        loggedBy={loggedBy}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>
-
-            {/* Period cards */}
-            {dayPeriods.length === 0 ? (
-              <div className="flex items-center justify-center py-8 text-center">
-                <p className="text-center" style={{ fontSize: "12px", color: "#A3A3A3" }}>
-                  No classes
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {dayPeriods.map((instance) => {
-                  const slot = timetableSlots.find((s) => s.id === instance.timetable_slot_id);
-                  const subject = slot ? subjectMap.get(slot.subject_id) : null;
-                  const division = slot ? divisionMap.get(slot.division_id) : null;
-                  const standard = division ? standardMap.get(division.standard_id) : null;
-                  const chapter = instance.chapter_id ? chapterMap.get(instance.chapter_id) : null;
-                  const chapterPeriod = chapter
-                    ? Array.from(chapterPeriodMap.values()).find(
-                        (cp) =>
-                          cp.chapter_id === chapter.id &&
-                          cp.period_number === instance.chapter_period_sequence
-                      )
-                    : null;
-
-                  return (
-                    <PeriodCard
-                      key={instance.id}
-                      periodInstance={instance}
-                      slot={slot}
-                      chapter={chapter}
-                      chapterPeriod={chapterPeriod}
-                      subject={subject}
-                      standard={standard}
-                      division={division}
-                      isTeacher={isTeacher}
-                      canLog={canLog}
-                      loggedBy={loggedBy}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 }

@@ -218,18 +218,18 @@ export function UploadPanel({
               const isUploading = uploadingPeriod === periodNumber;
 
               return (
-                <div
-                  key={periodNumber}
-                  className={cn(
-                    "rounded-xl border p-3 transition-colors",
-                    period?.lesson_plan_url
-                      ? period.is_published
-                        ? "border-emerald-200 bg-emerald-50/40"
-                        : "border-amber-200 bg-amber-50/40"
-                      : "border-border bg-secondary/20"
-                  )}
-                >
-                  <div className="flex flex-wrap items-center gap-3">
+                <div key={periodNumber}>
+                  <div
+                    className={cn(
+                      "rounded-xl border p-3 transition-colors",
+                      period?.lesson_plan_url
+                        ? period.is_published
+                          ? "border-emerald-200 bg-emerald-50/40"
+                          : "border-amber-200 bg-amber-50/40"
+                        : "border-border bg-secondary/20"
+                    )}
+                  >
+                    <div className="flex flex-wrap items-center gap-3">
                     <div
                       className={cn(
                         "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold",
@@ -346,7 +346,24 @@ export function UploadPanel({
                         </div>
                       )}
                     </div>
+                    </div>
                   </div>
+                  {isUploading && (
+                    <div className="h-1 bg-muted rounded-b-lg overflow-hidden">
+                      <style>{`
+                        @keyframes upload-progress {
+                          0% { width: 0%; }
+                          100% { width: 100%; }
+                        }
+                        .upload-progress-bar {
+                          height: 100%;
+                          background: linear-gradient(90deg, #ba2032, #dc2626);
+                          animation: upload-progress 3s ease-out forwards;
+                        }
+                      `}</style>
+                      <div className="upload-progress-bar" />
+                    </div>
+                  )}
                 </div>
               );
             })}

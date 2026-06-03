@@ -149,12 +149,12 @@ export function PeriodCard({
 
         {/* Action buttons */}
         {!isCancelled && (
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 md:flex-row">
             {chapterPeriod && chapterPeriod.is_published && chapterPeriod.lesson_plan_url && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex-1 h-8 text-xs"
+                className="flex-1 h-8 md:h-8 md:text-xs text-sm font-medium"
                 onClick={handleViewLesson}
               >
                 <ExternalLink className="w-3 h-3 mr-1" />
@@ -166,7 +166,7 @@ export function PeriodCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 h-8 text-xs"
+                className="flex-1 h-11 md:h-8 md:text-xs text-sm font-medium"
                 onClick={() => setIsLogModalOpen(true)}
               >
                 Log period
@@ -177,7 +177,7 @@ export function PeriodCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex-1 h-8 text-xs"
+                className="flex-1 h-11 md:h-8 md:text-xs text-sm font-medium"
                 onClick={() => setIsLogModalOpen(true)}
               >
                 Edit log

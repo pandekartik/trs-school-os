@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, AlertCircle, XCircle } from "lucide-react";
+import { CheckCircle, AlertCircle, XCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -119,7 +119,7 @@ export function LogModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[85vh] md:max-h-none w-full md:w-auto rounded-b-none md:rounded-b-lg md:rounded-t-lg rounded-t-2xl md:rounded-t-lg">
         <DialogHeader>
           <DialogTitle>Log Period</DialogTitle>
           <DialogDescription>
@@ -131,12 +131,12 @@ export function LogModal({
           {/* Status selector */}
           <div>
             <label className="text-sm font-medium block mb-2">Status</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               {STATUS_OPTIONS.map(({ value, label, icon: Icon, color }) => (
                 <button
                   key={value}
                   onClick={() => setStatus(value)}
-                  className={`flex flex-col items-center gap-2 py-3 px-2 rounded-lg border-2 transition ${
+                  className={`flex flex-col items-center gap-2 py-3 px-2 rounded-lg border-2 transition min-h-[60px] md:min-h-auto ${
                     status === value
                       ? "border-[#ba2032] bg-red-50"
                       : "border-gray-200 hover:border-gray-300"
@@ -171,7 +171,14 @@ export function LogModal({
             disabled={isSubmitting || !status || (status && (status === "partial" || status === "not_done") && !coverageNote.trim())}
             className="w-full bg-[#ba2032] hover:bg-[#ba2032]/90"
           >
-            {isSubmitting ? "Saving..." : "Log period"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Saving...
+              </>
+            ) : (
+              "Log period"
+            )}
           </Button>
         </div>
       </DialogContent>
