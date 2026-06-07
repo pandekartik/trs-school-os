@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Teacher, TeacherAttendance, TimetableSlot, PeriodOverride } from "@/lib/types";
 import type { UserRole } from "@/lib/role-access";
@@ -80,6 +80,7 @@ export function AttendanceShell({
   const [overrideType, setOverrideType] = useState<"substitute" | "cancel">("substitute");
   const [substituteTeacherId, setSubstituteTeacherId] = useState("");
   const [periodReason, setPeriodReason] = useState("");
+  const [localAttendance, setLocalAttendance] = useState(attendance);
 
   const isTeacher = role === "teacher";
   const isAdmin = ["admin", "super_admin"].includes(role ?? "");
@@ -119,7 +120,7 @@ export function AttendanceShell({
   };
 
   const getAttendanceStatus = (teacherId: string, date: string) => {
-    return attendance.find((a) => a.teacher_id === teacherId && a.date === date);
+    return localAttendance.find((a) => a.teacher_id === teacherId && a.date === date);
   };
 
   const getAttendanceStats = (teacherId: string) => {
@@ -128,7 +129,7 @@ export function AttendanceShell({
     const startDate = monthStart.toISOString().split("T")[0];
     const endDate = monthEnd.toISOString().split("T")[0];
 
-    const teacherAttendance = attendance.filter(
+    const teacherAttendance = localAttendance.filter(
       (a) => a.teacher_id === teacherId && a.date >= startDate && a.date <= endDate
     );
 

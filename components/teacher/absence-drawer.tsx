@@ -178,7 +178,7 @@ export function AbsenceDrawer({
             <Button
               type="submit"
               disabled={isSubmitting || !absenceDate || !substituteTeacherId}
-              className="w-full h-8 text-xs bg-[#ba2032] hover:bg-[#ba2032]/90"
+              className="w-full h-8 text-xs"
             >
               {isSubmitting ? (
                 <>
@@ -193,11 +193,11 @@ export function AbsenceDrawer({
 
           {/* This week absences */}
           <div className="border-t pt-3">
-            <h4 className="text-xs font-medium uppercase mb-2" style={{ color: "#A3A3A3" }}>
+            <h4 className="text-xs font-medium uppercase mb-2 text-[hsl(var(--text-muted))]">
               This week
             </h4>
             {relevantAbsences.length === 0 ? (
-              <p className="text-xs" style={{ color: "#A3A3A3" }}>
+              <p className="text-xs text-[hsl(var(--text-muted))]">
                 No absences this week
               </p>
             ) : (
