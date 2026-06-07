@@ -138,7 +138,7 @@ export function TeachersShell({ teachers, branches = [], role, showBranchColumn 
                   {teachers.map((teacher) => (
                     <TableRow key={teacher.id} className="hover:bg-muted/30">
                       <TableCell>
-                        <code className="text-[11px] text-muted-foreground font-mono">{teacher.id.slice(0, 8)}</code>
+                        <code className="text-[11px] text-muted-foreground font-mono">{teacher.display_id}</code>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">

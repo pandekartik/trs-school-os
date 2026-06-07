@@ -378,7 +378,8 @@ export function ChaptersTab({
               </div>
             ) : (
               <div>
-                <div className="grid h-9 grid-cols-[72px_1.5fr_116px_116px_1fr_72px] items-center border-b border-[#E5E5E5] bg-[#FAFAFA] px-4 text-[11px] font-medium uppercase text-[#A3A3A3]">
+                <div className="grid h-9 grid-cols-[80px_72px_1.5fr_116px_116px_1fr_72px] items-center border-b border-[#E5E5E5] bg-[#FAFAFA] px-4 text-[11px] font-medium uppercase text-[#A3A3A3]">
+                  <div>ID</div>
                   <div>Ch#</div>
                   <div>Chapter name</div>
                   <div>Allocated</div>
@@ -394,7 +395,8 @@ export function ChaptersTab({
                     deleteConfirmText="Delete chapter?"
                     className="min-h-11 rounded-none border-x-0 border-t-0 border-b border-[#F5F5F5] bg-white px-4 py-0 hover:bg-[#FAFAFA] [&>div:first-child]:min-w-0"
                   >
-                    <div className="grid min-h-11 grid-cols-[72px_1.5fr_116px_116px_1fr] items-center gap-0">
+                    <div className="grid min-h-11 grid-cols-[80px_72px_1.5fr_116px_116px_1fr] items-center gap-0">
+                      <div><code className="text-[11px] text-muted-foreground font-mono">{chapter.display_id}</code></div>
                       <div className="text-sm font-medium text-[#171717]">{chapter.chapter_number}</div>
                       <div className="truncate text-sm font-medium text-[#171717]">{chapter.name}</div>
                       <div>

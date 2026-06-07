@@ -155,6 +155,13 @@ export function SegmentsTab({
             <>
               {/* Segments List */}
               <div className="flex flex-col gap-0 border border-gray-200 rounded-sm overflow-hidden">
+                <div className="grid grid-cols-5 gap-4 px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase text-gray-600">
+                  <div>ID</div>
+                  <div>Name</div>
+                  <div>Type</div>
+                  <div>Dates</div>
+                  <div></div>
+                </div>
                 {currentSegments.map((seg) => (
                   <EditableRow
                     key={seg.id}
@@ -162,9 +169,10 @@ export function SegmentsTab({
                     onDelete={() => handleDelete(seg.id)}
                     className="border-b border-gray-100 last:border-b-0 bg-white px-0 py-0 rounded-none hover:bg-gray-50"
                   >
-                    <div className="px-3 py-2.5 w-full">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium text-gray-900">{seg.name}</span>
+                    <div className="grid grid-cols-5 gap-4 px-3 py-2.5 items-center w-full">
+                      <div><code className="text-[11px] text-muted-foreground font-mono">{seg.display_id}</code></div>
+                      <div className="text-xs font-medium text-gray-900">{seg.name}</div>
+                      <div>
                         <Badge
                           className="text-[10px] h-5 px-2 font-normal border"
                           style={{
