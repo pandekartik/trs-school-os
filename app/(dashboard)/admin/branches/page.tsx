@@ -11,7 +11,7 @@ export default async function BranchesPage() {
 
   const { data: branches } = await db
     .from("branch")
-    .select("*")
+    .select("id, display_id, name, city, is_active, created_at, updated_at")
     .order("created_at", { ascending: false });
 
   return <BranchesShell branches={branches ?? []} />;
