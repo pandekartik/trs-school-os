@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Teacher, Branch } from "@/lib/types";
 import type { UserRole } from "@/lib/role-access";
 import { deleteTeacher } from "@/lib/actions/setup";
@@ -58,6 +58,18 @@ export function TeachersShell({ teachers, branches = [], role, showBranchColumn 
   const [teacherToDelete, setTeacherToDelete] = useState<Teacher | null>(null);
   const [deleting, setDeleting] = useState(false);
   const branchMap = new Map(branches.map(b => [b.id, b]));
+
+  // DEBUG: Log what the component receives
+  useEffect(() => {
+    if (teachers && teachers.length > 0) {
+      console.log("DEBUG TeachersShell: Received teachers:", {
+        count: teachers.length,
+        firstTeacher: teachers[0],
+        hasDisplayId: "display_id" in teachers[0],
+        displayIdValue: teachers[0].display_id
+      });
+    }
+  }, [teachers]);
 
   function handleAddTeacher() {
     setSelectedTeacher(null);

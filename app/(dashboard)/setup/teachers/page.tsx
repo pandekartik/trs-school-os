@@ -19,6 +19,17 @@ export default async function TeachersPage() {
   }
   const { data: teachers } = await query.order("name");
 
+  // DEBUG: Log what we received from the database
+  console.log("DEBUG: Teachers data from DB:", teachers?.[0] ? Object.keys(teachers[0]) : "No data");
+  if (teachers?.[0]) {
+    console.log("DEBUG: First teacher:", {
+      name: teachers[0].name,
+      email: teachers[0].email,
+      display_id: teachers[0].display_id,
+      hasDisplayId: "display_id" in teachers[0]
+    });
+  }
+
   let branches: Branch[] = [];
   if (role === "super_admin") {
     const { data } = await admin.from("branch").select("id, display_id, name, city, is_active, created_at, updated_at").eq("is_active", true).order("name");
