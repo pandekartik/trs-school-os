@@ -410,19 +410,19 @@ export function AttendanceShell({
           teacherName={teachers.find((t) => t.id === attendanceModalTeacher)?.name || ""}
           date={selectedDate || todayDate}
           currentStatus={
-            attendance.find(
+            localAttendance.find(
               (a) => a.teacher_id === attendanceModalTeacher && a.date === (selectedDate || todayDate)
             )?.status as "present" | "absent" | "late" | "half_day" | undefined
           }
           currentReason={
-            attendance.find(
+            localAttendance.find(
               (a) => a.teacher_id === attendanceModalTeacher && a.date === (selectedDate || todayDate)
             )?.reason ?? undefined
           }
           markedBy={profile.id}
           branchId={branchId}
           onSuccess={() => {
-            router.refresh();
+            window.location.reload();
           }}
         />
       )}
