@@ -36,36 +36,28 @@ const STATUS_OPTIONS = [
     value: "present" as StatusType,
     title: "Present",
     icon: Check,
-    color: "bg-[hsl(var(--success))]",
-    lightBg: "bg-[hsl(var(--success-light))]",
-    lightBorder: "border-[hsl(var(--success-border))]",
+    variantColor: "success",
     microcopy: "Teacher was present",
   },
   {
     value: "absent" as StatusType,
     title: "Absent",
     icon: X,
-    color: "bg-[hsl(var(--error))]",
-    lightBg: "bg-[hsl(var(--error-light))]",
-    lightBorder: "border-[hsl(var(--error-border))]",
+    variantColor: "error",
     microcopy: "Teacher was absent",
   },
   {
     value: "late" as StatusType,
     title: "Late",
     icon: AlertCircle,
-    color: "bg-[hsl(var(--warning))]",
-    lightBg: "bg-[hsl(var(--warning-light))]",
-    lightBorder: "border-[hsl(var(--warning-border))]",
+    variantColor: "warning",
     microcopy: "Teacher arrived late",
   },
   {
     value: "half_day" as StatusType,
     title: "Half Day",
     icon: AlertCircle,
-    color: "bg-[hsl(var(--info))]",
-    lightBg: "bg-[hsl(var(--info-light))]",
-    lightBorder: "border-[hsl(var(--info-border))]",
+    variantColor: "info",
     microcopy: "Teacher left early",
   },
 ];
@@ -169,30 +161,59 @@ export function AttendanceModal({
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-6 py-5 sm:py-6 space-y-6">
           {/* Status Selection */}
-          <div>
-            <label className="text-sm font-semibold text-[hsl(var(--text-primary))] block mb-3">
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-[hsl(var(--text-primary))]">
               Attendance Status
             </label>
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {STATUS_OPTIONS.map((option) => {
                 const isSelected = status === option.value;
                 const Icon = option.icon;
+                const colorMap: Record<string, { bg: string; border: string; lightBg: string; lightBorder: string }> = {
+                  success: {
+                    bg: "bg-[hsl(var(--success))]",
+                    border: "border-[hsl(var(--success-border))]",
+                    lightBg: "bg-[hsl(var(--success-light))]",
+                    lightBorder: "border-[hsl(var(--success-border))]",
+                  },
+                  error: {
+                    bg: "bg-[hsl(var(--error))]",
+                    border: "border-[hsl(var(--error-border))]",
+                    lightBg: "bg-[hsl(var(--error-light))]",
+                    lightBorder: "border-[hsl(var(--error-border))]",
+                  },
+                  warning: {
+                    bg: "bg-[hsl(var(--warning))]",
+                    border: "border-[hsl(var(--warning-border))]",
+                    lightBg: "bg-[hsl(var(--warning-light))]",
+                    lightBorder: "border-[hsl(var(--warning-border))]",
+                  },
+                  info: {
+                    bg: "bg-[hsl(var(--info))]",
+                    border: "border-[hsl(var(--info-border))]",
+                    lightBg: "bg-[hsl(var(--info-light))]",
+                    lightBorder: "border-[hsl(var(--info-border))]",
+                  },
+                };
+
+                const colors = colorMap[option.variantColor];
 
                 return (
-                  <button
+                  <Button
                     key={option.value}
+                    variant="outline"
                     onClick={() => setStatus(option.value)}
                     className={cn(
-                      "flex flex-col items-center gap-2 py-4 px-3 sm:px-4 rounded-xl border-2 transition-all duration-200 cursor-pointer",
+                      "flex flex-col items-center justify-center gap-2 h-auto py-4 px-3 sm:px-4 transition-all duration-200",
                       isSelected
-                        ? cn(option.lightBg, option.lightBorder, "border-2 shadow-sm")
-                        : "border-[hsl(var(--border))] hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--surface-2))]"
+                        ? cn(colors.lightBg, "border-2", colors.lightBorder, "shadow-sm")
+                        : "border-[hsl(var(--border))]"
                     )}
                   >
                     <div
                       className={cn(
                         "rounded-full p-2 transition-colors",
-                        isSelected ? option.color : "bg-[hsl(var(--surface-3))]"
+                        isSelected ? colors.bg : "bg-[hsl(var(--surface-3))]"
                       )}
                     >
                       <Icon
@@ -206,11 +227,11 @@ export function AttendanceModal({
                       <div className={cn("text-sm font-semibold leading-tight", isSelected ? "text-[hsl(var(--text-primary))]" : "text-[hsl(var(--text-secondary))]")}>
                         {option.title}
                       </div>
-                      <div className="text-xs text-[hsl(var(--text-muted))] mt-0.5">
+                      <div className="text-xs text-[hsl(var(--text-muted))]">
                         {option.microcopy}
                       </div>
                     </div>
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -267,13 +288,17 @@ export function AttendanceModal({
               !status ||
               (needsReason && !hasReason)
             }
+            variant={
+              status === "present"
+                ? "default"
+                : status === "absent"
+                  ? "destructive"
+                  : "default"
+            }
             className={cn(
-              "flex-1 font-semibold text-white",
-              status === "present" && "bg-[hsl(var(--success))] hover:bg-[hsl(var(--success))]",
-              status === "absent" && "bg-[hsl(var(--error))] hover:bg-[hsl(var(--error))]",
-              status === "late" && "bg-[hsl(var(--warning))] hover:bg-[hsl(var(--warning))]",
-              status === "half_day" && "bg-[hsl(var(--info))] hover:bg-[hsl(var(--info))]",
-              (!status || (needsReason && !hasReason)) && "opacity-50 cursor-not-allowed"
+              "flex-1 font-semibold",
+              status === "late" && "bg-[hsl(var(--warning))] hover:bg-[hsl(var(--warning))] text-white",
+              status === "half_day" && "bg-[hsl(var(--info))] hover:bg-[hsl(var(--info))] text-white"
             )}
           >
             {isSubmitting ? (
