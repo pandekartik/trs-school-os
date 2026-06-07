@@ -13,7 +13,7 @@ export default async function TeachersPage() {
   const admin = createAdminClient();
   const branchId = await getActiveBranch();
 
-  let query = db.from("teacher").select("*").eq("role", "teacher");
+  let query = db.from("teacher").select("id, display_id, name, email, phone, role, is_active, branch_id, created_at").eq("role", "teacher");
   if (branchId) {
     query = query.eq("branch_id", branchId);
   }
