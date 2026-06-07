@@ -23,6 +23,7 @@ interface PeriodCardProps {
   role?: string;
   teachers?: any[];
   chapters?: any[];
+  isLive?: boolean;
 }
 
 export function PeriodCard({
@@ -40,6 +41,7 @@ export function PeriodCard({
   role = "teacher",
   teachers = [],
   chapters = [],
+  isLive = false,
 }: PeriodCardProps) {
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
@@ -93,19 +95,19 @@ export function PeriodCard({
   return (
     <>
       <div
-        className={`rounded-lg border p-3 ${
-          isCancelled ? "opacity-60 bg-muted" : "bg-card"
+        className={`rounded-lg border p-2 ${
+          isCancelled ? "opacity-60 bg-muted" : isLive ? "bg-green-50 border-green-200" : "bg-card"
         }`}
-        style={{ borderLeft: `4px solid ${borderColor}` }}
+        style={{ borderLeft: `4px solid ${isLive ? "#22c55e" : borderColor}` }}
       >
         {/* Header with badges */}
-        <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex items-start justify-between gap-2 mb-1">
           <div className="flex-1">
             <div className="text-xs font-medium text-muted-foreground">
               Period {periodNumber} • {timeLabel}
             </div>
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-2 shrink-0 items-center">
             {periodOverride && (
               <Badge
                 variant="outline"
@@ -130,6 +132,11 @@ export function PeriodCard({
                  "Remapped"}
               </Badge>
             )}
+            {isLive && (
+              <Badge className="shrink-0 text-xs bg-green-500 text-white hover:bg-green-600">
+                LIVE
+              </Badge>
+            )}
             {badgeLabel && (
               <Badge variant="outline" className="shrink-0 text-xs">
                 {badgeLabel}
@@ -139,8 +146,8 @@ export function PeriodCard({
         </div>
 
         {/* Subject and division */}
-        <div className="mb-2">
-          <div className="text-sm font-semibold text-foreground">{subject.name}</div>
+        <div className="mb-1">
+          <div className="text-sm font-semibold text-foreground leading-tight">{subject.name}</div>
           <div className="text-xs text-muted-foreground">
             {standard?.name} • {division?.name}
           </div>
@@ -148,9 +155,9 @@ export function PeriodCard({
 
         {/* Chapter info */}
         {chapter && !isBufferPeriod && (
-          <div className="mb-3 text-xs text-muted-foreground">
-            <div className="font-medium text-foreground">{chapter.name}</div>
-            <div>
+          <div className="mb-2 text-xs text-muted-foreground">
+            <div className="font-medium text-foreground leading-tight">{chapter.name}</div>
+            <div className="text-xs">
               Period {periodInstance.chapter_period_sequence} of {chapter.allocated_periods}
             </div>
           </div>
@@ -158,16 +165,16 @@ export function PeriodCard({
 
         {/* Substitution indicator */}
         {periodInstance.is_substituted && (
-          <div className="mb-2 text-xs text-amber-600 bg-amber-50 rounded px-2 py-1">
-            Substituting for original teacher
+          <div className="mb-1 text-xs text-amber-600 bg-amber-50 rounded px-2 py-1">
+            Substituting
           </div>
         )}
 
         {/* Coverage note */}
         {periodInstance.coverage_note && (
           <div
-            className="mb-2 rounded px-2 py-1 italic mt-2"
-            style={{ fontSize: "12px", color: "#525252", backgroundColor: "#F5F5F5" }}
+            className="mb-1 rounded px-2 py-1 italic text-xs"
+            style={{ color: "#525252", backgroundColor: "#F5F5F5" }}
           >
             {periodInstance.coverage_note}
           </div>
@@ -175,8 +182,8 @@ export function PeriodCard({
 
         {/* Logged time */}
         {isLogged && periodInstance.logged_at && (
-          <div className="mb-3 text-xs" style={{ color: "#A3A3A3" }}>
-            Logged at {new Date(periodInstance.logged_at).toLocaleTimeString("en-US", {
+          <div className="mb-1 text-xs" style={{ color: "#A3A3A3" }}>
+            Logged {new Date(periodInstance.logged_at).toLocaleTimeString("en-US", {
               hour: "2-digit",
               minute: "2-digit",
               hour12: false,
@@ -186,16 +193,16 @@ export function PeriodCard({
 
         {/* Action buttons */}
         {!isCancelled && (
-          <div className="flex flex-col gap-2 md:flex-row">
+          <div className="flex flex-col gap-1 md:flex-row md:gap-2 mt-2">
             {chapterPeriod && chapterPeriod.is_published && chapterPeriod.lesson_plan_url && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex-1 h-8 md:h-8 md:text-xs text-sm font-medium"
+                className="flex-1 h-8 md:h-7 md:text-xs text-xs font-medium"
                 onClick={handleViewLesson}
               >
                 <ExternalLink className="w-3 h-3 mr-1" />
-                View plan
+                Plan
               </Button>
             )}
 
@@ -203,7 +210,7 @@ export function PeriodCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 h-11 md:h-8 md:text-xs text-sm font-medium"
+                className="flex-1 h-8 md:h-7 md:text-xs text-xs font-medium"
                 onClick={() => setIsLogModalOpen(true)}
               >
                 Log period
@@ -214,7 +221,7 @@ export function PeriodCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex-1 h-11 md:h-8 md:text-xs text-sm font-medium"
+                className="flex-1 h-8 md:h-7 md:text-xs text-xs font-medium"
                 onClick={() => setIsLogModalOpen(true)}
               >
                 Edit log
@@ -225,7 +232,7 @@ export function PeriodCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex-1 h-8 md:h-8 md:text-xs text-sm font-medium"
+                className="flex-1 h-8 md:h-7 md:text-xs text-xs font-medium"
                 onClick={() => setIsOverrideModalOpen(true)}
               >
                 <Settings className="w-3 h-3 mr-1" />

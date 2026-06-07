@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { PERIOD_TIMES, formatTimeLabel } from "@/lib/timetable-constants";
 import { PeriodCard } from "@/components/teacher/period-card";
 
 interface WeekViewProps {
@@ -21,7 +22,7 @@ interface WeekViewProps {
   teachers?: any[];
 }
 
-const DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
+const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 export function WeekView({
   weekStart,
@@ -42,7 +43,6 @@ export function WeekView({
 }: WeekViewProps) {
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
 
-  // Default to today's day
   useEffect(() => {
     if (selectedDayIndex === null) {
       const today = new Date().toISOString().split("T")[0];
@@ -67,7 +67,6 @@ export function WeekView({
   const standardMap = createLookup(standards, "id");
   const divisionMap = createLookup(divisions, "id");
 
-  // Group period instances by date
   const periodsByDate = new Map<string, any[]>();
   periodInstances.forEach((instance) => {
     if (!periodsByDate.has(instance.date)) {
@@ -76,7 +75,6 @@ export function WeekView({
     periodsByDate.get(instance.date)!.push(instance);
   });
 
-  // Sort periods within each day by period number
   periodsByDate.forEach((periods) => {
     periods.sort(
       (a, b) =>
@@ -85,7 +83,6 @@ export function WeekView({
     );
   });
 
-  // Check if there are any periods this week
   const hasAnyPeriods = periodInstances.length > 0;
 
   if (!hasAnyPeriods) {
@@ -103,7 +100,26 @@ export function WeekView({
     );
   }
 
-  // Helper to render a day's content
+  const isLivePeriod = (instance: any): boolean => {
+    const now = new Date();
+    const todayIso = now.toISOString().split("T")[0];
+    if (instance.date !== todayIso) return false;
+
+    const slot = timetableSlots.find((s) => s.id === instance.timetable_slot_id);
+    if (!slot) return false;
+
+    const periodTime = PERIOD_TIMES.find((p) => p.period === slot.period_number);
+    if (!periodTime) return false;
+
+    const [startH, startM] = periodTime.start.split(":").map(Number);
+    const [endH, endM] = periodTime.end.split(":").map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+  };
+
   const renderDayContent = (dayIndex: number) => {
     const date = new Date(weekStart);
     date.setDate(date.getDate() + dayIndex);
@@ -118,9 +134,8 @@ export function WeekView({
 
     return (
       <div key={dayIndex} className="flex flex-col">
-        {/* Date header - mobile visible, desktop hidden */}
         <div
-          className={`md:hidden text-center py-3 mb-4 rounded-lg transition ${
+          className={`md:hidden text-center py-2 mb-3 rounded-lg transition ${
             isToday ? "bg-[#ba2032] text-white" : "bg-muted text-muted-foreground"
           }`}
         >
@@ -133,15 +148,12 @@ export function WeekView({
           )}
         </div>
 
-        {/* Period cards */}
         {dayPeriods.length === 0 ? (
-          <div className="flex items-center justify-center py-8 text-center">
-            <p className="text-center" style={{ fontSize: "12px", color: "#A3A3A3" }}>
-              No classes
-            </p>
+          <div className="py-2 text-center">
+            <p className="text-xs text-muted-foreground font-medium">No classes</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {dayPeriods.map((instance) => {
               const slot = timetableSlots.find((s) => s.id === instance.timetable_slot_id);
               const subject = slot ? subjectMap.get(slot.subject_id) : null;
@@ -160,24 +172,31 @@ export function WeekView({
                 (o) => o.timetable_slot_id === instance.timetable_slot_id && o.date === dateIso
               );
 
+              const isLive = isLivePeriod(instance);
+
               return (
-                <PeriodCard
+                <div
                   key={instance.id}
-                  periodInstance={instance}
-                  slot={slot}
-                  chapter={chapter}
-                  chapterPeriod={chapterPeriod}
-                  subject={subject}
-                  standard={standard}
-                  division={division}
-                  isTeacher={isTeacher}
-                  canLog={canLog}
-                  loggedBy={loggedBy}
-                  periodOverride={periodOverride}
-                  role={role}
-                  teachers={teachers}
-                  chapters={chapters}
-                />
+                  className={isLive ? "rounded-lg ring-2 ring-green-500 ring-offset-2" : ""}
+                >
+                  <PeriodCard
+                    periodInstance={instance}
+                    slot={slot}
+                    chapter={chapter}
+                    chapterPeriod={chapterPeriod}
+                    subject={subject}
+                    standard={standard}
+                    division={division}
+                    isTeacher={isTeacher}
+                    canLog={canLog}
+                    loggedBy={loggedBy}
+                    periodOverride={periodOverride}
+                    role={role}
+                    teachers={teachers}
+                    chapters={chapters}
+                    isLive={isLive}
+                  />
+                </div>
               );
             })}
           </div>
@@ -189,7 +208,7 @@ export function WeekView({
   return (
     <>
       {/* Mobile day selector tabs */}
-      <div className="md:hidden mb-4 flex gap-2 overflow-x-auto pb-2">
+      <div className="md:hidden mb-3 flex gap-2 overflow-x-auto pb-2">
         {DAYS.map((dayLabel, dayIndex) => {
           const date = new Date(weekStart);
           date.setDate(date.getDate() + dayIndex);
@@ -221,8 +240,8 @@ export function WeekView({
         {selectedDayIndex !== null && renderDayContent(selectedDayIndex)}
       </div>
 
-      {/* Desktop grid view */}
-      <div className="hidden md:grid grid-cols-5 gap-4">
+      {/* Desktop grid view - only show days with classes */}
+      <div className="hidden md:grid gap-3" style={{ gridTemplateColumns: `repeat(${DAYS.length}, 1fr)` }}>
         {DAYS.map((dayLabel, dayIndex) => {
           const date = new Date(weekStart);
           date.setDate(date.getDate() + dayIndex);
@@ -234,17 +253,17 @@ export function WeekView({
           const holiday = holidays.find((h: any) => h.date === dateIso);
           const allPeriodsCancelled = dayPeriods.length > 0 && dayPeriods.every(p => p.status === "cancelled");
           const isHoliday = allPeriodsCancelled || !!holiday;
+          const hasClasses = dayPeriods.length > 0;
 
           return (
             <div key={dayLabel} className="flex flex-col">
-              {/* Date header */}
               <div
-                className={`text-center py-3 mb-4 rounded-lg transition ${
+                className={`text-center py-2 mb-2 rounded-lg transition ${
                   isToday ? "bg-[#ba2032] text-white" : "bg-muted text-muted-foreground"
                 }`}
               >
                 <div className="text-xs font-semibold uppercase">{dayLabel}</div>
-                <div className="text-lg font-bold">{dayNum}</div>
+                <div className="text-base font-bold">{dayNum}</div>
                 {isHoliday && (
                   <div className="text-xs font-medium mt-1 text-red-600">
                     {holiday?.name || "Holiday"}
@@ -252,15 +271,8 @@ export function WeekView({
                 )}
               </div>
 
-              {/* Period cards */}
-              {dayPeriods.length === 0 ? (
-                <div className="flex items-center justify-center py-8 text-center">
-                  <p className="text-center" style={{ fontSize: "12px", color: "#A3A3A3" }}>
-                    No classes
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
+              {hasClasses ? (
+                <div className="flex flex-col gap-2">
                   {dayPeriods.map((instance) => {
                     const slot = timetableSlots.find((s) => s.id === instance.timetable_slot_id);
                     const subject = slot ? subjectMap.get(slot.subject_id) : null;
@@ -279,26 +291,37 @@ export function WeekView({
                       (o) => o.timetable_slot_id === instance.timetable_slot_id && o.date === dateIso
                     );
 
+                    const isLive = isLivePeriod(instance);
+
                     return (
-                      <PeriodCard
+                      <div
                         key={instance.id}
-                        periodInstance={instance}
-                        slot={slot}
-                        chapter={chapter}
-                        chapterPeriod={chapterPeriod}
-                        subject={subject}
-                        standard={standard}
-                        division={division}
-                        isTeacher={isTeacher}
-                        canLog={canLog}
-                        loggedBy={loggedBy}
-                        periodOverride={periodOverride}
-                        role={role}
-                        teachers={teachers}
-                        chapters={chapters}
-                      />
+                        className={isLive ? "rounded-lg ring-2 ring-green-500 ring-offset-2" : ""}
+                      >
+                        <PeriodCard
+                          periodInstance={instance}
+                          slot={slot}
+                          chapter={chapter}
+                          chapterPeriod={chapterPeriod}
+                          subject={subject}
+                          standard={standard}
+                          division={division}
+                          isTeacher={isTeacher}
+                          canLog={canLog}
+                          loggedBy={loggedBy}
+                          periodOverride={periodOverride}
+                          role={role}
+                          teachers={teachers}
+                          chapters={chapters}
+                          isLive={isLive}
+                        />
+                      </div>
                     );
                   })}
+                </div>
+              ) : (
+                <div className="py-2 text-center">
+                  <p className="text-xs text-muted-foreground font-medium">No classes</p>
                 </div>
               )}
             </div>

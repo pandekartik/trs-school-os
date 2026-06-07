@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,7 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WeekView } from "@/components/teacher/week-view";
-import { AbsencePanel } from "@/components/teacher/absence-panel";
+import { TodaySummary } from "@/components/teacher/today-summary";
+import { AbsenceDrawer } from "@/components/teacher/absence-drawer";
 import type { UserRole } from "@/lib/role-access";
 
 interface Teacher {
@@ -55,7 +55,7 @@ export function TeacherShell({
 }: TeacherShellProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [showAbsences, setShowAbsences] = useState(false);
+  const [isAbsenceDrawerOpen, setIsAbsenceDrawerOpen] = useState(false);
 
   const handleWeekChange = (newWeekStart: Date) => {
     startTransition(() => {
@@ -89,96 +89,72 @@ export function TeacherShell({
   nextWeek.setDate(nextWeek.getDate() + 7);
 
   const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 4);
+  weekEnd.setDate(weekEnd.getDate() + 5);
 
   const weekLabel = `${weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${weekEnd.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
 
   const selectedTeacher = data.teachers.find((t) => t.id === currentTeacherId);
 
   return (
-    <div className="flex flex-col md:flex-row flex-1 gap-6 h-full">
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar - Mobile: Stack vertically, Desktop: Horizontal */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 mb-6">
-          {/* Left: Week navigation */}
-          <div className="flex items-center gap-2">
+    <div className="flex flex-col h-full w-full">
+      {/* Header */}
+      <div className="border-b bg-background sticky top-0 z-40">
+        <div className="px-4 py-3 space-y-3">
+          {/* Top row: Title + Actions */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-semibold">Teacher View</h1>
+            {role === "admin" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAbsenceDrawerOpen(true)}
+              >
+                Mark Absence
+              </Button>
+            )}
+          </div>
+
+          {/* Navigation row: Left (prev) + Center (nav) + Right (selectors) */}
+          <div className="flex items-center justify-between gap-4">
+            {/* Left: Previous Week */}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleWeekChange(prevWeek)}
               disabled={isPending}
+              className="px-2"
             >
-              {isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <ChevronLeft className="w-4 h-4" />
-              )}
-            </Button>
-            <div className="text-sm font-medium text-center flex-1 md:flex-none md:min-w-56">
-              {weekLabel}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleWeekChange(nextWeek)}
-              disabled={isPending}
-            >
-              {isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
-              )}
-            </Button>
-          </div>
-
-          {/* Controls row - Mobile: Second row, Desktop: Same row */}
-          <div className="flex items-center gap-2 md:gap-4">
-            {/* Today button */}
-            <Button variant="outline" size="sm" onClick={handleToday} disabled={isPending} className="flex-1 md:flex-none">
-              {isPending ? (
-                <>
-                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                </>
-              ) : null}
-              Today
+              ← Prev
             </Button>
 
-            {/* Absences tab button (mobile only) */}
-            {role === "admin" && (
+            {/* Center: Week label + Today + Next */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium whitespace-nowrap px-3 py-1 rounded bg-muted">
+                {weekLabel}
+              </span>
               <Button
-                variant={showAbsences ? "default" : "outline"}
+                variant="outline"
                 size="sm"
-                onClick={() => setShowAbsences(!showAbsences)}
-                className="md:hidden flex-1"
+                onClick={handleToday}
+                disabled={isPending}
               >
-                Absences
+                Today
               </Button>
-            )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleWeekChange(nextWeek)}
+                disabled={isPending}
+                className="px-2"
+              >
+                Next →
+              </Button>
+            </div>
 
-            {/* Teacher selector (admin/coordinator only) - Desktop only */}
+            {/* Right: Teacher selector */}
             {role !== "teacher" && (
-              <div className="hidden md:block">
-                <Select value={currentTeacherId} onValueChange={handleTeacherChange}>
-                  <SelectTrigger className="w-56">
-                    <SelectValue placeholder="Select teacher" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {data.teachers.map((teacher: Teacher) => (
-                      <SelectItem key={teacher.id} value={teacher.id}>
-                        {teacher.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-
-          {/* Teacher selector (admin/coordinator only) - Mobile: Below other controls */}
-          {role !== "teacher" && (
-            <div className="md:hidden">
               <Select value={currentTeacherId} onValueChange={handleTeacherChange}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-48">
                   <SelectValue placeholder="Select teacher" />
                 </SelectTrigger>
                 <SelectContent>
@@ -189,12 +165,24 @@ export function TeacherShell({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+      </div>
 
-        {/* Week view or Absences - Mobile toggle, Desktop: Week view only */}
-        {!showAbsences ? (
+      {/* Today Summary */}
+      <TodaySummary
+        weekStart={weekStart}
+        periodInstances={data.periodInstances}
+        timetableSlots={data.timetableSlots}
+        subjects={data.subjects}
+        divisions={data.divisions}
+        standards={data.standards}
+      />
+
+      {/* Schedule Grid - Main content */}
+      <div className="flex-1 overflow-auto">
+        <div className="px-4 py-3">
           <WeekView
             weekStart={weekStart}
             periodInstances={data.periodInstances}
@@ -212,32 +200,20 @@ export function TeacherShell({
             role={role}
             teachers={data.teachers}
           />
-        ) : (
-          role === "admin" && selectedTeacher && (
-            <div className="md:hidden overflow-y-auto">
-              <AbsencePanel
-                selectedTeacherId={currentTeacherId}
-                selectedTeacherName={selectedTeacher.name}
-                allTeachers={data.teachers}
-                absences={data.absences}
-                loggedBy={currentUserProfile.id}
-              />
-            </div>
-          )
-        )}
+        </div>
       </div>
 
-      {/* Right sidebar: Absence panel (admin only, desktop only) */}
+      {/* Absence Drawer */}
       {role === "admin" && selectedTeacher && (
-        <div className="hidden md:block w-80 shrink-0">
-          <AbsencePanel
-            selectedTeacherId={currentTeacherId}
-            selectedTeacherName={selectedTeacher.name}
-            allTeachers={data.teachers}
-            absences={data.absences}
-            loggedBy={currentUserProfile.id}
-          />
-        </div>
+        <AbsenceDrawer
+          open={isAbsenceDrawerOpen}
+          onOpenChange={setIsAbsenceDrawerOpen}
+          selectedTeacherId={currentTeacherId}
+          selectedTeacherName={selectedTeacher.name}
+          allTeachers={data.teachers}
+          absences={data.absences}
+          loggedBy={currentUserProfile.id}
+        />
       )}
     </div>
   );

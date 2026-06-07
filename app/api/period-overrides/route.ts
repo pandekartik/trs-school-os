@@ -1,11 +1,16 @@
 import { createAdminClient } from "@/lib/supabase-admin";
-import { getRole } from "@/lib/auth";
+import { getRole, getTeacherProfile } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   const role = await getRole();
   if (role !== "admin" && role !== "super_admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
+  const profile = await getTeacherProfile();
+  if (!profile) {
+    return NextResponse.json({ error: "User profile not found" }, { status: 401 });
   }
 
   const body = await request.json();
@@ -24,7 +29,7 @@ export async function POST(request: NextRequest) {
           chapter_id: body.chapter_id || null,
           chapter_period_number: body.chapter_period_number || null,
           reason: body.reason,
-          created_by: (await import("@/lib/auth")).getTeacherProfile().then((p: any) => p.id),
+          created_by: profile.id,
         },
       ])
       .select();

@@ -15,7 +15,7 @@ function getMondayOfWeek(date: Date): Date {
 function getWeekRange(weekStart: Date) {
   const start = new Date(weekStart);
   const end = new Date(weekStart);
-  end.setDate(end.getDate() + 4);
+  end.setDate(end.getDate() + 5);
   return { start, end };
 }
 
