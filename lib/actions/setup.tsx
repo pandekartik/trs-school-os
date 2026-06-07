@@ -839,3 +839,92 @@ export async function saveTest(formData: FormData) {
   revalidatePath("/content");
   return { success: true };
 }
+
+// ── BRANCHES ─────────────────────────────
+
+export async function createBranch(formData: FormData) {
+  const db = await getDb();
+  const name = formData.get("name") as string;
+  const city = formData.get("city") as string;
+  const { error } = await db.from("branch").insert({ name, city });
+  if (error) return { error: error.message };
+
+  const profile = await getTeacherProfile();
+  if (profile) {
+    writeAuditLog({
+      userId: profile.id,
+      userName: profile.name,
+      userRole: profile.role,
+      action: auditActions.setup.branchCreated,
+      entityType: "branch",
+      entityLabel: name,
+      newData: { name, city },
+    });
+  }
+
+  revalidatePath("/admin/branches");
+  return { success: true };
+}
+
+export async function updateBranch(id: string, formData: FormData) {
+  const db = await getDb();
+  const name = formData.get("name") as string;
+  const city = formData.get("city") as string;
+  const is_active = formData.get("is_active") === "true";
+
+  const { data: oldData } = await db.from("branch").select("*").eq("id", id).single();
+
+  const { error } = await db
+    .from("branch")
+    .update({ name, city, is_active, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { error: error.message };
+
+  const profile = await getTeacherProfile();
+  if (profile) {
+    writeAuditLog({
+      userId: profile.id,
+      userName: profile.name,
+      userRole: profile.role,
+      action: auditActions.setup.branchUpdated,
+      entityType: "branch",
+      entityId: id,
+      entityLabel: name,
+      oldData,
+      newData: { name, city, is_active },
+    });
+  }
+
+  revalidatePath("/admin/branches");
+  return { success: true };
+}
+
+export async function deleteBranch(id: string) {
+  const db = await getDb();
+  const { data: oldData } = await db.from("branch").select("*").eq("id", id).single();
+
+  const { data: teachers } = await db.from("teacher").select("id").eq("branch_id", id).limit(1);
+  if (teachers && teachers.length > 0) {
+    return { error: "Branch has teachers assigned. Reassign them first." };
+  }
+
+  const { error } = await db.from("branch").delete().eq("id", id);
+  if (error) return { error: error.message };
+
+  const profile = await getTeacherProfile();
+  if (profile && oldData) {
+    writeAuditLog({
+      userId: profile.id,
+      userName: profile.name,
+      userRole: profile.role,
+      action: auditActions.setup.branchDeleted,
+      entityType: "branch",
+      entityId: id,
+      entityLabel: oldData.name,
+      oldData,
+    });
+  }
+
+  revalidatePath("/admin/branches");
+  return { success: true };
+}

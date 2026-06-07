@@ -1,7 +1,18 @@
 import type { UserRole } from "@/lib/role-access";
 
+export type Branch = {
+  id: string;
+  display_id: string;
+  name: string;
+  city: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type SchoolYear = {
   id: string;
+  display_id: string;
   name: string;
   start_date: string;
   end_date: string;
@@ -11,6 +22,7 @@ export type SchoolYear = {
 
 export type AcademicSegment = {
   id: string;
+  display_id: string;
   school_year_id: string;
   standard_id: string;
   name: string;
@@ -23,18 +35,21 @@ export type AcademicSegment = {
 
 export type Standard = {
   id: string;
+  display_id: string;
   name: string;
   grade: number;
 };
 
 export type Division = {
   id: string;
+  display_id: string;
   standard_id: string;
   name: string;
 };
 
 export type Subject = {
   id: string;
+  display_id: string;
   standard_id: string;
   name: string;
   type: "academic" | "non_academic";
@@ -44,6 +59,7 @@ export type Subject = {
 
 export type Chapter = {
   id: string;
+  display_id: string;
   subject_id: string;
   academic_segment_id: string;
   chapter_number: number;
@@ -92,6 +108,7 @@ export type ChapterTest = {
 
 export type Teacher = {
   id: string;
+  display_id: string;
   name: string;
   email: string;
   phone: string | null;

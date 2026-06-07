@@ -64,6 +64,9 @@ export const auditActions = {
     chapterDeleted: "chapter.deleted",
     allocationCreated: "allocation.created",
     allocationDeleted: "allocation.deleted",
+    branchCreated: "branch.created",
+    branchUpdated: "branch.updated",
+    branchDeleted: "branch.deleted",
   },
   timetable: {
     templateCreated: "template.created",

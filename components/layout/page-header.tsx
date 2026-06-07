@@ -9,6 +9,7 @@ import type { UserRole } from "@/lib/role-access";
 
 const routeMeta: Record<string, { section: string; title: string }> = {
   "/admin": { section: "ADMIN", title: "Dashboard" },
+  "/admin/branches": { section: "ADMIN", title: "Branches" },
   "/admin/users": { section: "ADMIN", title: "Users" },
   "/setup": { section: "ADMIN", title: "Setup" },
   "/setup/school-year": { section: "ADMIN", title: "School Year" },
@@ -30,6 +31,7 @@ function getRouteMeta(pathname: string) {
   const exact = routeMeta[pathname];
   if (exact) return exact;
   if (pathname.startsWith("/admin/users")) return routeMeta["/admin/users"];
+  if (pathname.startsWith("/admin/branches")) return routeMeta["/admin/branches"];
   return { section: "TRS", title: "School OS" };
 }
 
