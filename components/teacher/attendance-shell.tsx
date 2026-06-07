@@ -6,6 +6,7 @@ import type { Teacher, TeacherAttendance, TimetableSlot, PeriodOverride } from "
 import type { UserRole } from "@/lib/role-access";
 import { markAttendance, bulkMarkAttendance, deleteAttendance } from "@/lib/actions/teacher";
 import { savePeriodOverride } from "@/lib/actions/timetable";
+import { AttendanceModal } from "@/components/teacher/attendance-modal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -71,17 +72,14 @@ export function AttendanceShell({
 }: Props) {
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [editingTeacherId, setEditingTeacherId] = useState<string | null>(null);
-  const [editingStatus, setEditingStatus] = useState<"present" | "absent" | "late" | "half_day" | null>(null);
-  const [editingReason, setEditingReason] = useState("");
+  const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+  const [attendanceModalTeacher, setAttendanceModalTeacher] = useState<string | null>(null);
   const [periodDialogOpen, setPeriodDialogOpen] = useState(false);
   const [selectedAbsentTeacher, setSelectedAbsentTeacher] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [overrideType, setOverrideType] = useState<"substitute" | "cancel">("substitute");
   const [substituteTeacherId, setSubstituteTeacherId] = useState("");
   const [periodReason, setPeriodReason] = useState("");
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingTeacherForDate, setEditingTeacherForDate] = useState<string | null>(null);
 
   const isTeacher = role === "teacher";
   const isAdmin = ["admin", "super_admin"].includes(role ?? "");
@@ -161,9 +159,6 @@ export function AttendanceShell({
       toast.error(result.error);
     } else {
       toast.success("Attendance marked");
-      setEditingTeacherId(null);
-      setEditingStatus(null);
-      setEditingReason("");
       router.refresh();
     }
   };
@@ -383,7 +378,6 @@ export function AttendanceShell({
             attendance={attendance}
             timetableSlots={timetableSlots}
             periodOverrides={periodOverrides}
-            onMarkAttendance={handleMarkAttendance}
             onBulkMarkPresent={handleBulkMarkPresent}
             onSelectTeacher={(teacherId) => {
               const params = new URLSearchParams();
@@ -393,9 +387,9 @@ export function AttendanceShell({
               router.push(`?${params.toString()}`);
             }}
             onSelectDate={(date) => setSelectedDate(date)}
-            onEditAttendance={(teacherId) => {
-              setEditingTeacherForDate(teacherId);
-              setEditDialogOpen(true);
+            onOpenAttendanceModal={(teacherId) => {
+              setAttendanceModalTeacher(teacherId);
+              setAttendanceModalOpen(true);
             }}
             onHandlePeriod={(slot) => {
               setSelectedSlot(slot);
@@ -406,35 +400,31 @@ export function AttendanceShell({
         )}
       </div>
 
-      {/* Edit Attendance Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Attendance</DialogTitle>
-            <DialogDescription>
-              Select the attendance status for {teachers.find((t) => t.id === editingTeacherForDate)?.name}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-2 gap-3">
-            {(["present", "absent", "late", "half_day"] as const).map((status) => (
-              <button
-                key={status}
-                onClick={async () => {
-                  if (editingTeacherForDate) {
-                    await handleMarkAttendance(editingTeacherForDate, selectedDate || todayDate, status);
-                    setEditDialogOpen(false);
-                    setEditingTeacherForDate(null);
-                  }
-                }}
-                className="p-3 rounded border text-sm font-medium hover:bg-muted transition"
-              >
-                {status === "half_day" ? "Half Day" : status.charAt(0).toUpperCase() + status.slice(1)}
-              </button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Attendance Modal */}
+      {attendanceModalTeacher && (
+        <AttendanceModal
+          open={attendanceModalOpen}
+          onOpenChange={setAttendanceModalOpen}
+          teacherId={attendanceModalTeacher}
+          teacherName={teachers.find((t) => t.id === attendanceModalTeacher)?.name || ""}
+          date={selectedDate || todayDate}
+          currentStatus={
+            attendance.find(
+              (a) => a.teacher_id === attendanceModalTeacher && a.date === (selectedDate || todayDate)
+            )?.status as "present" | "absent" | "late" | "half_day" | undefined
+          }
+          currentReason={
+            attendance.find(
+              (a) => a.teacher_id === attendanceModalTeacher && a.date === (selectedDate || todayDate)
+            )?.reason ?? undefined
+          }
+          markedBy={profile.id}
+          branchId={branchId}
+          onSuccess={() => {
+            router.refresh();
+          }}
+        />
+      )}
 
       {/* Period Override Dialog */}
       <Dialog open={periodDialogOpen} onOpenChange={setPeriodDialogOpen}>
@@ -624,11 +614,10 @@ function AdminView({
   attendance,
   timetableSlots,
   periodOverrides,
-  onMarkAttendance,
   onBulkMarkPresent,
   onSelectTeacher,
   onSelectDate,
-  onEditAttendance,
+  onOpenAttendanceModal,
   onHandlePeriod,
 }: {
   teachers: Teacher[];
@@ -638,11 +627,10 @@ function AdminView({
   attendance: TeacherAttendance[];
   timetableSlots: TimetableSlot[];
   periodOverrides: PeriodOverride[];
-  onMarkAttendance: (teacherId: string, date: string, status: any, reason?: string) => Promise<void>;
   onBulkMarkPresent: () => Promise<void>;
   onSelectTeacher: (teacherId: string) => void;
   onSelectDate: (date: string) => void;
-  onEditAttendance: (teacherId: string) => void;
+  onOpenAttendanceModal: (teacherId: string) => void;
   onHandlePeriod: (slot: any) => void;
 }) {
   const displayDate = selectedDate || todayDate;
@@ -709,7 +697,7 @@ function AdminView({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEditAttendance(teacher.id)}
+                        onClick={() => onOpenAttendanceModal(teacher.id)}
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
