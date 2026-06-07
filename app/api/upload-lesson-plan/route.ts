@@ -38,6 +38,41 @@ export async function POST(request: NextRequest) {
       data: { publicUrl },
     } = supabase.storage.from("lesson-plans").getPublicUrl(filename);
 
+    // Save the URL directly into chapter_period table
+    const periodNumber = parseInt(periodNum);
+    const { data: existingPeriod } = await supabase
+      .from("chapter_period")
+      .select("id")
+      .eq("chapter_id", chapterId)
+      .eq("period_number", periodNumber)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (existingPeriod) {
+      const { error: updateError } = await supabase
+        .from("chapter_period")
+        .update({
+          lesson_plan_url: publicUrl,
+          lesson_plan_filename: file.name,
+          file_type: ext,
+          uploaded_at: new Date().toISOString(),
+        })
+        .eq("id", existingPeriod.id);
+      if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+    } else {
+      const { error: insertError } = await supabase
+        .from("chapter_period")
+        .insert({
+          chapter_id: chapterId,
+          period_number: periodNumber,
+          lesson_plan_url: publicUrl,
+          lesson_plan_filename: file.name,
+          file_type: ext,
+          uploaded_at: new Date().toISOString(),
+        });
+      if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+    }
+
     return NextResponse.json({
       url: publicUrl,
       filename: file.name,

@@ -13,7 +13,6 @@ import type {
 } from "@/lib/types";
 import {
   saveChapterPeriod,
-  updateChapterPeriodFile,
   togglePeriodPublish,
   saveMcq,
   saveTest,
@@ -85,13 +84,6 @@ export function UploadPanel({
   async function handleUpload(periodNumber: number, file: File) {
     setUploadingPeriod(periodNumber);
     try {
-      const ensureFd = new FormData();
-      ensureFd.append("chapter_id", chapter.id);
-      ensureFd.append("period_number", String(periodNumber));
-      ensureFd.append("uploaded_by", "");
-      const ensureResult = await saveChapterPeriod(ensureFd);
-      if (ensureResult?.error) throw new Error(ensureResult.error);
-
       const uploadFd = new FormData();
       uploadFd.append("file", file);
       uploadFd.append("chapter_id", chapter.id);
@@ -100,17 +92,6 @@ export function UploadPanel({
       const res = await fetch("/api/upload-lesson-plan", { method: "POST", body: uploadFd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Upload failed");
-
-      const chapterPeriodId = ensureResult?.chapter_period_id;
-      if (chapterPeriodId) {
-        const updateResult = await updateChapterPeriodFile(
-          chapterPeriodId,
-          data.url,
-          data.filename,
-          data.file_type,
-        );
-        if (updateResult?.error) throw new Error(updateResult.error);
-      }
 
       toast.success(`Period ${periodNumber} uploaded`);
       router.refresh();
