@@ -58,13 +58,9 @@ export function SchoolYearShell({ schoolYears }: Props) {
 
   async function handleSetActive(year: SchoolYear) {
     try {
-      const result = await setActiveSchoolYear(year.id);
-      if (result?.error) {
-        toast.error("Failed to set active year", { description: result.error });
-      } else {
-        toast.success(`${year.name} set as active`);
-        window.location.reload();
-      }
+      await setActiveSchoolYear(year.id);
+      toast.success(`${year.name} set as active`);
+      window.location.reload();
     } catch (err) {
       toast.error("Error setting active year");
     }

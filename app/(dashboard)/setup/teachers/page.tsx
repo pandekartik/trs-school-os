@@ -21,7 +21,7 @@ export default async function TeachersPage() {
 
   let branches: Branch[] = [];
   if (role === "super_admin") {
-    const { data } = await admin.from("branch").select("id, name, city, is_active").eq("is_active", true).order("name");
+    const { data } = await admin.from("branch").select("id, display_id, name, city, is_active, created_at, updated_at").eq("is_active", true).order("name");
     branches = data ?? [];
   }
 

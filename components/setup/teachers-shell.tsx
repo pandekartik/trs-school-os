@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { Teacher, Branch, UserRole } from "@/lib/types";
+import type { Teacher, Branch } from "@/lib/types";
+import type { UserRole } from "@/lib/role-access";
 import { deleteTeacher } from "@/lib/actions/setup";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

@@ -114,6 +114,7 @@ export type Teacher = {
   phone: string | null;
   role: UserRole;
   is_active: boolean;
+  branch_id: string | null;
   created_at: string;
 };
 
