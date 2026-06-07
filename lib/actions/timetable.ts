@@ -9,6 +9,36 @@ function getDb() {
 
 const TIMETABLE_DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
 
+// Helper functions for generating meaningful display IDs
+const DAY_MAP: Record<string, string> = {
+  monday: "M",
+  tuesday: "T",
+  wednesday: "W",
+  thursday: "H",
+  friday: "F",
+  saturday: "S",
+  mon: "M",
+  tue: "T",
+  wed: "W",
+  thu: "H",
+  fri: "F",
+  sat: "S",
+};
+
+function generateSlotDisplayId(grade: number, divisionName: string, dayOfWeek: string, periodOrder: number): string {
+  const dayInitial = DAY_MAP[dayOfWeek.toLowerCase()] || dayOfWeek.charAt(0).toUpperCase();
+  const periodPadded = String(periodOrder).padStart(2, "0");
+  return `${grade}${divisionName}-${dayInitial}-P${periodPadded}`;
+}
+
+function generateInstanceDisplayId(grade: number, divisionName: string, dayOfWeek: string, periodOrder: number, date: string): string {
+  const dayInitial = DAY_MAP[dayOfWeek.toLowerCase()] || dayOfWeek.charAt(0).toUpperCase();
+  const periodPadded = String(periodOrder).padStart(2, "0");
+  const [year, month, day] = date.split("-");
+  const dateSuffix = `${month}${day}`;
+  return `${grade}${divisionName}-${dayInitial}-P${periodPadded}-${dateSuffix}`;
+}
+
 export async function createTimetableSlot(formData: FormData) {
   const db = getDb();
 
@@ -223,6 +253,32 @@ export async function saveTimetableSlot(formData: FormData) {
     return { error: "All slot fields are required" };
   }
 
+  // Fetch division with standard to get grade
+  const { data: division, error: divisionError } = await db
+    .from("division")
+    .select("*, standard(grade)")
+    .eq("id", division_id)
+    .single();
+
+  if (divisionError || !division) {
+    return { error: "Division not found" };
+  }
+
+  // Fetch template_slot to get display_order
+  const { data: templateSlot, error: templateError } = await db
+    .from("template_slot")
+    .select("display_order")
+    .eq("id", template_slot_id)
+    .single();
+
+  if (templateError || !templateSlot) {
+    return { error: "Template slot not found" };
+  }
+
+  // Generate display_id
+  const standard = (division as any).standard as { grade: number };
+  const display_id = generateSlotDisplayId(standard.grade, division.name, day_of_week, templateSlot.display_order);
+
   const { error } = await db
     .from("timetable_slot")
     .upsert(
@@ -235,6 +291,7 @@ export async function saveTimetableSlot(formData: FormData) {
         division_id,
         school_year_id,
         branch_id,
+        display_id,
       },
       { onConflict: "timetable_id,template_slot_id,day_of_week,division_id" }
     );
@@ -386,7 +443,7 @@ export async function generateSchedule(
 
   const { data: activeSlots, error: slotError } = await db
     .from("timetable_slot")
-    .select("*")
+    .select("*, template_slot(display_order)")
     .eq("division_id", divisionId)
     .eq("school_year_id", schoolYearId)
     .order("day_of_week")
@@ -404,12 +461,14 @@ export async function generateSchedule(
 
   const { data: division, error: divisionError } = await db
     .from("division")
-    .select("*")
+    .select("*, standard(grade)")
     .eq("id", divisionId)
     .single();
   if (divisionError || !division) {
     return { success: false, error: divisionError?.message ?? "Division not found" };
   }
+
+  const standard = (division as any).standard as { grade: number };
 
   const { data: holidays, error: holidayError } = await db
     .from("holiday")
@@ -509,6 +568,15 @@ export async function generateSchedule(
     for (const slot of daySlots) {
       const queue = chapterQueues.get(slot.subject_id) ?? [];
       const next = queue.shift();
+      const templateSlot = (slot as any).template_slot as { display_order: number };
+      const display_id = generateInstanceDisplayId(
+        standard.grade,
+        division.name,
+        dayKey,
+        templateSlot.display_order,
+        isoDate
+      );
+
       if (next) {
         scheduledChapterIds.add(next.chapter_id);
         rows.push({
@@ -524,6 +592,7 @@ export async function generateSchedule(
           coverage_note: null,
           logged_by: null,
           logged_at: null,
+          display_id,
         });
       } else {
         bufferCount += 1;
@@ -540,6 +609,7 @@ export async function generateSchedule(
           coverage_note: null,
           logged_by: null,
           logged_at: null,
+          display_id,
         });
       }
     }

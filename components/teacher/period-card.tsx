@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, Settings } from "lucide-react";
+import { ExternalLink, Settings, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LogModal } from "@/components/teacher/log-modal";
@@ -45,6 +45,15 @@ export function PeriodCard({
 }: PeriodCardProps) {
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
+
+  const handleCopyId = () => {
+    if (periodInstance.display_id) {
+      navigator.clipboard.writeText(periodInstance.display_id);
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2000);
+    }
+  };
 
   if (!slot || !subject) return null;
 
@@ -239,6 +248,26 @@ export function PeriodCard({
                 Override
               </Button>
             )}
+          </div>
+        )}
+
+        {/* Display ID */}
+        {periodInstance.display_id && (
+          <div className="mt-2 pt-2 border-t border-border flex items-center justify-between">
+            <code className="text-[10px] font-mono text-muted-foreground">
+              {periodInstance.display_id}
+            </code>
+            <button
+              onClick={handleCopyId}
+              title="Copy ID"
+              className="p-1 hover:bg-muted rounded transition"
+            >
+              {copiedId ? (
+                <Check className="w-3 h-3 text-green-600" />
+              ) : (
+                <Copy className="w-3 h-3 text-muted-foreground" />
+              )}
+            </button>
           </div>
         )}
       </div>
