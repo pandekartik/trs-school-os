@@ -58,6 +58,17 @@ export default async function AttendancePage({ searchParams }: PageProps) {
   const endDate = lastDay.toISOString().split("T")[0];
 
   // Fetch all relevant data in parallel
+  let teachersQuery = admin
+    .from("teacher")
+    .select("*")
+    .eq("role", "teacher")
+    .eq("is_active", true);
+
+  // For teachers, only show from their branch; for admins, show all
+  if (role === "teacher" && branchId) {
+    teachersQuery = teachersQuery.eq("branch_id", branchId);
+  }
+
   const [
     { data: attendanceRecords },
     { data: teachers },
@@ -70,12 +81,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
       .in("teacher_id", targetTeacherIds)
       .gte("date", startDate)
       .lte("date", endDate),
-    admin
-      .from("teacher")
-      .select("*")
-      .eq("role", "teacher")
-      .eq("is_active", true)
-      .eq("branch_id", branchId),
+    teachersQuery,
     admin
       .from("timetable_slot")
       .select("*")
