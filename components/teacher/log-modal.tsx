@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { logPeriod } from "@/lib/actions/teacher";
 import { cn } from "@/lib/utils";
 
@@ -29,30 +30,21 @@ const STATUS_OPTIONS = [
     value: "done" as StatusType,
     title: "Completed",
     icon: Check,
-    color: "bg-green-500",
-    textColor: "text-green-700",
-    bgLight: "bg-green-50",
-    borderLight: "border-green-200",
+    variantClass: "success",
     microcopy: "Lesson completed successfully",
   },
   {
     value: "partial" as StatusType,
     title: "Partial",
     icon: AlertCircle,
-    color: "bg-amber-500",
-    textColor: "text-amber-700",
-    bgLight: "bg-amber-50",
-    borderLight: "border-amber-200",
+    variantClass: "warning",
     microcopy: "Only part of lesson completed",
   },
   {
     value: "not_done" as StatusType,
     title: "Not Completed",
     icon: X,
-    color: "bg-red-500",
-    textColor: "text-red-700",
-    bgLight: "bg-red-50",
-    borderLight: "border-red-200",
+    variantClass: "error",
     microcopy: "Lesson could not be conducted",
   },
 ];
@@ -153,13 +145,25 @@ export function LogModal({
     not_done: "Why was the lesson not completed?",
   };
 
+  const statusVariantMap: Record<string, "success" | "warning" | "error"> = {
+    success: "success",
+    warning: "warning",
+    error: "error",
+  };
+
+  const buttonVariantMap: Record<string, string> = {
+    done: "bg-[hsl(var(--success))] hover:bg-[hsl(var(--success))] text-white",
+    partial: "bg-[hsl(var(--warning))] hover:bg-[hsl(var(--warning))] text-white",
+    not_done: "bg-[hsl(var(--error))] hover:bg-[hsl(var(--error))] text-white",
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-lg gap-0 p-0 rounded-b-none sm:rounded-b-lg sm:rounded-t-lg rounded-t-2xl sm:rounded-t-lg flex flex-col max-h-[95vh] sm:max-h-none">
         {/* Header */}
-        <div className="flex-shrink-0 border-b bg-surface px-6 py-4 sm:py-5">
-          <h2 className="text-lg font-semibold">Log Period</h2>
-          <p className="text-sm text-muted-foreground mt-1">
+        <div className="flex-shrink-0 border-b border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-6 py-4 sm:py-5">
+          <h2 className="text-lg font-semibold text-[hsl(var(--text-primary))]">Log Period</h2>
+          <p className="text-sm text-[hsl(var(--text-muted))] mt-1">
             {subject?.name} • {division?.name} • Period {periodInstance.chapter_period_sequence} • {dateStr}
           </p>
         </div>
@@ -168,11 +172,41 @@ export function LogModal({
         <div className="flex-1 overflow-y-auto px-6 py-5 sm:py-6 space-y-6">
           {/* Status Selection */}
           <div>
-            <label className="text-sm font-semibold block mb-3">Period Outcome</label>
+            <label className="text-sm font-semibold text-[hsl(var(--text-primary))] block mb-3">
+              Period Outcome
+            </label>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {STATUS_OPTIONS.map((option) => {
                 const isSelected = status === option.value;
                 const Icon = option.icon;
+
+                let bgColor = "bg-[hsl(var(--surface-2))]";
+                let borderColor = "border-[hsl(var(--border))]";
+                let textColor = "text-[hsl(var(--text-secondary))]";
+                let iconBgColor = "bg-[hsl(var(--surface-3))]";
+                let iconColor = "text-[hsl(var(--text-muted))]";
+
+                if (isSelected) {
+                  if (option.variantClass === "success") {
+                    bgColor = "bg-[hsl(var(--success-light))]";
+                    borderColor = "border-[hsl(var(--success-border))]";
+                    textColor = "text-[hsl(var(--text-primary))]";
+                    iconBgColor = "bg-[hsl(var(--success))]";
+                    iconColor = "text-white";
+                  } else if (option.variantClass === "warning") {
+                    bgColor = "bg-[hsl(var(--warning-light))]";
+                    borderColor = "border-[hsl(var(--warning-border))]";
+                    textColor = "text-[hsl(var(--text-primary))]";
+                    iconBgColor = "bg-[hsl(var(--warning))]";
+                    iconColor = "text-white";
+                  } else if (option.variantClass === "error") {
+                    bgColor = "bg-[hsl(var(--error-light))]";
+                    borderColor = "border-[hsl(var(--error-border))]";
+                    textColor = "text-[hsl(var(--text-primary))]";
+                    iconBgColor = "bg-[hsl(var(--error))]";
+                    iconColor = "text-white";
+                  }
+                }
 
                 return (
                   <button
@@ -180,27 +214,30 @@ export function LogModal({
                     onClick={() => setStatus(option.value)}
                     className={cn(
                       "flex flex-col items-center gap-2 py-4 px-3 sm:px-4 rounded-xl border-2 transition-all duration-200 cursor-pointer",
-                      isSelected
-                        ? cn(option.bgLight, option.borderLight, "border-2 shadow-sm")
-                        : "border-border hover:border-foreground/30 hover:bg-muted/30"
+                      bgColor,
+                      borderColor
                     )}
                   >
                     <div
                       className={cn(
                         "rounded-full p-2 transition-colors",
-                        isSelected ? option.color : "bg-muted"
+                        iconBgColor
                       )}
                     >
                       <Icon
                         className={cn(
                           "w-5 h-5",
-                          isSelected ? "text-white" : "text-muted-foreground"
+                          iconColor
                         )}
                       />
                     </div>
                     <div className="text-center">
-                      <div className="text-sm font-semibold leading-tight">{option.title}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{option.microcopy}</div>
+                      <div className={cn("text-sm font-semibold leading-tight", textColor)}>
+                        {option.title}
+                      </div>
+                      <div className="text-xs text-[hsl(var(--text-muted))] mt-0.5">
+                        {option.microcopy}
+                      </div>
                     </div>
                   </button>
                 );
@@ -211,15 +248,19 @@ export function LogModal({
           {/* Coverage Note */}
           {status && (
             <div className="space-y-2 animate-in fade-in duration-200">
-              <div className="flex items-center gap-1">
-                <label className="text-sm font-semibold">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-semibold text-[hsl(var(--text-primary))]">
                   {needsNote ? "Notes *" : "Notes"}
                 </label>
                 {needsNote && !hasNote && (
-                  <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">Required</span>
+                  <Badge variant="error" className="text-xs">
+                    Required
+                  </Badge>
                 )}
                 {needsNote && hasNote && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">✓</span>
+                  <Badge variant="success" className="text-xs">
+                    ✓
+                  </Badge>
                 )}
               </div>
               <Textarea
@@ -229,7 +270,7 @@ export function LogModal({
                 onChange={(e) => setCoverageNote(e.target.value)}
                 className="min-h-24 resize-none text-sm"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-[hsl(var(--text-muted))]">
                 {status === "done"
                   ? "Leave blank if nothing to add"
                   : "Please be specific"}
@@ -239,7 +280,7 @@ export function LogModal({
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t bg-muted/30 px-6 py-3 sm:py-4 flex gap-2 sm:gap-3">
+        <div className="flex-shrink-0 border-t border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] px-6 py-3 sm:py-4 flex gap-2 sm:gap-3">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -256,13 +297,11 @@ export function LogModal({
               (needsNote && !hasNote)
             }
             className={cn(
-              "flex-1 font-semibold",
-              !status || (needsNote && !hasNote)
-                ? ""
-                : selectedStatusOption?.textColor,
-              status && !needsNote && "bg-green-600 hover:bg-green-700",
-              status === "partial" && "bg-amber-600 hover:bg-amber-700",
-              status === "not_done" && "bg-red-600 hover:bg-red-700"
+              "flex-1 font-semibold text-white",
+              status === "done" && "bg-[hsl(var(--success))] hover:bg-[hsl(var(--success))]",
+              status === "partial" && "bg-[hsl(var(--warning))] hover:bg-[hsl(var(--warning))]",
+              status === "not_done" && "bg-[hsl(var(--error))] hover:bg-[hsl(var(--error))]",
+              (!status || (needsNote && !hasNote)) && "opacity-50 cursor-not-allowed"
             )}
           >
             {isSubmitting ? (
@@ -274,13 +313,6 @@ export function LogModal({
               "Save Log"
             )}
           </Button>
-        </div>
-
-        {/* Keyboard hints */}
-        <div className="text-xs text-muted-foreground px-6 py-2 text-center hidden sm:block">
-          Press <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono">1</kbd>
-          <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono ml-1">2</kbd>
-          <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono ml-1">3</kbd> or <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono ml-1">Enter</kbd>
         </div>
       </DialogContent>
     </Dialog>
