@@ -128,6 +128,7 @@ export type TeacherAssignment = {
 
 export type TimetableSlot = {
   id: string;
+  timetable_id?: string;
   school_year_id: string;
   division_id: string;
   subject_id: string;
@@ -135,6 +136,7 @@ export type TimetableSlot = {
   template_slot_id: string | null;
   day_of_week: string;
   period_number?: number;
+  branch_id?: string | null;
 };
 
 export type Holiday = {

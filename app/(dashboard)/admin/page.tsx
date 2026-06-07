@@ -38,28 +38,19 @@ export default async function AdminPage() {
   });
 
   // Build conditional queries for branch filtering
-  let teacherQuery = admin.from("teacher").select("*").eq("is_active", true);
-  if (branchId) {
-    teacherQuery = teacherQuery.eq("branch_id", branchId);
-  }
+  const teacherQuery = admin.from("teacher").select("*").eq("is_active", true);
 
-  let absenceQuery = admin
+  const absenceQuery = admin
     .from("teacher_absence")
     .select("*")
     .gte("absence_date", weekStartIso)
     .lte("absence_date", weekEndIso);
-  if (branchId) {
-    absenceQuery = absenceQuery.eq("branch_id", branchId);
-  }
 
-  let holidayQuery = admin
+  const holidayQuery = admin
     .from("holiday")
     .select("*")
     .gte("date", weekStartIso)
     .lte("date", weekEndIso);
-  if (branchId) {
-    holidayQuery = holidayQuery.eq("branch_id", branchId);
-  }
 
   // Fetch all data in parallel
   const [

@@ -25,6 +25,7 @@ const routeMeta: Record<string, { section: string; title: string }> = {
   "/timetable/builder": { section: "ADMIN", title: "Timetable" },
   "/timetable/holidays": { section: "ADMIN", title: "Holidays" },
   "/teacher": { section: "TEACHER", title: "Today" },
+  "/teacher/attendance": { section: "TEACHER", title: "Attendance" },
 };
 
 function getRouteMeta(pathname: string) {

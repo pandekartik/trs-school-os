@@ -17,25 +17,13 @@ export default async function TimetableBuilderPage() {
   const db = await createServerClient();
   const profile = await getTeacherProfile();
 
-  let teacherQuery = db.from("teacher").select("*").eq("role", "teacher");
-  if (branchId) {
-    teacherQuery = teacherQuery.eq("branch_id", branchId);
-  }
+  const teacherQuery = db.from("teacher").select("*").eq("role", "teacher");
 
-  let templateQuery = db.from("time_template").select("*, template_slot(*)").order("created_at", { ascending: false });
-  if (branchId) {
-    templateQuery = templateQuery.eq("branch_id", branchId);
-  }
+  const templateQuery = db.from("time_template").select("*, template_slot(*)").order("created_at", { ascending: false });
 
-  let slotQuery = db.from("timetable_slot").select("*");
-  if (branchId) {
-    slotQuery = slotQuery.eq("branch_id", branchId);
-  }
+  const slotQuery = db.from("timetable_slot").select("*");
 
-  let activationQuery = db.from("timetable_activation").select("*");
-  if (branchId) {
-    activationQuery = activationQuery.eq("branch_id", branchId);
-  }
+  const activationQuery = db.from("timetable_activation").select("*");
 
   const [
     { data: standards },

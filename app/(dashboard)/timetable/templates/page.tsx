@@ -9,14 +9,11 @@ export default async function TimeTemplatesPage() {
 
   const db = await createServerClient();
 
-  let query = db
+  const { data: templates } = await db
     .from("time_template")
     .select("*, template_slot(*)")
-    .is("deleted_at", null);
-  if (branchId) {
-    query = query.eq("branch_id", branchId);
-  }
-  const { data: templates } = await query.order("created_at", { ascending: false });
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
 
   return <TimeTemplatesShell templates={templates ?? []} />;
 }

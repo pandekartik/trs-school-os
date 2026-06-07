@@ -194,8 +194,6 @@ export function TeachersShell({ teachers, role, activeSchoolYear }: Props) {
           mode={panelMode}
           teacher={selectedTeacher}
           onClose={handleClose}
-          branches={branches}
-          showBranchSelect={true}
           activeSchoolYear={activeSchoolYear}
         />
       )}

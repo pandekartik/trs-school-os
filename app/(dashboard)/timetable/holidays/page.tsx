@@ -25,7 +25,7 @@ export default async function HolidaysPage() {
   }
 
   // Get holidays for active school year
-  let holidayQuery = db
+  const { data: holidays } = await db
     .from("holiday")
     .select(
       `
@@ -38,11 +38,8 @@ export default async function HolidaysPage() {
       division_id
     `
     )
-    .eq("school_year_id", activeSchoolYear.id);
-  if (branchId) {
-    holidayQuery = holidayQuery.eq("branch_id", branchId);
-  }
-  const { data: holidays } = await holidayQuery.order("date", { ascending: true });
+    .eq("school_year_id", activeSchoolYear.id)
+    .order("date", { ascending: true });
 
   // Get all standards and divisions for dropdowns
   const { data: standards } = await db

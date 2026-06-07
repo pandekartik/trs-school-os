@@ -19,7 +19,6 @@ import {
   finalizeTimetable,
   draftTimetable,
 } from "@/lib/actions/timetable";
-import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -41,7 +40,7 @@ import {
 import { CalendarDays, Plus, Trash2, Pencil, Grid3x3, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { TimetablePanel } from "./timetable-panel";
-import { SlideOver } from "@/components/ui/slide-over";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 type Props = {
   timetables: Array<Timetable & { timetable_division?: Array<{ division_id: string }>; timetable_day_template?: Array<{ day_of_week: string }> }>;
@@ -175,16 +174,18 @@ export function TimetableShell({
   return (
     <>
       <div className="flex flex-col gap-6">
-        <PageHeader
-          title="Timetable"
-          subtitle="Manage weekly class schedules across divisions."
-          rightContent={
-            <Button onClick={handleAddTimetable} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              New Timetable
-            </Button>
-          }
-        />
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Timetable</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage weekly class schedules across divisions.
+            </p>
+          </div>
+          <Button onClick={handleAddTimetable} size="sm">
+            <Plus className="w-4 h-4 mr-2" />
+            New Timetable
+          </Button>
+        </div>
 
         <div className="card">
           <div className="card-header">
@@ -314,44 +315,44 @@ export function TimetableShell({
         </div>
       </div>
 
-      <SlideOver
-        open={panelOpen}
-        onOpenChange={setPanelOpen}
-        side="right"
-        width="640px"
-      >
-        {panelOpen && selectedTimetable && (
-          <TimetablePanel
-            timetable={selectedTimetable}
-            divisions={divisions}
-            standards={standards}
-            templates={time_templates}
-            subjects={subjects}
-            teachers={teachers}
-            teacherAssignments={teacher_assignments}
-            existingSlots={timetable_slots}
-            branches={branches}
-            onClose={handleClose}
-            panelView={panelView}
-          />
-        )}
-        {panelOpen && !selectedTimetable && (
-          <TimetablePanel
-            timetable={null}
-            divisions={divisions}
-            standards={standards}
-            templates={time_templates}
-            subjects={subjects}
-            teachers={teachers}
-            teacherAssignments={teacher_assignments}
-            existingSlots={timetable_slots}
-            branches={branches}
-            onClose={handleClose}
-            panelView={panelView}
-            schoolYears={school_years}
-          />
-        )}
-      </SlideOver>
+      <Sheet open={panelOpen} onOpenChange={setPanelOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl p-0">
+          <SheetTitle className="sr-only">
+            {selectedTimetable ? "Edit Timetable" : "Create Timetable"}
+          </SheetTitle>
+          {panelOpen && selectedTimetable && (
+            <TimetablePanel
+              timetable={selectedTimetable as any}
+              divisions={divisions}
+              standards={standards}
+              templates={time_templates}
+              subjects={subjects}
+              teachers={teachers}
+              teacherAssignments={teacher_assignments}
+              existingSlots={timetable_slots}
+              branches={branches}
+              onClose={handleClose}
+              panelView={panelView}
+            />
+          )}
+          {panelOpen && !selectedTimetable && (
+            <TimetablePanel
+              timetable={null}
+              divisions={divisions}
+              standards={standards}
+              templates={time_templates}
+              subjects={subjects}
+              teachers={teachers}
+              teacherAssignments={teacher_assignments}
+              existingSlots={timetable_slots}
+              branches={branches}
+              onClose={handleClose}
+              panelView={panelView}
+              schoolYears={school_years}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>

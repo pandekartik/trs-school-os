@@ -9,10 +9,7 @@ export default async function TeacherAllocationPage() {
 
   const db = await createServerClient();
 
-  let teacherQuery = db.from("teacher").select("*").eq("role", "teacher");
-  if (branchId) {
-    teacherQuery = teacherQuery.eq("branch_id", branchId);
-  }
+  const teacherQuery = db.from("teacher").select("*").eq("role", "teacher");
 
   const [
     { data: schoolYears },

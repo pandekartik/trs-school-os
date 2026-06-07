@@ -139,3 +139,87 @@ export async function flagUnloggedPeriods() {
 
   return { success: true };
 }
+
+export async function markAttendance(formData: FormData) {
+  const db = await getDb();
+  const teacher_id = String(formData.get("teacher_id") ?? "");
+  const date = String(formData.get("date") ?? "");
+  const status = String(formData.get("status") ?? "") as "present" | "absent" | "late" | "half_day";
+  const reason = String(formData.get("reason") ?? "") || null;
+  const marked_by = String(formData.get("marked_by") ?? "");
+  const branch_id = String(formData.get("branch_id") ?? "") || null;
+
+  if (!teacher_id || !date || !status || !marked_by) {
+    return { error: "Required fields missing" };
+  }
+
+  const { error } = await db
+    .from("teacher_attendance")
+    .upsert(
+      {
+        teacher_id,
+        date,
+        status,
+        reason,
+        marked_by,
+        marked_at: new Date().toISOString(),
+      },
+      { onConflict: "teacher_id,date" }
+    );
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/teacher/attendance");
+  return { success: true };
+}
+
+export async function bulkMarkAttendance(
+  records: Array<{ teacher_id: string; date: string; status: string; reason: string }>,
+  markedBy: string,
+  branchId: string
+) {
+  const db = await getDb();
+
+  if (!records || records.length === 0) {
+    return { error: "No records to mark" };
+  }
+
+  const now = new Date().toISOString();
+  const rows = records.map((record) => ({
+    teacher_id: record.teacher_id,
+    date: record.date,
+    status: record.status as "present" | "absent" | "late" | "half_day",
+    reason: record.reason || null,
+    marked_by: markedBy,
+    marked_at: now,
+  }));
+
+  const { error } = await db
+    .from("teacher_attendance")
+    .upsert(rows, { onConflict: "teacher_id,date" });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/teacher/attendance");
+  return { success: true };
+}
+
+export async function deleteAttendance(id: string) {
+  const db = await getDb();
+
+  const { error } = await db
+    .from("teacher_attendance")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/teacher/attendance");
+  return { success: true };
+}

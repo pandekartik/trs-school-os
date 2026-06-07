@@ -25,6 +25,7 @@ import {
   CalendarOff,
   CalendarRange,
   Clock,
+  ClipboardCheck,
   FileText,
   GitBranch,
   GraduationCap,
@@ -73,8 +74,8 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: "TIMETABLE",
     items: [
+      { title: "Timetable", href: "/timetable", icon: CalendarDays, roles: ["super_admin", "admin"] },
       { title: "Time Templates", href: "/timetable/templates", icon: Clock, roles: ["super_admin", "admin"] },
-      { title: "Timetable", href: "/timetable/builder", icon: CalendarDays, roles: ["super_admin", "admin"] },
       { title: "Holidays", href: "/timetable/holidays", icon: CalendarOff, roles: ["super_admin", "admin"] },
     ],
   },
@@ -88,6 +89,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     label: "OPERATIONS",
     items: [
       { title: "Teacher View", href: "/teacher", icon: CalendarCheck, roles: ["super_admin", "admin", "coordinator", "teacher"] },
+      { title: "Attendance", href: "/teacher/attendance", icon: ClipboardCheck, roles: ["super_admin", "admin", "teacher"] },
     ],
   },
 ];
@@ -118,7 +120,17 @@ function getInitials(name: string) {
 }
 
 function isActivePath(pathname: string, href: string) {
-  return pathname === href || (href !== "/admin" && pathname.startsWith(href + "/"));
+  // Exact match first
+  if (pathname === href) return true;
+
+  // For /admin, don't match children
+  if (href === "/admin") return false;
+
+  // For /timetable, don't match children (templates, holidays, builder are separate)
+  if (href === "/timetable") return false;
+
+  // For other paths, match children
+  return pathname.startsWith(href + "/");
 }
 
 interface AppSidebarProps {

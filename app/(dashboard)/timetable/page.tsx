@@ -54,7 +54,7 @@ export default async function TimetablePage() {
     .order("name");
 
   // Fetch time templates with their slots
-  const { data: time_templates } = await admin
+  const { data: time_templates_raw } = await admin
     .from("time_template")
     .select(
       `
@@ -63,6 +63,8 @@ export default async function TimetablePage() {
       `
     )
     .order("name");
+
+  const time_templates = time_templates_raw as any;
 
   // Fetch teacher assignments for active school year
   const { data: activeSchoolYear } = await admin
@@ -100,7 +102,7 @@ export default async function TimetablePage() {
 
   return (
     <TimetableShell
-      timetables={timetables ?? []}
+      timetables={(timetables ?? []) as any}
       school_years={school_years ?? []}
       standards={standards ?? []}
       divisions={divisions ?? []}
