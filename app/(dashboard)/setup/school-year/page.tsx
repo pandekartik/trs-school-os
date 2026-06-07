@@ -1,15 +1,15 @@
 import { getRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { SchoolYearShell } from "@/components/setup/school-year-shell";
 
 export default async function SchoolYearPage() {
   const role = await getRole();
   if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
-  const db = await createServerClient();
+  const admin = createAdminClient();
 
-  const { data: allYears } = await db
+  const { data: allYears } = await admin
     .from("school_year")
     .select("*");
 
