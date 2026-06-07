@@ -467,12 +467,19 @@ export async function deleteSubject(id: string) {
 export async function createTeacher(formData: FormData) {
   const db = await getDb();
   const { getActiveBranch } = await import("@/lib/auth");
-  const branchId = await getActiveBranch();
 
   const name  = formData.get("name") as string;
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
   const role  = formData.get("role") as UserRole;
+  const formBranchId = formData.get("branch_id") as string | null;
+
+  // Use form branch_id if provided, otherwise use active branch
+  let branchId = formBranchId;
+  if (!branchId) {
+    branchId = await getActiveBranch();
+  }
+
   const { error } = await db.from("teacher").insert({ name, email, phone, role, branch_id: branchId });
   if (error) return { error: error.message };
 

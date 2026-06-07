@@ -86,12 +86,17 @@ export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranch
       const result = await createTeacher(formData);
 
       if (result?.error) {
-        toast.error("Add failed", { description: result.error });
+        // Check if it's a duplicate email error
+        if (result.error.includes("unique constraint") || result.error.includes("duplicate")) {
+          toast.error("Email already exists", { description: "This teacher email is already registered." });
+        } else {
+          toast.error("Add failed", { description: result.error });
+        }
         setLoading(false);
         return;
       }
 
-      // Only create auth account after teacher record is created
+      // Only create auth account after teacher record is successfully created
       const authResponse = await fetch("/api/admin/invite-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
