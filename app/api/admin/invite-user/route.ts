@@ -23,17 +23,13 @@ export async function POST(request: Request) {
       return Response.json({ error: authError.message }, { status: 400 });
     }
 
-    const { error: insertError } = await adminDb.from("teacher").insert({
-      name,
-      email,
-      phone,
-      role: userRole,
+    // Link the auth account to the existing teacher record
+    const { error: updateError } = await adminDb.from("teacher").update({
       auth_user_id: data.user.id,
-      is_active: true,
-    });
+    }).eq("email", email);
 
-    if (insertError) {
-      return Response.json({ error: insertError.message }, { status: 400 });
+    if (updateError) {
+      return Response.json({ error: updateError.message }, { status: 400 });
     }
 
     const profile = await getTeacherProfile();
@@ -50,7 +46,7 @@ export async function POST(request: Request) {
       });
     }
 
-    return Response.json({ success: true });
+    return Response.json({ success: true, user_id: data.user.id });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: message }, { status: 500 });
