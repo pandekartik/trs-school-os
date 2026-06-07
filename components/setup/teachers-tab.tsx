@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Teacher } from "@/lib/types";
+import type { Teacher, Branch } from "@/lib/types";
 import { createTeacher, updateTeacher, deleteTeacher } from "@/lib/actions/setup";
 import type { UserRole } from "@/lib/role-access";
 import { useAction } from "@/lib/hooks/use-action";
@@ -55,8 +55,9 @@ function EditTeacherForm({ t }: { t: Teacher }) {
   );
 }
 
-export function TeachersTab({ teachers }: { teachers: Teacher[] }) {
+export function TeachersTab({ teachers, showBranchColumn = false, branches = [] }: { teachers: Teacher[]; showBranchColumn?: boolean; branches?: Branch[] }) {
   const teacherAction = useAction(createTeacher, { successMessage: "Teacher added" });
+  const branchMap = new Map(branches.map(b => [b.id, b]));
 
   async function handleDelete(id: string) {
     const r = await deleteTeacher(id);
@@ -134,7 +135,14 @@ export function TeachersTab({ teachers }: { teachers: Teacher[] }) {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-sm font-medium text-[#171717]">{t.name}</div>
-                          <div className="truncate text-xs text-[#737373]">{t.email}</div>
+                          <div className="truncate text-xs text-[#737373]">
+                            {t.email}
+                            {showBranchColumn && t.branch_id && (
+                              <span className="ml-2 text-[#A3A3A3]">
+                                • {branchMap.get(t.branch_id)?.name || t.branch_id}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <Badge
                           className="h-5 rounded border px-2 text-[11px] font-medium capitalize"

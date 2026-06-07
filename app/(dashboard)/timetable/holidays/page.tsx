@@ -1,4 +1,4 @@
-import { getRole } from "@/lib/auth";
+import { getRole, getActiveBranch } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase-server";
 import { HolidaysShell } from "@/components/timetable/holidays-shell";
@@ -8,6 +8,7 @@ export default async function HolidaysPage() {
   if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const db = await createServerClient();
+  const branchId = await getActiveBranch();
 
   // Get active school year
   const { data: activeSchoolYear } = await db
@@ -25,7 +26,7 @@ export default async function HolidaysPage() {
   }
 
   // Get holidays for active school year
-  const { data: holidays } = await db
+  let holidayQuery = db
     .from("holiday")
     .select(
       `
@@ -38,8 +39,11 @@ export default async function HolidaysPage() {
       division_id
     `
     )
-    .eq("school_year_id", activeSchoolYear.id)
-    .order("date", { ascending: true });
+    .eq("school_year_id", activeSchoolYear.id);
+  if (branchId) {
+    holidayQuery = holidayQuery.eq("branch_id", branchId);
+  }
+  const { data: holidays } = await holidayQuery.order("date", { ascending: true });
 
   // Get all standards and divisions for dropdowns
   const { data: standards } = await db

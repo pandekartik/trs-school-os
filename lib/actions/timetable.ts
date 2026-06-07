@@ -23,6 +23,9 @@ function asBoolean(value: FormDataEntryValue | null) {
 
 export async function createTimetableSlot(formData: FormData) {
   const db = await getDb();
+  const { getActiveBranch } = await import("@/lib/auth");
+  const branchId = await getActiveBranch();
+
   const school_year_id = String(formData.get("school_year_id") ?? "");
   const division_id = String(formData.get("division_id") ?? "");
   const subject_id = String(formData.get("subject_id") ?? "");
@@ -57,6 +60,7 @@ export async function createTimetableSlot(formData: FormData) {
     teacher_id,
     day_of_week,
     period_number,
+    branch_id: branchId,
   });
 
   if (error) return { error: error.message };
@@ -77,6 +81,9 @@ export async function deleteTimetableSlot(id: string) {
 
 export async function createHoliday(formData: FormData) {
   const db = await getDb();
+  const { getActiveBranch } = await import("@/lib/auth");
+  const branchId = await getActiveBranch();
+
   const school_year_id = String(formData.get("school_year_id") ?? "");
   const date = String(formData.get("date") ?? "");
   const name = String(formData.get("name") ?? "").trim();
@@ -91,6 +98,7 @@ export async function createHoliday(formData: FormData) {
     type,
     affects_all,
     division_id,
+    branch_id: branchId,
   });
   if (error) return { error: error.message };
   revalidatePath("/timetable");
@@ -314,6 +322,9 @@ export async function generateSchedule(
 
 export async function createTimeTemplate(formData: FormData) {
   const db = await getDb();
+  const { getActiveBranch } = await import("@/lib/auth");
+  const branchId = await getActiveBranch();
+
   const name = String(formData.get("name") ?? "");
   const days = formData.getAll("days") as string[];
 
@@ -322,7 +333,7 @@ export async function createTimeTemplate(formData: FormData) {
 
   const { data, error } = await db
     .from("time_template")
-    .insert([{ name, days }])
+    .insert([{ name, days, branch_id: branchId }])
     .select("id")
     .single();
 
@@ -603,6 +614,8 @@ export async function finalizeTimetable(
   userId: string
 ) {
   const db = await getDb();
+  const { getActiveBranch } = await import("@/lib/auth");
+  const branchId = await getActiveBranch();
 
   const { error: activationError } = await db
     .from("timetable_activation")
@@ -613,6 +626,7 @@ export async function finalizeTimetable(
         status: "finalized",
         finalized_at: new Date().toISOString(),
         finalized_by: userId,
+        branch_id: branchId,
       },
       { onConflict: "division_id,segment_id" }
     );

@@ -466,11 +466,14 @@ export async function deleteSubject(id: string) {
 
 export async function createTeacher(formData: FormData) {
   const db = await getDb();
+  const { getActiveBranch } = await import("@/lib/auth");
+  const branchId = await getActiveBranch();
+
   const name  = formData.get("name") as string;
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
   const role  = formData.get("role") as UserRole;
-  const { error } = await db.from("teacher").insert({ name, email, phone, role });
+  const { error } = await db.from("teacher").insert({ name, email, phone, role, branch_id: branchId });
   if (error) return { error: error.message };
 
   const profile = await getTeacherProfile();
@@ -482,7 +485,7 @@ export async function createTeacher(formData: FormData) {
       action: auditActions.setup.teacherCreated,
       entityType: "teacher",
       entityLabel: name,
-      newData: { name, email, phone, role },
+      newData: { name, email, phone, role, branch_id: branchId },
     });
   }
 
@@ -551,12 +554,15 @@ export async function deleteTeacher(id: string) {
 
 export async function createTeacherAssignment(formData: FormData) {
   const db = await getDb();
+  const { getActiveBranch } = await import("@/lib/auth");
+  const branchId = await getActiveBranch();
+
   const teacher_id     = formData.get("teacher_id") as string;
   const subject_id     = formData.get("subject_id") as string;
   const division_id    = formData.get("division_id") as string;
   const school_year_id = formData.get("school_year_id") as string;
   const { error } = await db.from("teacher_assignment").insert({
-    teacher_id, subject_id, division_id, school_year_id,
+    teacher_id, subject_id, division_id, school_year_id, branch_id: branchId,
   });
   if (error) return { error: error.message };
 
@@ -569,7 +575,7 @@ export async function createTeacherAssignment(formData: FormData) {
       action: auditActions.setup.allocationCreated,
       entityType: "allocation",
       entityLabel: `teacher_id:${teacher_id}`,
-      newData: { teacher_id, subject_id, division_id, school_year_id },
+      newData: { teacher_id, subject_id, division_id, school_year_id, branch_id: branchId },
     });
   }
 

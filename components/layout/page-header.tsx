@@ -1,11 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { PERIOD_TIMES } from "@/lib/timetable-constants";
 import type { UserRole } from "@/lib/role-access";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const routeMeta: Record<string, { section: string; title: string }> = {
   "/admin": { section: "ADMIN", title: "Dashboard" },
@@ -54,6 +61,66 @@ function toMinutes(time: string) {
   return hour * 60 + minute;
 }
 
+function BranchSwitcher({ branches }: { branches: Branch[] }) {
+  const router = useRouter();
+  const [selectedBranch, setSelectedBranch] = useState<string>("all");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const getBranchFromCookie = async () => {
+      try {
+        const response = await fetch("/api/get-branch");
+        if (response.ok) {
+          const data = await response.json();
+          setSelectedBranch(data.branch_id || "all");
+        }
+      } catch (err) {
+        console.error("Failed to get active branch:", err);
+      }
+    };
+    getBranchFromCookie();
+  }, []);
+
+  const handleBranchChange = async (branchId: string) => {
+    setLoading(true);
+    try {
+      const actualBranchId = branchId === "all" ? null : branchId;
+      const response = await fetch("/api/set-branch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ branch_id: actualBranchId }),
+      });
+
+      if (response.ok) {
+        setSelectedBranch(branchId);
+        router.refresh();
+      }
+    } catch (err) {
+      console.error("Failed to set branch:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (branches.length === 0) return null;
+
+  return (
+    <Select value={selectedBranch} onValueChange={handleBranchChange} disabled={loading}>
+      <SelectTrigger className="w-[200px] h-9 text-xs hidden sm:inline-flex">
+        <SelectValue placeholder="Select branch" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All Branches</SelectItem>
+        {branches.map((branch) => (
+          <SelectItem key={branch.id} value={branch.id}>
+            {branch.name} · {branch.city}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 function LivePeriodIndicator() {
   const [now, setNow] = useState(() => new Date());
 
@@ -95,12 +162,15 @@ function LivePeriodIndicator() {
   );
 }
 
+import type { Branch } from "@/lib/types";
+
 interface ShellTopbarProps {
   role: UserRole | null;
   schoolYearName?: string | null;
+  branches?: Branch[];
 }
 
-export function ShellTopbar({ role, schoolYearName }: ShellTopbarProps) {
+export function ShellTopbar({ role, schoolYearName, branches = [] }: ShellTopbarProps) {
   const pathname = usePathname();
   const meta = getRouteMeta(pathname);
   const badgeRole = role === "super_admin" ? "admin" : (role ?? "teacher");
@@ -118,6 +188,9 @@ export function ShellTopbar({ role, schoolYearName }: ShellTopbarProps) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2.5">
+        {role === "super_admin" && branches.length > 0 && (
+          <BranchSwitcher branches={branches} />
+        )}
         {schoolYearName && (
           <Badge variant="outline" className="hidden sm:inline-flex">
             {schoolYearName}

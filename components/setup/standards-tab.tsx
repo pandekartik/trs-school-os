@@ -16,8 +16,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+
+function CopyButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded"
+      title="Copy ID"
+    >
+      {copied ? (
+        <Check className="h-3.5 w-3.5 text-green-600" />
+      ) : (
+        <Copy className="h-3.5 w-3.5 text-gray-400" />
+      )}
+    </button>
+  );
+}
 
 function EditStandardForm({ std }: { std: Standard }) {
   const action = useAction((fd) => updateStandard(std.id, fd), {
@@ -119,7 +142,7 @@ export function StandardsTab({
                     key={std.id}
                     editForm={<EditStandardForm std={std} />}
                     onDelete={() => handleDeleteStd(std.id)}
-                    className={`border-b border-gray-100 last:border-b-0 bg-white px-0 py-0 rounded-none transition-colors cursor-pointer ${
+                    className={`border-b border-gray-100 last:border-b-0 bg-white px-0 py-0 rounded-none transition-colors cursor-pointer group ${
                       selectedStandard === std.id
                         ? "border-l-2 border-l-red-600 bg-red-50"
                         : "hover:bg-gray-50"
@@ -129,7 +152,11 @@ export function StandardsTab({
                       className="flex items-center justify-between px-3 py-2.5 w-full"
                       onClick={() => setSelectedStandard(std.id)}
                     >
-                      <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <code className="text-[10px] text-gray-400 font-mono shrink-0 flex items-center gap-1">
+                          {std.display_id}
+                          <CopyButton value={std.display_id} />
+                        </code>
                         <div className="text-xs font-medium text-gray-900">{std.name}</div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -185,9 +212,13 @@ export function StandardsTab({
                         key={div.id}
                         editForm={<EditDivisionForm div={div} />}
                         onDelete={() => handleDeleteDiv(div.id)}
-                        className="border-b border-gray-100 last:border-b-0 bg-white px-0 py-0 rounded-none hover:bg-gray-50"
+                        className="border-b border-gray-100 last:border-b-0 bg-white px-0 py-0 rounded-none hover:bg-gray-50 group"
                       >
-                        <div className="px-3 py-2.5">
+                        <div className="px-3 py-2.5 flex items-center gap-2">
+                          <code className="text-[10px] text-gray-400 font-mono flex items-center gap-1">
+                            {div.display_id}
+                            <CopyButton value={div.display_id} />
+                          </code>
                           <span className="text-xs font-medium text-gray-900">Division {div.name}</span>
                         </div>
                       </EditableRow>

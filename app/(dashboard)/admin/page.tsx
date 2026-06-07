@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { getRole } from "@/lib/auth";
+import { getRole, getActiveBranch } from "@/lib/auth";
 import type { UserRole } from "@/lib/role-access";
 import { getTodayIsoDate } from "@/lib/timetable-constants";
 import { DashboardShell } from "@/components/admin/dashboard-shell";
@@ -24,6 +24,7 @@ export default async function AdminPage() {
   await flagUnloggedPeriods();
 
   const admin = createAdminClient();
+  const branchId = await getActiveBranch();
   const today = getTodayIsoDate();
   const weekStart = getMondayOfWeek(new Date(today));
   const weekEnd = new Date(weekStart);
@@ -36,6 +37,30 @@ export default async function AdminPage() {
   await admin.rpc("refresh_coverage_summary", {
     p_week_start: weekStartIso,
   });
+
+  // Build conditional queries for branch filtering
+  let teacherQuery = admin.from("teacher").select("*").eq("is_active", true);
+  if (branchId) {
+    teacherQuery = teacherQuery.eq("branch_id", branchId);
+  }
+
+  let absenceQuery = admin
+    .from("teacher_absence")
+    .select("*")
+    .gte("absence_date", weekStartIso)
+    .lte("absence_date", weekEndIso);
+  if (branchId) {
+    absenceQuery = absenceQuery.eq("branch_id", branchId);
+  }
+
+  let holidayQuery = admin
+    .from("holiday")
+    .select("*")
+    .gte("date", weekStartIso)
+    .lte("date", weekEndIso);
+  if (branchId) {
+    holidayQuery = holidayQuery.eq("branch_id", branchId);
+  }
 
   // Fetch all data in parallel
   const [
@@ -54,7 +79,7 @@ export default async function AdminPage() {
     { data: holidaysThisWeek },
   ] = await Promise.all([
     admin.from("school_year").select("*").eq("is_active", true),
-    admin.from("teacher").select("*").eq("is_active", true).order("name"),
+    teacherQuery.order("name"),
     admin.from("standard").select("*").order("grade"),
     admin.from("division").select("*").order("name"),
     admin.from("subject").select("*").order("name"),
@@ -82,16 +107,8 @@ export default async function AdminPage() {
       .eq("week_start", weekStartIso),
     admin.from("chapter").select("*").order("display_order"),
     admin.from("academic_segment").select("*"),
-    admin
-      .from("teacher_absence")
-      .select("*")
-      .gte("absence_date", weekStartIso)
-      .lte("absence_date", weekEndIso),
-    admin
-      .from("holiday")
-      .select("*")
-      .gte("date", weekStartIso)
-      .lte("date", weekEndIso),
+    absenceQuery,
+    holidayQuery,
   ]);
 
   return (

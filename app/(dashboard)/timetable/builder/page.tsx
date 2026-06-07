@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getLandingRoute, getRole, getTeacherProfile } from "@/lib/auth";
+import { getLandingRoute, getRole, getTeacherProfile, getActiveBranch } from "@/lib/auth";
 import { createServerClient } from "@/lib/supabase-server";
 import { TimetableBuilderShell } from "@/components/timetable/timetable-builder-shell";
 import type {
@@ -16,6 +16,27 @@ export default async function TimetableBuilderPage() {
 
   const db = await createServerClient();
   const profile = await getTeacherProfile();
+  const branchId = await getActiveBranch();
+
+  let teacherQuery = db.from("teacher").select("*").eq("role", "teacher");
+  if (branchId) {
+    teacherQuery = teacherQuery.eq("branch_id", branchId);
+  }
+
+  let templateQuery = db.from("time_template").select("*, template_slot(*)").order("created_at", { ascending: false });
+  if (branchId) {
+    templateQuery = templateQuery.eq("branch_id", branchId);
+  }
+
+  let slotQuery = db.from("timetable_slot").select("*");
+  if (branchId) {
+    slotQuery = slotQuery.eq("branch_id", branchId);
+  }
+
+  let activationQuery = db.from("timetable_activation").select("*");
+  if (branchId) {
+    activationQuery = activationQuery.eq("branch_id", branchId);
+  }
 
   const [
     { data: standards },
@@ -33,12 +54,12 @@ export default async function TimetableBuilderPage() {
     db.from("standard").select("*").order("grade"),
     db.from("division").select("*").order("name"),
     db.from("subject").select("*").order("name"),
-    db.from("teacher").select("*").eq("role", "teacher").order("name"),
+    teacherQuery.order("name"),
     db.from("teacher_assignment").select("*"),
-    db.from("time_template").select("*, template_slot(*)").order("created_at", { ascending: false }),
+    templateQuery,
     db.from("division_template").select("*"),
-    db.from("timetable_slot").select("*"),
-    db.from("timetable_activation").select("*"),
+    slotQuery,
+    activationQuery,
     db.from("academic_segment").select("*").order("sequence_number"),
     db.from("school_year").select("*").eq("is_active", true).order("created_at", { ascending: false }),
   ]);
