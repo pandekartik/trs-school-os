@@ -53,7 +53,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     label: "ADMIN",
     items: [
       { title: "Dashboard", href: "/admin", icon: LayoutDashboard, roles: ["super_admin", "admin"] },
-      { title: "Branches", href: "/setup/branches", icon: GitBranch, roles: ["super_admin"] },
+      { title: "Branches", href: "/admin/branches", icon: GitBranch, roles: ["super_admin"] },
       { title: "Users", href: "/admin/users", icon: Users, roles: ["super_admin"] },
       { title: "Activity", href: "/admin/activity", icon: ActivitySquare, roles: ["super_admin"] },
     ],
