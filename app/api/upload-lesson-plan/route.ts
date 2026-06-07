@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
 
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
       .eq("chapter_id", chapterId)
       .eq("period_number", periodNumber)
       .is("deleted_at", null)
+      .limit(1)
       .maybeSingle();
 
     if (existingPeriod) {
@@ -73,6 +75,8 @@ export async function POST(request: NextRequest) {
       if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
+    revalidatePath("/content");
+    
     return NextResponse.json({
       url: publicUrl,
       filename: file.name,

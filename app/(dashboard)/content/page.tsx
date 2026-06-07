@@ -11,6 +11,23 @@ export default async function ContentPage() {
 
   const db = await createServerClient();
 
+  async function fetchAll(table: string, orderCol?: string) {
+    let allData: any[] = [];
+    let from = 0;
+    const step = 1000;
+    while (true) {
+      let query = db.from(table).select("*");
+      if (orderCol) query = query.order(orderCol);
+      const { data, error } = await query.range(from, from + step - 1);
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+      allData = allData.concat(data);
+      if (data.length < step) break;
+      from += step;
+    }
+    return { data: allData };
+  }
+
   const [
     { data: schoolYears },
     { data: segments },
@@ -25,10 +42,10 @@ export default async function ContentPage() {
     db.from("academic_segment").select("*").order("sequence_number"),
     db.from("standard").select("*").order("grade"),
     db.from("subject").select("*").eq("has_chapters", true).order("name"),
-    db.from("chapter").select("*").order("display_order"),
-    db.from("chapter_period").select("*").order("period_number"),
-    db.from("chapter_mcq").select("*"),
-    db.from("chapter_test").select("*"),
+    fetchAll("chapter", "display_order"),
+    fetchAll("chapter_period", "period_number"),
+    fetchAll("chapter_mcq"),
+    fetchAll("chapter_test"),
   ]);
 
   return (

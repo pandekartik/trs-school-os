@@ -30,6 +30,21 @@ async function fetchTeacherSchedule(
   const startIso = start.toISOString().split("T")[0];
   const endIso = end.toISOString().split("T")[0];
 
+  async function fetchAll(table: string) {
+    let allData: any[] = [];
+    let from = 0;
+    const step = 1000;
+    while (true) {
+      const { data, error } = await admin.from(table).select("*").range(from, from + step - 1);
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+      allData = allData.concat(data);
+      if (data.length < step) break;
+      from += step;
+    }
+    return { data: allData };
+  }
+
   const [
     { data: periodInstances },
     { data: timetableSlots },
@@ -56,8 +71,8 @@ async function fetchTeacherSchedule(
       .from("timetable_slot")
       .select("*")
       .eq("teacher_id", teacherId),
-    admin.from("chapter").select("*"),
-    admin.from("chapter_period").select("*"),
+    fetchAll("chapter"),
+    fetchAll("chapter_period"),
     admin.from("subject").select("*"),
     admin.from("standard").select("*"),
     admin.from("division").select("*"),
