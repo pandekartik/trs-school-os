@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { ExternalLink, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LogModal } from "@/components/teacher/log-modal";
+import { OverrideModal } from "@/components/teacher/override-modal";
 import { PERIOD_TIMES, formatTimeLabel } from "@/lib/timetable-constants";
 
 interface PeriodCardProps {
@@ -18,6 +19,10 @@ interface PeriodCardProps {
   isTeacher: boolean;
   canLog: boolean;
   loggedBy: string;
+  periodOverride?: any;
+  role?: string;
+  teachers?: any[];
+  chapters?: any[];
 }
 
 export function PeriodCard({
@@ -31,14 +36,20 @@ export function PeriodCard({
   isTeacher,
   canLog: userCanLog,
   loggedBy,
+  periodOverride,
+  role = "teacher",
+  teachers = [],
+  chapters = [],
 }: PeriodCardProps) {
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
 
   if (!slot || !subject) return null;
 
   const periodNumber = slot.period_number;
   const status = periodInstance.status;
   const isBufferPeriod = periodInstance.is_buffer;
+  const isAdmin = role === "admin" || role === "super_admin";
 
   // Determine card border and badge based on status
   let borderColor = "#E5E5E5";
@@ -87,18 +98,44 @@ export function PeriodCard({
         }`}
         style={{ borderLeft: `4px solid ${borderColor}` }}
       >
-        {/* Header with badge */}
+        {/* Header with badges */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex-1">
             <div className="text-xs font-medium text-muted-foreground">
               Period {periodNumber} • {timeLabel}
             </div>
           </div>
-          {badgeLabel && (
-            <Badge variant="outline" className="shrink-0 text-xs">
-              {badgeLabel}
-            </Badge>
-          )}
+          <div className="flex gap-2 shrink-0">
+            {periodOverride && (
+              <Badge
+                variant="outline"
+                className="text-xs"
+                style={{
+                  backgroundColor:
+                    periodOverride.override_type === "substitute" ? "#EFF6FF" :
+                    periodOverride.override_type === "cancel" ? "#F5F5F5" :
+                    periodOverride.override_type === "topic_change" ? "#FEF3C7" :
+                    "#F3E8FF",
+                  color:
+                    periodOverride.override_type === "substitute" ? "#0369A1" :
+                    periodOverride.override_type === "cancel" ? "#525252" :
+                    periodOverride.override_type === "topic_change" ? "#92400E" :
+                    "#6D28D9",
+                  border: "none"
+                }}
+              >
+                {periodOverride.override_type === "substitute" ? "Substitute" :
+                 periodOverride.override_type === "cancel" ? "Cancelled" :
+                 periodOverride.override_type === "topic_change" ? "Custom Topic" :
+                 "Remapped"}
+              </Badge>
+            )}
+            {badgeLabel && (
+              <Badge variant="outline" className="shrink-0 text-xs">
+                {badgeLabel}
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Subject and division */}
@@ -183,6 +220,18 @@ export function PeriodCard({
                 Edit log
               </Button>
             )}
+
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 h-8 md:h-8 md:text-xs text-sm font-medium"
+                onClick={() => setIsOverrideModalOpen(true)}
+              >
+                <Settings className="w-3 h-3 mr-1" />
+                Override
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -196,6 +245,20 @@ export function PeriodCard({
           division={division}
           standard={standard}
           loggedBy={loggedBy}
+        />
+      )}
+
+      {isAdmin && (
+        <OverrideModal
+          open={isOverrideModalOpen}
+          onOpenChange={setIsOverrideModalOpen}
+          slot={slot}
+          periodInstance={periodInstance}
+          existingOverride={periodOverride}
+          chapters={chapters}
+          teachers={teachers}
+          subject={subject}
+          division={division}
         />
       )}
     </>

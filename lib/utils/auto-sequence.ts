@@ -13,10 +13,14 @@ export function getChapterPeriodForSlot(
   segmentStartDate: string,
   allSlotDates: string[],
   chapters: Chapter[],
-  chapterPeriods: ChapterPeriod[]
+  chapterPeriods: ChapterPeriod[],
+  cancelledSlotDates: string[] = []
 ): AutoSequenceResult | null {
-  // Find index of slotDate in allSlotDates (1-based)
-  const slotIndex = allSlotDates.indexOf(slotDate);
+  // Filter out cancelled dates when counting occurrences
+  const activeDates = allSlotDates.filter((date) => !cancelledSlotDates.includes(date));
+
+  // Find index of slotDate in activeDates (1-based)
+  const slotIndex = activeDates.indexOf(slotDate);
   if (slotIndex === -1) return null;
   const N = slotIndex + 1; // 1-based index
 

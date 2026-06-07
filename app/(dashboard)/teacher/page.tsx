@@ -59,6 +59,7 @@ async function fetchTeacherSchedule(
     { data: academicSegments },
     { data: divisionTemplates },
     { data: timetableActivations },
+    { data: periodOverrides },
   ] = await Promise.all([
     admin
       .from("period_instance")
@@ -97,6 +98,11 @@ async function fetchTeacherSchedule(
       .from("timetable_activation")
       .select("*")
       .eq("status", "finalized"),
+    admin
+      .from("period_override")
+      .select("*")
+      .gte("date", startIso)
+      .lte("date", endIso),
   ]);
 
   return {
@@ -113,6 +119,7 @@ async function fetchTeacherSchedule(
     academicSegments: academicSegments || [],
     divisionTemplates: divisionTemplates || [],
     timetableActivations: timetableActivations || [],
+    periodOverrides: periodOverrides || [],
   };
 }
 
@@ -194,6 +201,7 @@ export default async function TeacherPage({
       currentUserProfile={profile}
       weekStart={weekStart}
       data={data}
+      periodOverrides={data.periodOverrides}
     />
   );
 }

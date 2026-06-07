@@ -129,6 +129,9 @@ function isActivePath(pathname: string, href: string) {
   // For /timetable, don't match children (templates, holidays, builder are separate)
   if (href === "/timetable") return false;
 
+  // For /teacher, don't match children (attendance is a separate page)
+  if (href === "/teacher") return false;
+
   // For other paths, match children
   return pathname.startsWith(href + "/");
 }

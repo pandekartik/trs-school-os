@@ -34,6 +34,7 @@ interface TeacherData {
   academicSegments: any[];
   divisionTemplates: any[];
   timetableActivations: any[];
+  periodOverrides: any[];
 }
 
 interface TeacherShellProps {
@@ -42,6 +43,7 @@ interface TeacherShellProps {
   currentUserProfile: any;
   weekStart: Date;
   data: TeacherData;
+  periodOverrides?: any[];
 }
 
 export function TeacherShell({
@@ -206,6 +208,9 @@ export function TeacherShell({
             isTeacher={role === "teacher"}
             canLog={role === "admin" || role === "teacher"}
             loggedBy={currentUserProfile.id}
+            periodOverrides={data.periodOverrides}
+            role={role}
+            teachers={data.teachers}
           />
         ) : (
           role === "admin" && selectedTeacher && (

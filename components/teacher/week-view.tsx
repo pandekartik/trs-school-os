@@ -16,6 +16,9 @@ interface WeekViewProps {
   isTeacher: boolean;
   canLog: boolean;
   loggedBy: string;
+  periodOverrides?: any[];
+  role?: string;
+  teachers?: any[];
 }
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
@@ -33,6 +36,9 @@ export function WeekView({
   isTeacher,
   canLog,
   loggedBy,
+  periodOverrides = [],
+  role = "teacher",
+  teachers = [],
 }: WeekViewProps) {
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
 
@@ -150,6 +156,10 @@ export function WeekView({
                   )
                 : null;
 
+              const periodOverride = periodOverrides.find(
+                (o) => o.timetable_slot_id === instance.timetable_slot_id && o.date === dateIso
+              );
+
               return (
                 <PeriodCard
                   key={instance.id}
@@ -163,6 +173,10 @@ export function WeekView({
                   isTeacher={isTeacher}
                   canLog={canLog}
                   loggedBy={loggedBy}
+                  periodOverride={periodOverride}
+                  role={role}
+                  teachers={teachers}
+                  chapters={chapters}
                 />
               );
             })}
@@ -261,6 +275,10 @@ export function WeekView({
                         )
                       : null;
 
+                    const periodOverride = periodOverrides.find(
+                      (o) => o.timetable_slot_id === instance.timetable_slot_id && o.date === dateIso
+                    );
+
                     return (
                       <PeriodCard
                         key={instance.id}
@@ -274,6 +292,10 @@ export function WeekView({
                         isTeacher={isTeacher}
                         canLog={canLog}
                         loggedBy={loggedBy}
+                        periodOverride={periodOverride}
+                        role={role}
+                        teachers={teachers}
+                        chapters={chapters}
                       />
                     );
                   })}
