@@ -1,4 +1,4 @@
-import { getRole, getActiveBranch } from "@/lib/auth";
+import { getRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase-server";
 import { HolidaysShell } from "@/components/timetable/holidays-shell";
@@ -8,7 +8,6 @@ export default async function HolidaysPage() {
   if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const db = await createServerClient();
-  const branchId = await getActiveBranch();
 
   // Get active school year
   const { data: activeSchoolYear } = await db

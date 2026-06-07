@@ -190,6 +190,51 @@ export type CoverageSummary = {
   last_refreshed_at: string;
 };
 
+export type Timetable = {
+  id: string;
+  display_id: string;
+  name: string;
+  school_year_id: string;
+  branch_id: string | null;
+  status: "draft" | "finalized";
+  finalized_at: string | null;
+  created_at: string;
+};
+
+export type TimetableDivision = {
+  id: string;
+  timetable_id: string;
+  division_id: string;
+};
+
+export type TimetableDayTemplate = {
+  id: string;
+  timetable_id: string;
+  day_of_week: string;
+  template_id: string;
+};
+
+export type PeriodOverride = {
+  id: string;
+  timetable_slot_id: string;
+  date: string;
+  override_type: string;
+  substitute_teacher_id: string | null;
+  custom_topic: string | null;
+  chapter_id: string | null;
+  chapter_period_number: number | null;
+  reason: string | null;
+};
+
+export type TeacherAttendance = {
+  id: string;
+  teacher_id: string;
+  date: string;
+  status: "present" | "absent" | "late" | "half_day";
+  reason: string | null;
+  marked_by: string | null;
+};
+
 export type TimeTemplate = {
   id: string;
   name: string;

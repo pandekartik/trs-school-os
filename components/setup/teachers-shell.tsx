@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Teacher, Branch } from "@/lib/types";
 import type { UserRole } from "@/lib/role-access";
 import { deleteTeacher } from "@/lib/actions/setup";
@@ -44,32 +44,17 @@ const roleBadgeColor: Record<string, string> = {
 
 type Props = {
   teachers: Teacher[];
-  branches?: Branch[];
   role?: UserRole | null;
-  showBranchColumn?: boolean;
   activeSchoolYear?: string | null;
 };
 
-export function TeachersShell({ teachers, branches = [], role, showBranchColumn = false, activeSchoolYear }: Props) {
+export function TeachersShell({ teachers, role, activeSchoolYear }: Props) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelMode, setPanelMode] = useState<"add" | "edit">("add");
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState<Teacher | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const branchMap = new Map(branches.map(b => [b.id, b]));
-
-  // DEBUG: Log what the component receives
-  useEffect(() => {
-    if (teachers && teachers.length > 0) {
-      console.log("DEBUG TeachersShell: Received teachers:", {
-        count: teachers.length,
-        firstTeacher: teachers[0],
-        hasDisplayId: "display_id" in teachers[0],
-        displayIdValue: teachers[0].display_id
-      });
-    }
-  }, [teachers]);
 
   function handleAddTeacher() {
     setSelectedTeacher(null);
@@ -142,7 +127,6 @@ export function TeachersShell({ teachers, branches = [], role, showBranchColumn 
                     <TableHead>TEACHER</TableHead>
                     <TableHead>PHONE</TableHead>
                     <TableHead>STATUS</TableHead>
-                    {showBranchColumn && <TableHead>BRANCH</TableHead>}
                     <TableHead className="w-20">ACTIONS</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -171,17 +155,6 @@ export function TeachersShell({ teachers, branches = [], role, showBranchColumn 
                           {teacher.is_active ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
-                      {showBranchColumn && (
-                        <TableCell>
-                          {teacher.branch_id && branchMap.get(teacher.branch_id) ? (
-                            <Badge variant="outline" className="text-xs font-normal">
-                              {branchMap.get(teacher.branch_id)?.name}
-                            </Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      )}
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button

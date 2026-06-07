@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { getRole, getActiveBranch } from "@/lib/auth";
+import { getRole } from "@/lib/auth";
 import type { UserRole } from "@/lib/role-access";
 import { getTodayIsoDate } from "@/lib/timetable-constants";
 import { DashboardShell } from "@/components/admin/dashboard-shell";
@@ -24,7 +24,6 @@ export default async function AdminPage() {
   await flagUnloggedPeriods();
 
   const admin = createAdminClient();
-  const branchId = await getActiveBranch();
   const today = getTodayIsoDate();
   const weekStart = getMondayOfWeek(new Date(today));
   const weekEnd = new Date(weekStart);

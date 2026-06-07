@@ -6,7 +6,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { getUser, getTeacherProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
 import type { UserRole } from "@/lib/role-access";
-import type { Branch } from "@/lib/types";
 
 export default async function DashboardLayout({
   children,
@@ -27,21 +26,11 @@ export default async function DashboardLayout({
     .limit(1)
     .maybeSingle();
 
-  // Fetch branches for super_admin branch switcher
-  let branches: Branch[] = [];
-  if (role === "super_admin") {
-    const { data } = await admin
-      .from("branch")
-      .select("id, display_id, name, city, is_active, created_at, updated_at")
-      .order("created_at", { ascending: false });
-    branches = data ?? [];
-  }
-
   return (
     <SidebarProvider>
       <AppSidebar role={role} teacherName={profile?.name ?? user.email ?? ""} />
       <SidebarInset className="overflow-hidden">
-        <ShellTopbar role={role} schoolYearName={activeSchoolYear?.name ?? null} branches={branches} />
+        <ShellTopbar role={role} schoolYearName={activeSchoolYear?.name ?? null} />
         <main className="flex flex-1 flex-col overflow-auto bg-background p-6">
           {children}
         </main>

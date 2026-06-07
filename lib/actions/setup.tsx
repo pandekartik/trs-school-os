@@ -472,15 +472,8 @@ export async function createTeacher(formData: FormData) {
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
   const role  = formData.get("role") as UserRole;
-  const formBranchId = formData.get("branch_id") as string | null;
 
-  // Use form branch_id if provided, otherwise use active branch
-  let branchId = formBranchId;
-  if (!branchId) {
-    branchId = await getActiveBranch();
-  }
-
-  const { error } = await db.from("teacher").insert({ name, email, phone, role, branch_id: branchId });
+  const { error } = await db.from("teacher").insert({ name, email, phone, role });
   if (error) return { error: error.message };
 
   const profile = await getTeacherProfile();
@@ -492,7 +485,7 @@ export async function createTeacher(formData: FormData) {
       action: auditActions.setup.teacherCreated,
       entityType: "teacher",
       entityLabel: name,
-      newData: { name, email, phone, role, branch_id: branchId },
+      newData: { name, email, phone, role },
     });
   }
 

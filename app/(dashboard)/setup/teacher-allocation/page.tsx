@@ -1,4 +1,4 @@
-import { getRole, getActiveBranch } from "@/lib/auth";
+import { getRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase-server";
 import { AssignmentsTab } from "@/components/setup/assignments-tab";
@@ -8,7 +8,6 @@ export default async function TeacherAllocationPage() {
   if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const db = await createServerClient();
-  const branchId = await getActiveBranch();
 
   let teacherQuery = db.from("teacher").select("*").eq("role", "teacher");
   if (branchId) {

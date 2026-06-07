@@ -1,4 +1,4 @@
-import { getRole, getActiveBranch } from "@/lib/auth";
+import { getRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase-server";
 import { TimeTemplatesShell } from "@/components/timetable/time-templates-shell";
@@ -8,7 +8,6 @@ export default async function TimeTemplatesPage() {
   if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const db = await createServerClient();
-  const branchId = await getActiveBranch();
 
   let query = db
     .from("time_template")

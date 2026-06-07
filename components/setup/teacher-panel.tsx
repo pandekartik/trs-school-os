@@ -4,33 +4,23 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import type { Teacher, Branch } from "@/lib/types";
+import type { Teacher } from "@/lib/types";
 import { createTeacher, updateTeacher } from "@/lib/actions/setup";
 
 type Props = {
   mode: "add" | "edit";
   teacher: Teacher | null;
   onClose: () => void;
-  branches?: Branch[];
-  showBranchSelect?: boolean;
   activeSchoolYear?: string | null;
 };
 
-export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranchSelect = false, activeSchoolYear }: Props) {
+export function TeacherPanel({ mode, teacher, onClose, activeSchoolYear }: Props) {
   const [name, setName] = useState(teacher?.name || "");
   const [email, setEmail] = useState(teacher?.email || "");
   const [phone, setPhone] = useState(teacher?.phone || "");
-  const [branchId, setBranchId] = useState(teacher?.branch_id || "");
   const [isActive, setIsActive] = useState(teacher?.is_active ?? true);
   const [loading, setLoading] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -58,10 +48,6 @@ export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranch
       toast.error("Please enter a valid email");
       return false;
     }
-    if (mode === "add" && !branchId) {
-      toast.error("Please select a branch");
-      return false;
-    }
     return true;
   }
 
@@ -81,7 +67,6 @@ export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranch
       formData.append("email", email);
       formData.append("phone", phone);
       formData.append("role", "teacher");
-      formData.append("branch_id", branchId);
 
       const result = await createTeacher(formData);
 
@@ -135,9 +120,6 @@ export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranch
       formData.append("phone", phone);
       formData.append("role", "teacher");
       formData.append("is_active", String(isActive));
-      if (showBranchSelect && branchId) {
-        formData.append("branch_id", branchId);
-      }
 
       const result = await updateTeacher(teacher!.id, formData);
 
@@ -231,26 +213,6 @@ export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranch
             />
           </div>
 
-          {mode === "add" && (
-            <div className="space-y-2">
-              <Label htmlFor="branch" className="text-sm font-medium">
-                Branch <span className="text-destructive">*</span>
-              </Label>
-              <Select value={branchId} onValueChange={setBranchId}>
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Select a branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name} · {branch.city}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
           {mode === "add" && activeSchoolYear && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-xs font-medium text-blue-900 mb-2">Auto-generated Login Credentials</p>
@@ -261,7 +223,7 @@ export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranch
                 </div>
                 <div>
                   <p className="text-xs text-blue-700">Password:</p>
-                  <code className="text-sm font-mono text-blue-900">{generatePassword() || "Enter name and select branch"}</code>
+                  <code className="text-sm font-mono text-blue-900">{generatePassword() || "Enter name first"}</code>
                 </div>
               </div>
             </div>

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getLandingRoute, getRole, getTeacherProfile, getActiveBranch } from "@/lib/auth";
+import { getLandingRoute, getRole, getTeacherProfile } from "@/lib/auth";
 import { createServerClient } from "@/lib/supabase-server";
 import { TimetableBuilderShell } from "@/components/timetable/timetable-builder-shell";
 import type {
@@ -16,7 +16,6 @@ export default async function TimetableBuilderPage() {
 
   const db = await createServerClient();
   const profile = await getTeacherProfile();
-  const branchId = await getActiveBranch();
 
   let teacherQuery = db.from("teacher").select("*").eq("role", "teacher");
   if (branchId) {
