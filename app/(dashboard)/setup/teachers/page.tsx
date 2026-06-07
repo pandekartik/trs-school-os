@@ -13,22 +13,12 @@ export default async function TeachersPage() {
   const admin = createAdminClient();
   const branchId = await getActiveBranch();
 
-  let query = db.from("teacher").select("*").eq("role", "teacher");
+  // Use admin client to ensure we get all fields including display_id
+  let query = admin.from("teacher").select("*").eq("role", "teacher");
   if (branchId) {
     query = query.eq("branch_id", branchId);
   }
   const { data: teachers } = await query.order("name");
-
-  // DEBUG: Log what we received from the database
-  console.log("DEBUG: Teachers data from DB:", teachers?.[0] ? Object.keys(teachers[0]) : "No data");
-  if (teachers?.[0]) {
-    console.log("DEBUG: First teacher:", {
-      name: teachers[0].name,
-      email: teachers[0].email,
-      display_id: teachers[0].display_id,
-      hasDisplayId: "display_id" in teachers[0]
-    });
-  }
 
   let branches: Branch[] = [];
   if (role === "super_admin") {
