@@ -13,11 +13,15 @@ export default async function TeachersPage() {
   const admin = createAdminClient();
   const branchId = await getActiveBranch();
 
-  let query = db.from("teacher").select("id, display_id, name, email, phone, role, is_active, branch_id, created_at").eq("role", "teacher");
+  let query = db.from("teacher").select("*").eq("role", "teacher");
   if (branchId) {
     query = query.eq("branch_id", branchId);
   }
-  const { data: teachers } = await query.order("name");
+  const { data: teachers, error } = await query.order("name");
+
+  if (error) {
+    console.error("Teachers query error:", error);
+  }
 
   let branches: Branch[] = [];
   if (role === "super_admin") {

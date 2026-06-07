@@ -11,7 +11,7 @@ export default async function SchoolYearPage() {
 
   const { data: allYears } = await db
     .from("school_year")
-    .select("id, display_id, name, start_date, end_date, is_active, created_at");
+    .select("*");
 
   // Sort: active year first, then by created_at descending
   const schoolYears = (allYears ?? []).sort((a, b) => {
