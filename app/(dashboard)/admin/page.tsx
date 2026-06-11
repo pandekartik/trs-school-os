@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase-admin";
+<<<<<<< Updated upstream
 import { getRole, getActiveBranch } from "@/lib/auth";
+=======
+import { getRole, getTeacherProfile } from "@/lib/auth";
+>>>>>>> Stashed changes
 import type { UserRole } from "@/lib/role-access";
 import { getTodayIsoDate } from "@/lib/timetable-constants";
 import { DashboardShell } from "@/components/admin/dashboard-shell";
@@ -15,6 +19,8 @@ function getMondayOfWeek(date: Date): Date {
 
 export default async function AdminPage() {
   const role = await getRole();
+  const profile = await getTeacherProfile();
+
   if (!["super_admin", "admin"].includes(role ?? "")) {
     const fallback = role === "coordinator" ? "/content" : "/teacher";
     redirect(fallback);
@@ -44,7 +50,25 @@ export default async function AdminPage() {
     teacherQuery = teacherQuery.eq("branch_id", branchId);
   }
 
+<<<<<<< Updated upstream
   let absenceQuery = admin
+=======
+  // Build pending leaves query - admins see all leaves across all branches
+  const pendingLeavesQuery = admin
+    .from("leave_request")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  // Fetch total pending count
+  const pendingCountQuery = admin
+    .from("leave_request")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "pending");
+
+  const absenceQuery = admin
+>>>>>>> Stashed changes
     .from("teacher_absence")
     .select("*")
     .gte("absence_date", weekStartIso)
@@ -77,6 +101,8 @@ export default async function AdminPage() {
     { data: academicSegments },
     { data: absencesThisWeek },
     { data: holidaysThisWeek },
+    { data: pendingLeaves },
+    { count: totalPendingCount },
   ] = await Promise.all([
     admin.from("school_year").select("*").eq("is_active", true),
     teacherQuery.order("name"),
@@ -109,7 +135,18 @@ export default async function AdminPage() {
     admin.from("academic_segment").select("*"),
     absenceQuery,
     holidayQuery,
+    pendingLeavesQuery,
+    pendingCountQuery,
   ]);
+
+  // Manually join pending leaves with teacher data
+  const pendingLeavesWithTeacher = (pendingLeaves ?? []).map((leave) => {
+    const teacher = (teachers ?? []).find((t) => t.id === leave.teacher_id);
+    return {
+      ...leave,
+      teacher: teacher ? { name: teacher.name, display_id: teacher.display_id } : { name: "Unknown", display_id: "" },
+    };
+  });
 
   return (
     <DashboardShell
@@ -127,6 +164,8 @@ export default async function AdminPage() {
       academicSegments={academicSegments ?? []}
       absencesThisWeek={absencesThisWeek ?? []}
       holidaysThisWeek={holidaysThisWeek ?? []}
+      pendingLeaves={pendingLeavesWithTeacher}
+      totalPendingCount={totalPendingCount ?? 0}
       weekStart={weekStart}
       today={new Date(today)}
     />

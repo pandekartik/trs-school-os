@@ -11,6 +11,7 @@ import { AlertCard } from "@/components/shared/alert-card";
 import { FlaggedPeriods } from "@/components/admin/flagged-periods";
 import { TeacherTable } from "@/components/admin/teacher-table";
 import { ChapterProgress } from "@/components/admin/chapter-progress";
+import { PendingActions } from "@/components/admin/pending-actions";
 import { refreshDashboard } from "@/lib/actions/admin";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/role-access";
@@ -20,6 +21,7 @@ import type {
   CoverageSummary,
   Division,
   Holiday,
+  LeaveRequest,
   PeriodInstance,
   SchoolYear,
   Standard,
@@ -35,6 +37,7 @@ type DashboardPeriod = PeriodInstance & {
   timetable_slot?: { period_number?: number | null } | null;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface DashboardShellProps {
   role: UserRole;
   activeSchoolYear: SchoolYear | null;
@@ -50,6 +53,9 @@ interface DashboardShellProps {
   academicSegments: AcademicSegment[];
   absencesThisWeek: TeacherAbsence[];
   holidaysThisWeek: Holiday[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pendingLeaves: (LeaveRequest & { teacher: any })[];
+  totalPendingCount: number;
   weekStart: Date;
   today: Date;
 }
@@ -275,6 +281,8 @@ export function DashboardShell({
   academicSegments,
   absencesThisWeek,
   holidaysThisWeek,
+  pendingLeaves,
+  totalPendingCount,
   weekStart,
   today,
 }: DashboardShellProps) {
@@ -345,6 +353,8 @@ export function DashboardShell({
           </Button>
         }
       />
+
+      <PendingActions pendingLeaves={pendingLeaves} totalPending={totalPendingCount} />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardKpiCard

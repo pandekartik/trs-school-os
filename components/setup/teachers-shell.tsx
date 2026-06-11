@@ -44,13 +44,21 @@ const roleBadgeColor: Record<string, string> = {
 
 type Props = {
   teachers: Teacher[];
+<<<<<<< Updated upstream
   branches?: Branch[];
+=======
+  branches: Branch[];
+>>>>>>> Stashed changes
   role?: UserRole | null;
   showBranchColumn?: boolean;
   activeSchoolYear?: string | null;
 };
 
+<<<<<<< Updated upstream
 export function TeachersShell({ teachers, branches = [], role, showBranchColumn = false, activeSchoolYear }: Props) {
+=======
+export function TeachersShell({ teachers, branches, role, activeSchoolYear }: Props) {
+>>>>>>> Stashed changes
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelMode, setPanelMode] = useState<"add" | "edit">("add");
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
@@ -129,6 +137,7 @@ export function TeachersShell({ teachers, branches = [], role, showBranchColumn 
                     <TableHead>ID</TableHead>
                     <TableHead>TEACHER</TableHead>
                     <TableHead>PHONE</TableHead>
+                    <TableHead>BRANCH</TableHead>
                     <TableHead>STATUS</TableHead>
                     {showBranchColumn && <TableHead>BRANCH</TableHead>}
                     <TableHead className="w-20">ACTIONS</TableHead>
@@ -153,6 +162,9 @@ export function TeachersShell({ teachers, branches = [], role, showBranchColumn 
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {teacher.phone || "-"}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {branches.find(b => b.id === teacher.branch_id)?.name || "-"}
                       </TableCell>
                       <TableCell>
                         <Badge variant={teacher.is_active ? "default" : "secondary"} className="text-xs font-normal">
@@ -212,6 +224,7 @@ export function TeachersShell({ teachers, branches = [], role, showBranchColumn 
           branches={branches}
           showBranchSelect={true}
           activeSchoolYear={activeSchoolYear}
+          branches={branches}
         />
       )}
 

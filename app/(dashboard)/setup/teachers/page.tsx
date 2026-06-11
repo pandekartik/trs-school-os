@@ -13,6 +13,7 @@ export default async function TeachersPage() {
   const admin = createAdminClient();
   const branchId = await getActiveBranch();
 
+<<<<<<< Updated upstream
   let query = db.from("teacher").select("*").eq("role", "teacher");
   if (branchId) {
     query = query.eq("branch_id", branchId);
@@ -34,4 +35,31 @@ export default async function TeachersPage() {
     .maybeSingle();
 
   return <TeachersShell teachers={teachers ?? []} branches={branches} role={role} showBranchColumn={!branchId && role === "super_admin"} activeSchoolYear={activeSchoolYear?.name ?? null} />;
+=======
+  // Fetch all teachers, branches, and active school year in parallel
+  const [
+    { data: teachers },
+    { data: branches },
+    { data: activeSchoolYear },
+  ] = await Promise.all([
+    admin
+      .from("teacher")
+      .select("*")
+      .eq("role", "teacher")
+      .order("name"),
+    admin
+      .from("branch")
+      .select("*")
+      .eq("is_active", true)
+      .order("name"),
+    admin
+      .from("school_year")
+      .select("name")
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  return <TeachersShell teachers={teachers ?? []} branches={branches ?? []} role={role} activeSchoolYear={activeSchoolYear?.name ?? null} />;
+>>>>>>> Stashed changes
 }

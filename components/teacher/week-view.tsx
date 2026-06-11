@@ -222,8 +222,12 @@ export function WeekView({
           const isHoliday = allPeriodsCancelled || !!holiday;
 
           return (
+<<<<<<< Updated upstream
             <div key={dayLabel} className="flex flex-col">
               {/* Date header */}
+=======
+            <div key={dayLabel} className="flex flex-col min-w-0">
+>>>>>>> Stashed changes
               <div
                 className={`text-center py-3 mb-4 rounded-lg transition ${
                   isToday ? "bg-[#ba2032] text-white" : "bg-muted text-muted-foreground"
@@ -238,6 +242,7 @@ export function WeekView({
                 )}
               </div>
 
+<<<<<<< Updated upstream
               {/* Period cards */}
               {dayPeriods.length === 0 ? (
                 <div className="flex items-center justify-center py-8 text-center">
@@ -247,6 +252,10 @@ export function WeekView({
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
+=======
+              {hasClasses ? (
+                <div className="flex flex-col gap-2 w-full">
+>>>>>>> Stashed changes
                   {dayPeriods.map((instance) => {
                     const slot = timetableSlots.find((s) => s.id === instance.timetable_slot_id);
                     const subject = slot ? subjectMap.get(slot.subject_id) : null;

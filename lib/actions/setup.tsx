@@ -469,11 +469,21 @@ export async function createTeacher(formData: FormData) {
   const { getActiveBranch } = await import("@/lib/auth");
   const branchId = await getActiveBranch();
 
+<<<<<<< Updated upstream
   const name  = formData.get("name") as string;
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
   const role  = formData.get("role") as UserRole;
   const { error } = await db.from("teacher").insert({ name, email, phone, role, branch_id: branchId });
+=======
+  const name      = formData.get("name") as string;
+  const email     = formData.get("email") as string;
+  const phone     = formData.get("phone") as string;
+  const branch_id = (formData.get("branch_id") as string) || null;
+  const role      = formData.get("role") as UserRole;
+
+  const { error } = await db.from("teacher").insert({ name, email, phone, branch_id, role });
+>>>>>>> Stashed changes
   if (error) return { error: error.message };
 
   const profile = await getTeacherProfile();
@@ -485,7 +495,11 @@ export async function createTeacher(formData: FormData) {
       action: auditActions.setup.teacherCreated,
       entityType: "teacher",
       entityLabel: name,
+<<<<<<< Updated upstream
       newData: { name, email, phone, role, branch_id: branchId },
+=======
+      newData: { name, email, phone, branch_id, role },
+>>>>>>> Stashed changes
     });
   }
 
@@ -495,14 +509,15 @@ export async function createTeacher(formData: FormData) {
 
 export async function updateTeacher(id: string, formData: FormData) {
   const db = await getDb();
-  const name  = formData.get("name") as string;
-  const phone = formData.get("phone") as string;
-  const role  = formData.get("role") as UserRole;
+  const name      = formData.get("name") as string;
+  const phone     = formData.get("phone") as string;
+  const branch_id = (formData.get("branch_id") as string) || null;
+  const role      = formData.get("role") as UserRole;
 
   const { data: oldData } = await db.from("teacher").select("*").eq("id", id).single();
 
   const { error } = await db.from("teacher")
-    .update({ name, phone, role, updated_at: new Date().toISOString() })
+    .update({ name, phone, branch_id, role, updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { error: error.message };
 
@@ -517,7 +532,7 @@ export async function updateTeacher(id: string, formData: FormData) {
       entityId: id,
       entityLabel: name,
       oldData,
-      newData: { name, phone, role },
+      newData: { name, phone, branch_id, role },
     });
   }
 
@@ -932,5 +947,103 @@ export async function deleteBranch(id: string) {
   }
 
   revalidatePath("/admin/branches");
+  return { success: true };
+}
+
+// ── LEAVE POLICY ─────────────────────────
+
+export async function createLeavePolicy(formData: FormData) {
+  const db = await getDb();
+  const school_year_id    = formData.get("school_year_id") as string;
+  const leave_type        = formData.get("leave_type") as string;
+  const name              = formData.get("name") as string;
+  const days_allowed      = parseInt(formData.get("days_allowed") as string);
+  const is_paid           = formData.get("is_paid") === "true";
+  const requires_document = formData.get("requires_document") === "true";
+
+  const { error } = await db.from("leave_policy").upsert({
+    school_year_id,
+    leave_type,
+    name,
+    days_allowed,
+    is_paid,
+    requires_document,
+  }, {
+    onConflict: "school_year_id,leave_type",
+  });
+  if (error) return { error: error.message };
+
+  const profile = await getTeacherProfile();
+  if (profile) {
+    writeAuditLog({
+      userId: profile.id,
+      userName: profile.name,
+      userRole: profile.role,
+      action: auditActions.setup.leavePolicyCreated,
+      entityType: "leave_policy",
+      entityLabel: name,
+      newData: { school_year_id, leave_type, name, days_allowed, is_paid, requires_document },
+    });
+  }
+
+  revalidatePath("/setup/leave-policy");
+  return { success: true };
+}
+
+export async function updateLeavePolicy(id: string, formData: FormData) {
+  const db = await getDb();
+  const name              = formData.get("name") as string;
+  const days_allowed      = parseInt(formData.get("days_allowed") as string);
+  const is_paid           = formData.get("is_paid") === "true";
+  const requires_document = formData.get("requires_document") === "true";
+
+  const { data: oldData } = await db.from("leave_policy").select("*").eq("id", id).single();
+
+  const { error } = await db.from("leave_policy")
+    .update({ name, days_allowed, is_paid, requires_document, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { error: error.message };
+
+  const profile = await getTeacherProfile();
+  if (profile) {
+    writeAuditLog({
+      userId: profile.id,
+      userName: profile.name,
+      userRole: profile.role,
+      action: auditActions.setup.leavePolicyUpdated,
+      entityType: "leave_policy",
+      entityId: id,
+      entityLabel: name,
+      oldData,
+      newData: { name, days_allowed, is_paid, requires_document },
+    });
+  }
+
+  revalidatePath("/setup/leave-policy");
+  return { success: true };
+}
+
+export async function deleteLeavePolicy(id: string) {
+  const db = await getDb();
+  const { data: oldData } = await db.from("leave_policy").select("*").eq("id", id).single();
+
+  const { error } = await db.from("leave_policy").delete().eq("id", id);
+  if (error) return { error: error.message };
+
+  const profile = await getTeacherProfile();
+  if (profile && oldData) {
+    writeAuditLog({
+      userId: profile.id,
+      userName: profile.name,
+      userRole: profile.role,
+      action: auditActions.setup.leavePolicyDeleted,
+      entityType: "leave_policy",
+      entityId: id,
+      entityLabel: oldData.name,
+      oldData,
+    });
+  }
+
+  revalidatePath("/setup/leave-policy");
   return { success: true };
 }

@@ -24,9 +24,14 @@ type Props = {
   branches?: Branch[];
   showBranchSelect?: boolean;
   activeSchoolYear?: string | null;
+  branches?: Branch[] | null;
 };
 
+<<<<<<< Updated upstream
 export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranchSelect = false, activeSchoolYear }: Props) {
+=======
+export function TeacherPanel({ mode, teacher, onClose, activeSchoolYear, branches }: Props) {
+>>>>>>> Stashed changes
   const [name, setName] = useState(teacher?.name || "");
   const [email, setEmail] = useState(teacher?.email || "");
   const [phone, setPhone] = useState(teacher?.phone || "");
@@ -80,6 +85,7 @@ export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranch
       formData.append("name", name);
       formData.append("email", email);
       formData.append("phone", phone);
+      formData.append("branch_id", branchId || "");
       formData.append("role", "teacher");
       formData.append("branch_id", branchId);
 
@@ -128,6 +134,7 @@ export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranch
       const formData = new FormData();
       formData.append("name", name);
       formData.append("phone", phone);
+      formData.append("branch_id", branchId || "");
       formData.append("role", "teacher");
       formData.append("is_active", String(isActive));
       if (showBranchSelect && branchId) {
@@ -226,6 +233,7 @@ export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranch
             />
           </div>
 
+<<<<<<< Updated upstream
           {mode === "add" && (
             <div className="space-y-2">
               <Label htmlFor="branch" className="text-sm font-medium">
@@ -245,6 +253,29 @@ export function TeacherPanel({ mode, teacher, onClose, branches = [], showBranch
               </Select>
             </div>
           )}
+=======
+          <div className="space-y-2">
+            <Label htmlFor="branch" className="text-sm font-medium">Branch</Label>
+            <Select value={branchId} onValueChange={setBranchId}>
+              <SelectTrigger id="branch" className="h-11">
+                <SelectValue placeholder="Select a branch" />
+              </SelectTrigger>
+              <SelectContent>
+                {branches && branches.length > 0 ? (
+                  branches.map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="" disabled>
+                    No branches available
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+>>>>>>> Stashed changes
 
           {mode === "add" && activeSchoolYear && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

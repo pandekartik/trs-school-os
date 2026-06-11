@@ -67,6 +67,9 @@ export const auditActions = {
     branchCreated: "branch.created",
     branchUpdated: "branch.updated",
     branchDeleted: "branch.deleted",
+    leavePolicyCreated: "leave_policy.created",
+    leavePolicyUpdated: "leave_policy.updated",
+    leavePolicyDeleted: "leave_policy.deleted",
   },
   timetable: {
     templateCreated: "template.created",

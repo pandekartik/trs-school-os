@@ -72,6 +72,13 @@ export function PeriodCard({
   const canLog = (status === "scheduled" || status === "unlogged") && !isBufferPeriod;
   const isPast = new Date(periodInstance.date) < new Date();
   const isCancelled = status === "cancelled";
+  const isSubstituted = periodInstance.is_substituted;
+  const substituteTeacher = isSubstituted && periodInstance.substitute_teacher_id
+    ? teachers?.find((t) => t.id === periodInstance.substitute_teacher_id)
+    : null;
+
+  // Disable logging if substituted, already logged, or absent
+  const canShowLogButton = !isSubstituted && !isLogged;
 
   const handleViewLesson = () => {
     if (chapterPeriod?.lesson_plan_url) {
@@ -120,9 +127,15 @@ export function PeriodCard({
         )}
 
         {/* Substitution indicator */}
+<<<<<<< Updated upstream
         {periodInstance.is_substituted && (
           <div className="mb-2 text-xs text-amber-600 bg-amber-50 rounded px-2 py-1">
             Substituting for original teacher
+=======
+        {isSubstituted && (
+          <div className="mb-1 text-xs text-amber-600 bg-amber-50 rounded px-2 py-1 font-medium">
+            {substituteTeacher ? `Substitute: ${substituteTeacher.name}` : "Substituting"}
+>>>>>>> Stashed changes
           </div>
         )}
 
@@ -138,8 +151,13 @@ export function PeriodCard({
 
         {/* Logged time */}
         {isLogged && periodInstance.logged_at && (
+<<<<<<< Updated upstream
           <div className="mb-3 text-xs" style={{ color: "#A3A3A3" }}>
             Logged at {new Date(periodInstance.logged_at).toLocaleTimeString("en-US", {
+=======
+          <div className="mb-2 text-xs" style={{ color: "#A3A3A3" }}>
+            Logged {new Date(periodInstance.logged_at).toLocaleTimeString("en-US", {
+>>>>>>> Stashed changes
               hour: "2-digit",
               minute: "2-digit",
               hour12: false,
@@ -147,6 +165,7 @@ export function PeriodCard({
           </div>
         )}
 
+<<<<<<< Updated upstream
         {/* Action buttons */}
         {!isCancelled && (
           <div className="flex flex-col gap-2 md:flex-row">
@@ -183,6 +202,90 @@ export function PeriodCard({
                 Edit log
               </Button>
             )}
+=======
+        {/* Display ID */}
+        {periodInstance.display_id && (
+          <div className="mb-2 text-[10px] font-mono text-muted-foreground flex items-center justify-between gap-2">
+            <code className="truncate flex-1">{periodInstance.display_id}</code>
+            <button
+              onClick={handleCopyId}
+              title="Copy ID"
+              className="p-0.5 hover:bg-muted rounded transition shrink-0"
+            >
+              {copiedId ? (
+                <Check className="w-3 h-3 text-green-600" />
+              ) : (
+                <Copy className="w-3 h-3 text-muted-foreground" />
+              )}
+            </button>
+>>>>>>> Stashed changes
+          </div>
+        )}
+
+        {/* Action buttons */}
+        {!isCancelled && (
+          <div className="flex flex-col gap-1 mt-2">
+            {chapterPeriod && chapterPeriod.is_published && chapterPeriod.lesson_plan_url && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 h-10 text-sm font-medium"
+                onClick={handleViewLesson}
+              >
+                <ExternalLink className="w-3 h-3 mr-1" />
+                Plan
+              </Button>
+            )}
+
+            {userCanLog && (
+              <>
+                {canShowLogButton && canLog && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-10 text-sm font-medium"
+                    onClick={() => setIsLogModalOpen(true)}
+                  >
+                    Log period
+                  </Button>
+                )}
+
+                {canShowLogButton && isLogged && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1 h-10 text-sm font-medium"
+                    onClick={() => setIsLogModalOpen(true)}
+                  >
+                    Edit log
+                  </Button>
+                )}
+
+                {isSubstituted && (
+                  <div className="flex-1 h-10 flex items-center justify-center text-sm font-medium text-muted-foreground bg-muted rounded">
+                    Sub logged
+                  </div>
+                )}
+
+                {isLogged && !isSubstituted && (
+                  <div className="flex-1 h-10 flex items-center justify-center text-sm font-medium text-foreground">
+                    ✓ Logged
+                  </div>
+                )}
+              </>
+            )}
+
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 h-10 text-sm font-medium"
+                onClick={() => setIsOverrideModalOpen(true)}
+              >
+                <Settings className="w-3 h-3 mr-1" />
+                Override
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -194,8 +297,10 @@ export function PeriodCard({
           periodInstance={periodInstance}
           subject={subject}
           division={division}
-          standard={standard}
           loggedBy={loggedBy}
+          chapters={chapters}
+          chapterPeriods={[]}
+          teachers={teachers}
         />
       )}
     </>
