@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { getUser } from "@/lib/auth";
+import { getUser, getTeacherProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
+import { writeAuditLog, auditActions } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -9,6 +10,9 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const teacher = await getTeacherProfile();
+    if (!teacher) return NextResponse.json({ error: "Teacher profile not found" }, { status: 401 });
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
@@ -57,6 +61,7 @@ export async function POST(request: NextRequest) {
           lesson_plan_url: publicUrl,
           lesson_plan_filename: file.name,
           file_type: ext,
+          uploaded_by: teacher.id,
           uploaded_at: new Date().toISOString(),
         })
         .eq("id", existingPeriod.id);
@@ -70,13 +75,29 @@ export async function POST(request: NextRequest) {
           lesson_plan_url: publicUrl,
           lesson_plan_filename: file.name,
           file_type: ext,
+          uploaded_by: teacher.id,
           uploaded_at: new Date().toISOString(),
         });
       if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
+    await writeAuditLog({
+      userId: user.id,
+      userName: teacher.email,
+      userRole: teacher.role as any,
+      action: auditActions.content.lessonPlanUploaded,
+      entityType: "chapter_period",
+      entityId: existingPeriod?.id,
+      newData: {
+        chapter_id: chapterId,
+        period_number: periodNumber,
+        lesson_plan_filename: file.name,
+        file_type: ext,
+      },
+    });
+
     revalidatePath("/content");
-    
+
     return NextResponse.json({
       url: publicUrl,
       filename: file.name,

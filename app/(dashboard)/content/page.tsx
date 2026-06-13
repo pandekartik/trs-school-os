@@ -11,12 +11,13 @@ export default async function ContentPage() {
 
   const db = await createServerClient();
 
-  async function fetchAll(table: string, orderCol?: string) {
+  async function fetchAll(table: string, orderCol?: string, filterDeleted = false) {
     let allData: any[] = [];
     let from = 0;
     const step = 1000;
     while (true) {
       let query = db.from(table).select("*");
+      if (filterDeleted) query = query.is("deleted_at", null);
       if (orderCol) query = query.order(orderCol);
       const { data, error } = await query.range(from, from + step - 1);
       if (error) throw error;
@@ -43,7 +44,7 @@ export default async function ContentPage() {
     db.from("standard").select("*").order("grade"),
     db.from("subject").select("*").eq("has_chapters", true).order("name"),
     fetchAll("chapter", "display_order"),
-    fetchAll("chapter_period", "period_number"),
+    fetchAll("chapter_period", "period_number", true),
     fetchAll("chapter_mcq"),
     fetchAll("chapter_test"),
   ]);
