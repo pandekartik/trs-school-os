@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npx tsc --noEmit 2>&1)",
+      "PowerShell(npx tsc --noEmit; Write-Output \"EXIT_CODE=$LASTEXITCODE\")",
+      "PowerShell(git add .claude/settings.json)"
+    ]
+  }
+}
