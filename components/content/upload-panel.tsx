@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type {
   AcademicSegment,
@@ -40,6 +39,7 @@ type UploadPanelProps = {
   test: ChapterTest | null;
   subjects: Subject[];
   segments: AcademicSegment[];
+  onMutated: () => void | Promise<void>;
 };
 
 export function UploadPanel({
@@ -49,8 +49,8 @@ export function UploadPanel({
   test,
   subjects,
   segments,
+  onMutated,
 }: UploadPanelProps) {
-  const router = useRouter();
   const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const [uploadingPeriod, setUploadingPeriod] = useState<number | null>(null);
   const [savingMcq, setSavingMcq] = useState(false);
@@ -78,7 +78,7 @@ export function UploadPanel({
     }
 
     toast.success(`Period ${periodNumber} title saved`);
-    router.refresh();
+    await onMutated();
   }
 
   async function handleUpload(periodNumber: number, file: File) {
@@ -94,7 +94,7 @@ export function UploadPanel({
       if (!res.ok) throw new Error(data.error ?? "Upload failed");
 
       toast.success(`Period ${periodNumber} uploaded`);
-      router.refresh();
+      await onMutated();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Upload failed";
       toast.error("Upload failed", { description: message });
@@ -111,7 +111,7 @@ export function UploadPanel({
     }
 
     toast.success(period.is_published ? "Unpublished" : "Published");
-    router.refresh();
+    await onMutated();
   }
 
   async function handleSaveMcq(e: React.FormEvent<HTMLFormElement>) {
@@ -125,7 +125,7 @@ export function UploadPanel({
       }
 
       toast.success("MCQs saved");
-      router.refresh();
+      await onMutated();
     } finally {
       setSavingMcq(false);
     }
@@ -142,7 +142,7 @@ export function UploadPanel({
       }
 
       toast.success("Test saved");
-      router.refresh();
+      await onMutated();
     } finally {
       setSavingTest(false);
     }

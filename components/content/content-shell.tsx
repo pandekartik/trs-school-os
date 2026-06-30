@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+import { getChapterContent } from "@/lib/actions/content";
 import type {
   AcademicSegment,
   Chapter,
@@ -21,15 +25,15 @@ import { UploadPanel } from "@/components/content/upload-panel";
 type StatusFilter = "all" | "not_started" | "in_progress" | "complete";
 type ChapterStatus = "not_started" | "in_progress" | "complete";
 
+type ChapterCounts = Record<string, { uploaded: number; published: number }>;
+
 type ContentShellProps = {
   schoolYears: SchoolYear[];
   segments: AcademicSegment[];
   standards: Standard[];
   subjects: Subject[];
   chapters: Chapter[];
-  chapterPeriods: ChapterPeriod[];
-  mcqs: ChapterMcq[];
-  tests: ChapterTest[];
+  counts: ChapterCounts;
 };
 
 type ChapterMeta = {
@@ -55,16 +59,23 @@ export function ContentShell({
   standards,
   subjects,
   chapters,
-  chapterPeriods,
-  mcqs,
-  tests,
+  counts,
 }: ContentShellProps) {
+  const router = useRouter();
   const activeYear = schoolYears[0] ?? null;
 
   const [selectedStandardId, setSelectedStandardId] = useState<string | null>(null);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
+
+  // Periods/MCQ/test for the selected chapter are loaded on demand.
+  const [chapterContent, setChapterContent] = useState<{
+    periods: ChapterPeriod[];
+    mcq: ChapterMcq | null;
+    test: ChapterTest | null;
+  } | null>(null);
+  const [contentLoading, setContentLoading] = useState(false);
 
   const standardById = useMemo(
     () => new Map(standards.map((standard) => [standard.id, standard])),
@@ -105,23 +116,14 @@ export function ContentShell({
   );
 
   const chapterMeta = useMemo<ChapterMeta[]>(() => {
-    const periodGroups = new Map<string, ChapterPeriod[]>();
-    for (const period of chapterPeriods) {
-      const existing = periodGroups.get(period.chapter_id) ?? [];
-      existing.push(period);
-      periodGroups.set(period.chapter_id, existing);
-    }
-
     return chapters
       .filter((chapter) => activeSegmentIds.has(chapter.academic_segment_id))
       .map((chapter) => {
         const subject = subjectById.get(chapter.subject_id) ?? null;
         const segment = segmentById.get(chapter.academic_segment_id) ?? null;
-        const periods = periodGroups.get(chapter.id) ?? [];
-        const uploadedCount = periods.filter((period) => Boolean(period.lesson_plan_url)).length;
-        const publishedCount = periods.filter(
-          (period) => Boolean(period.lesson_plan_url) && period.is_published
-        ).length;
+        const count = counts[chapter.id] ?? { uploaded: 0, published: 0 };
+        const uploadedCount = count.uploaded;
+        const publishedCount = count.published;
 
         return {
           chapter,
@@ -151,7 +153,7 @@ export function ContentShell({
       });
   }, [
     activeSegmentIds,
-    chapterPeriods,
+    counts,
     chapters,
     selectedStandardId,
     selectedSubjectId,
@@ -191,22 +193,47 @@ export function ContentShell({
   }, [chapterMeta, standardById]);
 
   const selectedChapter = chapterMeta.find((item) => item.chapter.id === selectedChapterId) ?? null;
-  const selectedChapterPeriods = useMemo(
-    () => selectedChapter
-      ? chapterPeriods
-        .filter((period) => period.chapter_id === selectedChapter.chapter.id)
-        .sort((a, b) => a.period_number - b.period_number)
-      : [],
-    [chapterPeriods, selectedChapter]
-  );
-  const selectedMcq = useMemo(
-    () => selectedChapter ? mcqs.find((item) => item.chapter_id === selectedChapter.chapter.id) ?? null : null,
-    [mcqs, selectedChapter]
-  );
-  const selectedTest = useMemo(
-    () => selectedChapter ? tests.find((item) => item.chapter_id === selectedChapter.chapter.id) ?? null : null,
-    [selectedChapter, tests]
-  );
+
+  // Load the selected chapter's periods/MCQ/test on demand.
+  useEffect(() => {
+    if (!selectedChapterId) {
+      setChapterContent(null);
+      return;
+    }
+
+    let cancelled = false;
+    setChapterContent(null);
+    setContentLoading(true);
+
+    getChapterContent(selectedChapterId)
+      .then((result) => {
+        if (cancelled) return;
+        if (result.error) {
+          toast.error("Failed to load chapter content", { description: result.error });
+          setChapterContent({ periods: [], mcq: null, test: null });
+          return;
+        }
+        setChapterContent({ periods: result.periods, mcq: result.mcq, test: result.test });
+      })
+      .finally(() => {
+        if (!cancelled) setContentLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedChapterId]);
+
+  // Re-fetch the open chapter after an upload/edit, and refresh list counts.
+  const handleMutated = useCallback(async () => {
+    if (selectedChapterId) {
+      const result = await getChapterContent(selectedChapterId);
+      if (!result.error) {
+        setChapterContent({ periods: result.periods, mcq: result.mcq, test: result.test });
+      }
+    }
+    router.refresh();
+  }, [router, selectedChapterId]);
 
   const completeCount = chapterMeta.filter((item) => item.status === "complete").length;
   const pendingCount = chapterMeta.length - completeCount;
@@ -371,15 +398,25 @@ export function ContentShell({
 
       <div className="min-w-0 flex-1">
         {selectedChapter ? (
-          <UploadPanel
-            key={selectedChapter.chapter.id}
-            chapter={selectedChapter.chapter}
-            periods={selectedChapterPeriods}
-            mcq={selectedMcq}
-            test={selectedTest}
-            subjects={subjects}
-            segments={segments}
-          />
+          contentLoading || !chapterContent ? (
+            <Card className="flex h-full min-h-[640px] items-center justify-center overflow-hidden rounded-2xl border bg-card">
+              <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="text-sm">Loading chapter…</span>
+              </div>
+            </Card>
+          ) : (
+            <UploadPanel
+              key={selectedChapter.chapter.id}
+              chapter={selectedChapter.chapter}
+              periods={chapterContent.periods}
+              mcq={chapterContent.mcq}
+              test={chapterContent.test}
+              subjects={subjects}
+              segments={segments}
+              onMutated={handleMutated}
+            />
+          )
         ) : (
           <Card className="flex h-full min-h-[640px] items-center justify-center overflow-hidden rounded-2xl border bg-card">
             <div className="max-w-sm text-center">
