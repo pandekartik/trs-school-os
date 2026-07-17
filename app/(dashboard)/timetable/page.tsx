@@ -102,6 +102,31 @@ export default async function TimetablePage() {
     timetable_slots = slots ?? [];
   }
 
+  // Segments (branch-scoped) and chapters (branch-agnostic content) for
+  // the active school year, needed to generate period instances.
+  let segments: any[] = [];
+  let chapters: any[] = [];
+  if (activeSchoolYear) {
+    let segmentsQuery = admin
+      .from("academic_segment")
+      .select("*")
+      .eq("school_year_id", activeSchoolYear.id)
+      .order("sequence_number");
+    if (activeBranch) segmentsQuery = segmentsQuery.eq("branch_id", activeBranch.id);
+    const { data: segmentData } = await segmentsQuery;
+    segments = segmentData ?? [];
+
+    const segmentIds = segments.map((segment) => segment.id);
+    if (segmentIds.length > 0) {
+      const { data: chapterData } = await admin
+        .from("chapter")
+        .select("*")
+        .in("academic_segment_id", segmentIds)
+        .is("deleted_at", null);
+      chapters = chapterData ?? [];
+    }
+  }
+
   return (
     <TimetableShell
       timetables={(timetables ?? []) as any}
@@ -116,6 +141,8 @@ export default async function TimetablePage() {
       timetable_slots={timetable_slots}
       role={role}
       activeBranchId={activeBranch?.id ?? null}
+      segments={segments}
+      chapters={chapters}
     />
   );
 }

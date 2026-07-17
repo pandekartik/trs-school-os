@@ -12,6 +12,8 @@ import type {
   TimeTemplate,
   TimetableSlot,
   SchoolYear,
+  AcademicSegment,
+  Chapter,
 } from "@/lib/types";
 import {
   createTimetable,
@@ -35,6 +37,7 @@ import {
 import { Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ScheduleGenerator } from "./schedule-generator";
 
 type Props = {
   timetable: (Timetable & { timetable_division?: Array<{ division_id: string }>; timetable_day_template?: Array<{ day_of_week: string; template_id: string }> }) | null;
@@ -50,6 +53,8 @@ type Props = {
   panelView: "form" | "builder";
   schoolYears?: SchoolYear[];
   activeBranchId?: string | null;
+  segments?: AcademicSegment[];
+  chapters?: Chapter[];
 };
 
 export function TimetablePanel({
@@ -66,10 +71,12 @@ export function TimetablePanel({
   panelView,
   schoolYears = [],
   activeBranchId = null,
+  segments = [],
+  chapters = [],
 }: Props) {
   const isNewTimetable = !timetable;
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"details" | "days" | "slots">(
+  const [activeTab, setActiveTab] = useState<"details" | "days" | "slots" | "generate">(
     panelView === "form" ? "details" : "slots"
   );
 
@@ -320,13 +327,14 @@ export function TimetablePanel({
 
       <Tabs
         value={activeTab}
-        onValueChange={(v) => setActiveTab(v as "details" | "days" | "slots")}
+        onValueChange={(v) => setActiveTab(v as "details" | "days" | "slots" | "generate")}
         className="flex-1 flex flex-col"
       >
         <TabsList className="m-4 w-fit">
           <TabsTrigger value="details">Details</TabsTrigger>
           {!isNewTimetable && <TabsTrigger value="days">Day Templates</TabsTrigger>}
           {!isNewTimetable && <TabsTrigger value="slots">Slot Grid</TabsTrigger>}
+          {!isNewTimetable && <TabsTrigger value="generate">Generate Schedule</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="details" className="flex-1 overflow-auto p-4 space-y-4">
@@ -482,6 +490,58 @@ export function TimetablePanel({
                   No divisions selected
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="generate" className="flex-1 overflow-auto p-4">
+              {selectedDivisions.size > 1 && (
+                <div className="mb-4 space-y-2">
+                  <p className="text-xs font-medium">Select Division</p>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.from(selectedDivisions).map((divId) => {
+                      const div = divisions.find((d) => d.id === divId);
+                      return (
+                        <button
+                          key={divId}
+                          onClick={() => setActiveDivisionForGrid(divId)}
+                          className={cn(
+                            "px-3 py-1 text-xs rounded border transition-colors",
+                            activeDivisionForGrid === divId
+                              ? "bg-brand text-white border-brand"
+                              : "bg-secondary border-border"
+                          )}
+                        >
+                          {div?.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {(() => {
+                const generateDivisionId =
+                  activeDivisionForGrid || Array.from(selectedDivisions)[0] || null;
+                const division = divisions.find((d) => d.id === generateDivisionId) ?? null;
+                const standard = division
+                  ? standards.find((s) => s.id === division.standard_id) ?? null
+                  : null;
+                const schoolYear = timetable
+                  ? schoolYears.find((sy) => sy.id === timetable.school_year_id) ?? null
+                  : null;
+                const divisionSlots = existingSlots.filter(
+                  (slot) => slot.timetable_id === timetable?.id && slot.division_id === generateDivisionId
+                );
+
+                return (
+                  <ScheduleGenerator
+                    division={division}
+                    schoolYear={schoolYear}
+                    standard={standard}
+                    segments={segments}
+                    chapters={chapters}
+                    slots={divisionSlots}
+                  />
+                );
+              })()}
             </TabsContent>
           </>
         )}
