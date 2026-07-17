@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PERIOD_TIMES, formatTimeLabel } from "@/lib/timetable-constants";
+import { formatDateOnly } from "@/lib/utils/date";
 
 interface OverrideModalProps {
   open: boolean;
@@ -84,8 +85,7 @@ export function OverrideModal({
   const timeLabel = periodTime
     ? `${formatTimeLabel(periodTime.start)} - ${formatTimeLabel(periodTime.end)}`
     : "";
-  const date = new Date(periodInstance.date);
-  const dateLabel = date.toLocaleDateString("en-US", {
+  const dateLabel = formatDateOnly(periodInstance.date, {
     weekday: "short",
     month: "short",
     day: "numeric",

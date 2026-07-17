@@ -17,6 +17,7 @@ import { Calendar, CalendarOff, Edit2, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { createHoliday, deleteHoliday, updateHoliday } from "@/lib/actions/timetable";
 import { Holiday } from "@/lib/types";
+import { parseDateOnly, formatDateOnly } from "@/lib/utils/date";
 
 type ViewMode = "list" | "calendar";
 type ScopeType = "all" | "division";
@@ -103,7 +104,7 @@ export function HolidaysShell({
 
   const groupedHolidays = holidays.reduce(
     (acc, h) => {
-      const date = new Date(h.date);
+      const date = parseDateOnly(h.date);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
       if (!acc[monthKey]) acc[monthKey] = [];
       acc[monthKey].push(h);
@@ -342,10 +343,7 @@ export function HolidaysShell({
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               <span className="text-xs font-semibold text-gray-900 w-12 shrink-0">
-                                {new Date(holiday.date).toLocaleDateString("en-US", {
-                                  day: "2-digit",
-                                  month: "short",
-                                })}
+                                {formatDateOnly(holiday.date)}
                               </span>
                               <span className="text-sm font-medium text-gray-900">
                                 {holiday.name}
@@ -393,10 +391,7 @@ export function HolidaysShell({
                   ←
                 </Button>
                 <CardTitle className="text-base">
-                  {new Date(activeSchoolYear.start_date).toLocaleDateString("en-US", {
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  {formatDateOnly(activeSchoolYear.start_date, { month: "long", year: "numeric" })}
                 </CardTitle>
                 <Button variant="ghost" size="sm" className="h-6 text-xs">
                   →
