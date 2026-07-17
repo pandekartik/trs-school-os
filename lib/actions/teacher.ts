@@ -165,6 +165,7 @@ export async function markAttendance(formData: FormData) {
         status,
         reason,
         marked_by,
+        branch_id,
         marked_at: new Date().toISOString(),
       },
       { onConflict: "teacher_id,date" }
@@ -196,6 +197,7 @@ export async function bulkMarkAttendance(
     status: record.status as "present" | "absent" | "late" | "half_day",
     reason: record.reason || null,
     marked_by: markedBy,
+    branch_id: branchId || null,
     marked_at: now,
   }));
 

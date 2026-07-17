@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { getRole, getTeacherProfile } from "@/lib/auth";
+import { getRole, getTeacherProfile, getActiveBranch } from "@/lib/auth";
 import { AttendanceShell } from "@/components/teacher/attendance-shell";
 import type { Teacher, TeacherAttendance, TimetableSlot, PeriodOverride } from "@/lib/types";
 
@@ -16,7 +16,8 @@ export default async function AttendancePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const role = await getRole();
   const profile = await getTeacherProfile();
-  const branchId = profile?.branch_id || "";
+  const activeBranch = await getActiveBranch();
+  const branchId = activeBranch?.id || "";
 
   // Get current date for defaults
   const now = new Date();
@@ -34,7 +35,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
     if (params.teacher) {
       targetTeacherIds = [params.teacher];
     } else {
-      // Fetch all teachers in the branch
+      // Fetch all teachers in the active branch
       const { data: teachers } = await admin
         .from("teacher")
         .select("id")
@@ -57,15 +58,14 @@ export default async function AttendancePage({ searchParams }: PageProps) {
   const startDate = firstDay.toISOString().split("T")[0];
   const endDate = lastDay.toISOString().split("T")[0];
 
-  // Fetch all relevant data in parallel
+  // Fetch all relevant data in parallel, scoped to the active branch
   let teachersQuery = admin
     .from("teacher")
     .select("*")
     .eq("role", "teacher")
     .eq("is_active", true);
 
-  // For teachers, only show from their branch; for admins, show all
-  if (role === "teacher" && branchId) {
+  if (branchId) {
     teachersQuery = teachersQuery.eq("branch_id", branchId);
   }
 
