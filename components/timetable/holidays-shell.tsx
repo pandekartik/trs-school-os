@@ -47,6 +47,10 @@ export function HolidaysShell({
   const [selectedStandardId, setSelectedStandardId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [calendarCursor, setCalendarCursor] = useState(() => {
+    const today = new Date();
+    return { year: today.getFullYear(), month: today.getMonth() };
+  });
 
   const [formData, setFormData] = useState({
     date: "",
@@ -127,6 +131,37 @@ export function HolidaysShell({
     "2026-11": "November 2026",
     "2026-12": "December 2026",
   };
+
+  const calendarMonthKey = `${calendarCursor.year}-${String(calendarCursor.month + 1).padStart(2, "0")}`;
+  const holidaysByDay = new Map<number, Holiday[]>();
+  for (const h of groupedHolidays[calendarMonthKey] ?? []) {
+    const day = parseDateOnly(h.date).getDate();
+    holidaysByDay.set(day, [...(holidaysByDay.get(day) ?? []), h]);
+  }
+
+  const daysInMonth = new Date(calendarCursor.year, calendarCursor.month + 1, 0).getDate();
+  const firstWeekday = new Date(calendarCursor.year, calendarCursor.month, 1).getDay();
+  const calendarCells: Array<{ day: number; holidays: Holiday[] } | null> = [
+    ...Array.from({ length: firstWeekday }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => ({
+      day: i + 1,
+      holidays: holidaysByDay.get(i + 1) ?? [],
+    })),
+  ];
+
+  const calendarMonthLabel = new Date(calendarCursor.year, calendarCursor.month, 1).toLocaleDateString(
+    "en-US",
+    { month: "long", year: "numeric" }
+  );
+
+  const goToPrevMonth = () =>
+    setCalendarCursor(({ year, month }) =>
+      month === 0 ? { year: year - 1, month: 11 } : { year, month: month - 1 }
+    );
+  const goToNextMonth = () =>
+    setCalendarCursor(({ year, month }) =>
+      month === 11 ? { year: year + 1, month: 0 } : { year, month: month + 1 }
+    );
 
   return (
     <div className="bg-[#FAFAFA] min-h-screen p-8">
@@ -387,21 +422,57 @@ export function HolidaysShell({
           <Card className="bg-white border border-[#E5E5E5]">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <Button variant="ghost" size="sm" className="h-6 text-xs">
+                <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={goToPrevMonth}>
                   ←
                 </Button>
-                <CardTitle className="text-base">
-                  {formatDateOnly(activeSchoolYear.start_date, { month: "long", year: "numeric" })}
-                </CardTitle>
-                <Button variant="ghost" size="sm" className="h-6 text-xs">
+                <CardTitle className="text-base">{calendarMonthLabel}</CardTitle>
+                <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={goToNextMonth}>
                   →
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-gray-500 text-sm">
-                Calendar view coming soon
+              <div className="grid grid-cols-7 gap-1 text-center text-[11px] uppercase text-[#A3A3A3] font-medium mb-1">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                  <div key={d} className="py-1">
+                    {d}
+                  </div>
+                ))}
               </div>
+              <div className="grid grid-cols-7 gap-1">
+                {calendarCells.map((cell, i) =>
+                  cell === null ? (
+                    <div key={`blank-${i}`} />
+                  ) : (
+                    <div
+                      key={cell.day}
+                      className={`min-h-16 rounded-md border p-1 text-left align-top ${
+                        cell.holidays.length > 0
+                          ? "border-[#E5E5E5] bg-[#FAFAFA]"
+                          : "border-transparent"
+                      }`}
+                    >
+                      <div className="text-xs font-medium text-gray-700">{cell.day}</div>
+                      <div className="mt-1 space-y-0.5">
+                        {cell.holidays.map((h) => (
+                          <div
+                            key={h.id}
+                            className={`truncate rounded px-1 py-0.5 text-[10px] font-medium ${TYPE_COLORS[h.type].color}`}
+                            title={h.name}
+                          >
+                            {h.name}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+              {holidaysByDay.size === 0 && (
+                <div className="text-center py-4 text-gray-400 text-xs">
+                  No holidays marked in {calendarMonthLabel}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
