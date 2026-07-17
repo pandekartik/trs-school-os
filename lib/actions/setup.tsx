@@ -615,9 +615,10 @@ export async function createChapter(formData: FormData) {
   const name                = formData.get("name") as string;
   const allocated_periods   = parseInt(formData.get("allocated_periods") as string);
   const comments            = (formData.get("comments") as string) || null;
+  const effective_periods   = Math.ceil(allocated_periods * 1.3);
   const { error } = await db.from("chapter").insert({
     subject_id, academic_segment_id, chapter_number,
-    name, allocated_periods,
+    name, allocated_periods, effective_periods,
     comments,
   });
   if (error) return { error: error.message };
@@ -631,7 +632,7 @@ export async function createChapter(formData: FormData) {
       action: auditActions.setup.chapterCreated,
       entityType: "chapter",
       entityLabel: name,
-      newData: { subject_id, academic_segment_id, chapter_number, name, allocated_periods, comments },
+      newData: { subject_id, academic_segment_id, chapter_number, name, allocated_periods, effective_periods, comments },
     });
   }
 
@@ -645,12 +646,13 @@ export async function updateChapter(id: string, formData: FormData) {
   const allocated_periods = parseInt(formData.get("allocated_periods") as string);
   const comments          = (formData.get("comments") as string) || null;
   const chapter_number    = parseInt(formData.get("chapter_number") as string);
+  const effective_periods = Math.ceil(allocated_periods * 1.3);
 
   const { data: oldData } = await db.from("chapter").select("*").eq("id", id).single();
 
   const { error } = await db.from("chapter")
     .update({
-      name, allocated_periods,
+      name, allocated_periods, effective_periods,
       comments, chapter_number,
       updated_at: new Date().toISOString(),
     })
@@ -668,7 +670,7 @@ export async function updateChapter(id: string, formData: FormData) {
       entityId: id,
       entityLabel: name,
       oldData,
-      newData: { name, allocated_periods, comments, chapter_number },
+      newData: { name, allocated_periods, effective_periods, comments, chapter_number },
     });
   }
 
