@@ -4,7 +4,7 @@ import { createServerClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import type { UserRole } from "@/lib/role-access";
 import { writeAuditLog, auditActions } from "@/lib/audit";
-import { getTeacherProfile } from "@/lib/auth";
+import { getTeacherProfile, getActiveBranch } from "@/lib/auth";
 
 async function getDb() {
   return await createServerClient();
@@ -17,7 +17,10 @@ export async function createSchoolYear(formData: FormData) {
   const name       = formData.get("name") as string;
   const start_date = formData.get("start_date") as string;
   const end_date   = formData.get("end_date") as string;
-  const { error }  = await db.from("school_year").insert({ name, start_date, end_date });
+  const activeBranch = await getActiveBranch();
+  const { error }  = await db.from("school_year").insert({
+    name, start_date, end_date, branch_id: activeBranch?.id ?? null,
+  });
   if (error) return { error: error.message };
 
   const profile = await getTeacherProfile();
@@ -97,8 +100,15 @@ export async function deleteSchoolYear(id: string) {
 export async function setActiveSchoolYear(id: string) {
   const db = await getDb();
   const { data: schoolYear } = await db.from("school_year").select("*").eq("id", id).single();
+  if (!schoolYear) return { error: "School year not found" };
 
-  await db.from("school_year").update({ is_active: false }).neq("id", id);
+  // Only one active year per branch — deactivate siblings in the same
+  // branch, not every school year across every branch.
+  let deactivateQuery = db.from("school_year").update({ is_active: false }).neq("id", id);
+  deactivateQuery = schoolYear.branch_id
+    ? deactivateQuery.eq("branch_id", schoolYear.branch_id)
+    : deactivateQuery.is("branch_id", null);
+  await deactivateQuery;
   await db.from("school_year").update({ is_active: true }).eq("id", id);
 
   const profile = await getTeacherProfile();
@@ -125,7 +135,10 @@ export async function createStandard(formData: FormData) {
   const db = await getDb();
   const name  = formData.get("name") as string;
   const grade = parseInt(formData.get("grade") as string);
-  const { error } = await db.from("standard").insert({ name, grade });
+  const activeBranch = await getActiveBranch();
+  const { error } = await db.from("standard").insert({
+    name, grade, branch_id: activeBranch?.id ?? null,
+  });
   if (error) return { error: error.message };
 
   const profile = await getTeacherProfile();
@@ -207,7 +220,10 @@ export async function createDivision(formData: FormData) {
   const db = await getDb();
   const standard_id = formData.get("standard_id") as string;
   const name        = formData.get("name") as string;
-  const { error }   = await db.from("division").insert({ standard_id, name });
+  const activeBranch = await getActiveBranch();
+  const { error }   = await db.from("division").insert({
+    standard_id, name, branch_id: activeBranch?.id ?? null,
+  });
   if (error) return { error: error.message };
 
   const profile = await getTeacherProfile();
@@ -293,9 +309,11 @@ export async function createAcademicSegment(formData: FormData) {
   const sequence_number = parseInt(formData.get("sequence_number") as string);
   const start_date      = formData.get("start_date") as string;
   const end_date        = formData.get("end_date") as string;
+  const activeBranch = await getActiveBranch();
   const { error } = await db.from("academic_segment").insert({
     school_year_id, standard_id, name,
     segment_type, sequence_number, start_date, end_date,
+    branch_id: activeBranch?.id ?? null,
   });
   if (error) return { error: error.message };
 
@@ -471,8 +489,11 @@ export async function createTeacher(formData: FormData) {
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
   const role  = formData.get("role") as UserRole;
+  const activeBranch = await getActiveBranch();
 
-  const { error } = await db.from("teacher").insert({ name, email, phone, role });
+  const { error } = await db.from("teacher").insert({
+    name, email, phone, role, branch_id: activeBranch?.id ?? null,
+  });
   if (error) return { error: error.message };
 
   const profile = await getTeacherProfile();
