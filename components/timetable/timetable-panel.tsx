@@ -49,6 +49,7 @@ type Props = {
   onClose: () => void;
   panelView: "form" | "builder";
   schoolYears?: SchoolYear[];
+  activeBranchId?: string | null;
 };
 
 export function TimetablePanel({
@@ -64,6 +65,7 @@ export function TimetablePanel({
   onClose,
   panelView,
   schoolYears = [],
+  activeBranchId = null,
 }: Props) {
   const isNewTimetable = !timetable;
   const [saving, setSaving] = useState(false);
@@ -76,7 +78,9 @@ export function TimetablePanel({
   const [selectedSchoolYear, setSelectedSchoolYear] = useState(
     timetable?.school_year_id ?? ""
   );
-  const [selectedBranch, setSelectedBranch] = useState(timetable?.branch_id ?? "");
+  const [selectedBranch, setSelectedBranch] = useState(
+    timetable?.branch_id ?? activeBranchId ?? ""
+  );
   const [selectedDivisions, setSelectedDivisions] = useState<Set<string>>(
     new Set(timetable?.timetable_division?.map((td) => td.division_id) ?? [])
   );

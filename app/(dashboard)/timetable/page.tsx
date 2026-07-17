@@ -1,4 +1,4 @@
-import { getRole } from "@/lib/auth";
+import { getRole, getActiveBranch } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { TimetableShell } from "@/components/timetable/timetable-shell";
@@ -8,9 +8,10 @@ export default async function TimetablePage() {
   if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const admin = createAdminClient();
+  const activeBranch = await getActiveBranch();
 
-  // Fetch timetables
-  const { data: timetables } = await admin
+  // Fetch timetables for the active branch
+  let timetablesQuery = admin
     .from("timetable")
     .select(
       `
@@ -20,41 +21,42 @@ export default async function TimetablePage() {
       `
     )
     .order("created_at", { ascending: false });
+  if (activeBranch) timetablesQuery = timetablesQuery.eq("branch_id", activeBranch.id);
+  const { data: timetables } = await timetablesQuery;
 
-  // Fetch active school years
-  const { data: school_years } = await admin
-    .from("school_year")
-    .select("*")
-    .eq("is_active", true)
-    .order("name");
+  // Fetch active school year for the active branch
+  let schoolYearsQuery = admin.from("school_year").select("*").eq("is_active", true).order("name");
+  if (activeBranch) schoolYearsQuery = schoolYearsQuery.eq("branch_id", activeBranch.id);
+  const { data: school_years } = await schoolYearsQuery;
 
-  // Fetch standards and divisions
-  const { data: standards } = await admin
-    .from("standard")
-    .select("*")
-    .order("grade");
+  // Fetch standards and divisions for the active branch
+  let standardsQuery = admin.from("standard").select("*").order("grade");
+  let divisionsQuery = admin.from("division").select("*").order("standard_id, name");
+  if (activeBranch) {
+    standardsQuery = standardsQuery.eq("branch_id", activeBranch.id);
+    divisionsQuery = divisionsQuery.eq("branch_id", activeBranch.id);
+  }
+  const { data: standards } = await standardsQuery;
+  const { data: divisions } = await divisionsQuery;
 
-  const { data: divisions } = await admin
-    .from("division")
-    .select("*")
-    .order("standard_id, name");
-
-  // Fetch subjects
+  // Subjects are branch-agnostic
   const { data: subjects } = await admin
     .from("subject")
     .select("*")
     .order("name");
 
-  // Fetch teachers (role = teacher)
-  const { data: teachers } = await admin
+  // Fetch teachers (role = teacher) for the active branch
+  let teachersQuery = admin
     .from("teacher")
     .select("*")
     .eq("role", "teacher")
     .eq("is_active", true)
     .order("name");
+  if (activeBranch) teachersQuery = teachersQuery.eq("branch_id", activeBranch.id);
+  const { data: teachers } = await teachersQuery;
 
-  // Fetch time templates with their slots
-  const { data: time_templates_raw } = await admin
+  // Fetch time templates with their slots, for the active branch
+  let timeTemplatesQuery = admin
     .from("time_template")
     .select(
       `
@@ -63,40 +65,40 @@ export default async function TimetablePage() {
       `
     )
     .order("name");
+  if (activeBranch) timeTemplatesQuery = timeTemplatesQuery.eq("branch_id", activeBranch.id);
+  const { data: time_templates_raw } = await timeTemplatesQuery;
 
   const time_templates = time_templates_raw as any;
 
-  // Fetch teacher assignments for active school year
-  const { data: activeSchoolYear } = await admin
-    .from("school_year")
-    .select("id")
-    .eq("is_active", true)
-    .limit(1)
-    .maybeSingle();
+  const activeSchoolYear = school_years?.[0] ?? null;
 
   let teacher_assignments = [];
   if (activeSchoolYear) {
-    const { data: assignments } = await admin
+    let assignmentsQuery = admin
       .from("teacher_assignment")
       .select("*")
       .eq("school_year_id", activeSchoolYear.id);
+    if (activeBranch) assignmentsQuery = assignmentsQuery.eq("branch_id", activeBranch.id);
+    const { data: assignments } = await assignmentsQuery;
     teacher_assignments = assignments ?? [];
   }
 
-  // Fetch branches
+  // Fetch branches (for the branch picker inside the panel)
   const { data: branches } = await admin
     .from("branch")
     .select("*")
     .eq("is_active", true)
     .order("name");
 
-  // Fetch timetable slots for active school year
+  // Fetch timetable slots for the active branch's active school year
   let timetable_slots = [];
   if (activeSchoolYear) {
-    const { data: slots } = await admin
+    let slotsQuery = admin
       .from("timetable_slot")
       .select("*")
       .eq("school_year_id", activeSchoolYear.id);
+    if (activeBranch) slotsQuery = slotsQuery.eq("branch_id", activeBranch.id);
+    const { data: slots } = await slotsQuery;
     timetable_slots = slots ?? [];
   }
 
@@ -113,6 +115,7 @@ export default async function TimetablePage() {
       branches={branches ?? []}
       timetable_slots={timetable_slots}
       role={role}
+      activeBranchId={activeBranch?.id ?? null}
     />
   );
 }

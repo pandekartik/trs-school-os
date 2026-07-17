@@ -1,4 +1,4 @@
-import { getRole } from "@/lib/auth";
+import { getRole, getActiveBranch } from "@/lib/auth";
 import { createServerClient } from "@/lib/supabase-server";
 import { ContentShell } from "@/components/content/content-shell";
 import { redirect } from "next/navigation";
@@ -12,13 +12,13 @@ export default async function ContentPage() {
   }
 
   const db = await createServerClient();
+  const activeBranch = await getActiveBranch();
 
-  // The page is driven by the most recently created active school year.
-  const { data: schoolYears } = await db
-    .from("school_year")
-    .select("*")
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+  // The page is driven by the most recently created active school year
+  // for the current branch (school years are branch-scoped).
+  let schoolYearsQuery = db.from("school_year").select("*").eq("is_active", true).order("created_at", { ascending: false });
+  if (activeBranch) schoolYearsQuery = schoolYearsQuery.eq("branch_id", activeBranch.id);
+  const { data: schoolYears } = await schoolYearsQuery;
 
   const activeYear = schoolYears?.[0] ?? null;
 
@@ -35,7 +35,11 @@ export default async function ContentPage() {
     );
   }
 
-  // Metadata needed to list and filter chapters — all small, active-year scoped.
+  // Segments/standards are branch-scoped; subjects and chapters (content)
+  // are shared across branches.
+  let standardsQuery = db.from("standard").select("*").is("deleted_at", null).order("grade");
+  if (activeBranch) standardsQuery = standardsQuery.eq("branch_id", activeBranch.id);
+
   const [{ data: segments }, { data: standards }, { data: subjects }] = await Promise.all([
     db
       .from("academic_segment")
@@ -43,7 +47,7 @@ export default async function ContentPage() {
       .eq("school_year_id", activeYear.id)
       .is("deleted_at", null)
       .order("sequence_number"),
-    db.from("standard").select("*").is("deleted_at", null).order("grade"),
+    standardsQuery,
     db.from("subject").select("*").eq("has_chapters", true).is("deleted_at", null).order("name"),
   ]);
 

@@ -41,6 +41,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/role-access";
 import { ActivitySquare } from "lucide-react";
+import { BranchSwitcher } from "@/components/layout/branch-switcher";
 
 type NavItem = {
   title: string;
@@ -142,9 +143,11 @@ function isActivePath(pathname: string, href: string) {
 interface AppSidebarProps {
   role: UserRole | null;
   teacherName: string;
+  branches?: { id: string; name: string }[];
+  activeBranchId?: string | null;
 }
 
-export function AppSidebar({ role, teacherName }: AppSidebarProps) {
+export function AppSidebar({ role, teacherName, branches = [], activeBranchId = null }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const displayRole = role ?? "teacher";
@@ -177,6 +180,12 @@ export function AppSidebar({ role, teacherName }: AppSidebarProps) {
           style={{ height: "36px", width: "auto", objectFit: "contain" }}
         />
       </SidebarHeader>
+
+      {role && ["super_admin", "admin"].includes(role) && (
+        <div className="pt-2">
+          <BranchSwitcher branches={branches} activeBranchId={activeBranchId} />
+        </div>
+      )}
 
       <SidebarContent className="gap-1 px-2 py-3">
         {navGroups.map((group) => {

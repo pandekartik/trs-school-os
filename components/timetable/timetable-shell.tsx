@@ -54,6 +54,7 @@ type Props = {
   branches: Branch[];
   timetable_slots: TimetableSlot[];
   role?: UserRole | null;
+  activeBranchId?: string | null;
 };
 
 export function TimetableShell({
@@ -67,6 +68,7 @@ export function TimetableShell({
   teacher_assignments,
   branches,
   timetable_slots,
+  activeBranchId = null,
 }: Props) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [selectedTimetable, setSelectedTimetable] = useState<typeof timetables[0] | null>(null);
@@ -331,6 +333,7 @@ export function TimetableShell({
               teacherAssignments={teacher_assignments}
               existingSlots={timetable_slots}
               branches={branches}
+              activeBranchId={activeBranchId}
               onClose={handleClose}
               panelView={panelView}
             />
@@ -346,6 +349,7 @@ export function TimetableShell({
               teacherAssignments={teacher_assignments}
               existingSlots={timetable_slots}
               branches={branches}
+              activeBranchId={activeBranchId}
               onClose={handleClose}
               panelView={panelView}
               schoolYears={school_years}
