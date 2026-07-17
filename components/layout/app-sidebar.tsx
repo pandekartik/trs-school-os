@@ -32,6 +32,7 @@ import {
   Layers,
   LayoutDashboard,
   LogOut,
+  Plane,
   Upload,
   UserCheck,
   Users,
@@ -69,6 +70,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
       { title: "Teachers", href: "/setup/teachers", icon: GraduationCap, roles: ["super_admin", "admin"] },
       { title: "Chapters", href: "/setup/chapters", icon: FileText, roles: ["super_admin", "admin"] },
       { title: "Teacher Allocation", href: "/setup/teacher-allocation", icon: UserCheck, roles: ["super_admin", "admin"] },
+      { title: "Leave Policy", href: "/setup/leave-policy", icon: Plane, roles: ["super_admin", "admin"] },
     ],
   },
   {
@@ -90,6 +92,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { title: "Teacher View", href: "/teacher", icon: CalendarCheck, roles: ["super_admin", "admin", "coordinator", "teacher"] },
       { title: "Attendance", href: "/teacher/attendance", icon: ClipboardCheck, roles: ["super_admin", "admin", "teacher"] },
+      { title: "Leave Requests", href: "/teacher/leave", icon: Plane, roles: ["super_admin", "admin", "coordinator", "teacher"] },
     ],
   },
 ];
