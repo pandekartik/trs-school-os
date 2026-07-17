@@ -579,8 +579,10 @@ export async function createTeacherAssignment(formData: FormData) {
   const subject_id     = formData.get("subject_id") as string;
   const division_id    = formData.get("division_id") as string;
   const school_year_id = formData.get("school_year_id") as string;
+  const activeBranch = await getActiveBranch();
   const { error } = await db.from("teacher_assignment").insert({
     teacher_id, subject_id, division_id, school_year_id,
+    branch_id: activeBranch?.id ?? null,
   });
   if (error) return { error: error.message };
 

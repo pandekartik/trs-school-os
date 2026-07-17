@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase-admin";
+import { getActiveBranch } from "@/lib/auth";
 
 function getDb() {
   return createAdminClient();
@@ -823,6 +824,7 @@ export async function createHoliday(formData: FormData) {
   const type = String(formData.get("type") ?? "school_event") as "national" | "school_event" | "exam" | "unplanned";
   const affects_all = String(formData.get("affects_all") ?? "") === "true";
   const division_id = affects_all ? null : String(formData.get("division_id") ?? "") || null;
+  const activeBranch = await getActiveBranch();
 
   const { error } = await db.from("holiday").insert({
     school_year_id,
@@ -831,6 +833,7 @@ export async function createHoliday(formData: FormData) {
     type,
     affects_all,
     division_id,
+    branch_id: activeBranch?.id ?? null,
   });
   if (error) return { error: error.message };
   revalidatePath("/timetable");
@@ -871,9 +874,10 @@ export async function createTimeTemplate(formData: FormData) {
   if (!name) return { error: "Template name is required" };
   if (days.length === 0) return { error: "At least one day must be selected" };
 
+  const activeBranch = await getActiveBranch();
   const { data, error } = await db
     .from("time_template")
-    .insert([{ name, days }])
+    .insert([{ name, days, branch_id: activeBranch?.id ?? null }])
     .select("id")
     .single();
 
@@ -975,6 +979,7 @@ export async function duplicateTimeTemplate(id: string) {
       {
         name: `${original.name} (copy)`,
         days: original.days,
+        branch_id: original.branch_id,
       },
     ])
     .select("id")

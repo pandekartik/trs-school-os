@@ -1,4 +1,4 @@
-import { getRole } from "@/lib/auth";
+import { getRole, getActiveBranch } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase-server";
 import { HolidaysShell } from "@/components/timetable/holidays-shell";
@@ -8,13 +8,15 @@ export default async function HolidaysPage() {
   if (!["super_admin", "admin"].includes(role ?? "")) redirect("/admin");
 
   const db = await createServerClient();
+  const activeBranch = await getActiveBranch();
 
-  // Get active school year
-  const { data: activeSchoolYear } = await db
+  // Get active school year for the active branch
+  let activeYearQuery = db
     .from("school_year")
     .select("id, name, start_date, end_date")
-    .eq("is_active", true)
-    .single();
+    .eq("is_active", true);
+  if (activeBranch) activeYearQuery = activeYearQuery.eq("branch_id", activeBranch.id);
+  const { data: activeSchoolYear } = await activeYearQuery.maybeSingle();
 
   if (!activeSchoolYear) {
     return (
@@ -41,15 +43,15 @@ export default async function HolidaysPage() {
     .eq("school_year_id", activeSchoolYear.id)
     .order("date", { ascending: true });
 
-  // Get all standards and divisions for dropdowns
-  const { data: standards } = await db
-    .from("standard")
-    .select("id, name, grade")
-    .order("grade", { ascending: true });
-
-  const { data: divisions } = await db
-    .from("division")
-    .select("id, name, standard_id");
+  // Get standards and divisions for the active branch, for dropdowns
+  let standardsQuery = db.from("standard").select("id, name, grade").order("grade", { ascending: true });
+  let divisionsQuery = db.from("division").select("id, name, standard_id");
+  if (activeBranch) {
+    standardsQuery = standardsQuery.eq("branch_id", activeBranch.id);
+    divisionsQuery = divisionsQuery.eq("branch_id", activeBranch.id);
+  }
+  const { data: standards } = await standardsQuery;
+  const { data: divisions } = await divisionsQuery;
 
   return (
     <HolidaysShell
