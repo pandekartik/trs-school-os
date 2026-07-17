@@ -67,6 +67,9 @@ export const auditActions = {
     branchCreated: "branch.created",
     branchUpdated: "branch.updated",
     branchDeleted: "branch.deleted",
+    leavePolicyCreated: "leave_policy.created",
+    leavePolicyUpdated: "leave_policy.updated",
+    leavePolicyDeleted: "leave_policy.deleted",
   },
   timetable: {
     templateCreated: "template.created",
@@ -91,5 +94,12 @@ export const auditActions = {
     periodEdited: "period.log_edited",
     absenceMarked: "teacher.absence_marked",
     absenceDeleted: "teacher.absence_deleted",
+  },
+  leave: {
+    requested: "leave_request.requested",
+    cancelled: "leave_request.cancelled",
+    approved: "leave_request.approved",
+    rejected: "leave_request.rejected",
+    substituteAssigned: "substitution.assigned",
   },
 };

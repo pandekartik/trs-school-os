@@ -273,5 +273,53 @@ export type TimetableActivation = {
   created_at: string;
 };
 
+export type LeavePolicy = {
+  id: string;
+  school_year_id: string;
+  leave_type: "sick" | "casual" | "emergency" | "official";
+  name: string;
+  days_allowed: number;
+  is_paid: boolean;
+  requires_document: boolean;
+  created_at: string;
+};
+
+export type LeaveBalance = {
+  id: string;
+  teacher_id: string;
+  school_year_id: string;
+  leave_type: string;
+  used_days: number;
+  created_at: string;
+};
+
+export type LeaveRequest = {
+  id: string;
+  display_id: string;
+  teacher_id: string;
+  school_year_id: string;
+  branch_id: string | null;
+  leave_type: string;
+  from_date: string;
+  to_date: string;
+  total_days: number;
+  reason: string;
+  status: "pending" | "approved" | "rejected" | "cancelled";
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_comment: string | null;
+  created_at: string;
+};
+
+export type Substitution = {
+  id: string;
+  period_instance_id: string;
+  leave_request_id: string | null;
+  original_teacher_id: string;
+  substitute_teacher_id: string | null;
+  date: string;
+  status: "pending" | "assigned" | "cancelled";
+};
+
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };

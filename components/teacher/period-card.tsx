@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { LogModal } from "@/components/teacher/log-modal";
 import { OverrideModal } from "@/components/teacher/override-modal";
 import { PERIOD_TIMES, formatTimeLabel } from "@/lib/timetable-constants";
+import { parseDateOnly } from "@/lib/utils/date";
 
 interface PeriodCardProps {
   periodInstance: any;
@@ -92,7 +93,7 @@ export function PeriodCard({
 
   const isLogged = ["done", "partial", "not_done"].includes(status);
   const canLog = (status === "scheduled" || status === "unlogged") && !isBufferPeriod;
-  const isPast = new Date(periodInstance.date) < new Date();
+  const isPast = parseDateOnly(periodInstance.date) < new Date();
   const isCancelled = status === "cancelled";
 
   const handleViewLesson = () => {

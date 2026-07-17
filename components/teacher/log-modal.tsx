@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { logPeriod } from "@/lib/actions/teacher";
 import { cn } from "@/lib/utils";
+import { formatDateOnly } from "@/lib/utils/date";
 
 type StatusType = "done" | "partial" | "not_done";
 
@@ -129,11 +130,7 @@ export function LogModal({
     }
   };
 
-  const date = new Date(periodInstance.date);
-  const dateStr = date.toLocaleDateString("en-IN", {
-    month: "short",
-    day: "numeric",
-  });
+  const dateStr = formatDateOnly(periodInstance.date, { month: "short", day: "numeric" }, "en-IN");
 
   const selectedStatusOption = STATUS_OPTIONS.find((opt) => opt.value === status);
   const needsNote = status === "partial" || status === "not_done";

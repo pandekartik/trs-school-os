@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { getTodayIsoDate } from "@/lib/timetable-constants";
+import { formatDateOnly } from "@/lib/utils/date";
 import Link from "next/link";
 
 interface FlaggedPeriodsProps {
@@ -75,10 +76,7 @@ export function FlaggedPeriods({
                     {subject?.name || "Unknown Subject"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(period.date).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
+                    {formatDateOnly(period.date, { month: "short", day: "numeric" })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 ml-2">

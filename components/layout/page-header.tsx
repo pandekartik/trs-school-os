@@ -19,6 +19,7 @@ const routeMeta: Record<string, { section: string; title: string }> = {
   "/setup/teachers": { section: "ADMIN", title: "Teachers" },
   "/setup/chapters": { section: "ADMIN", title: "Chapters" },
   "/setup/teacher-allocation": { section: "ADMIN", title: "Teacher Allocation" },
+  "/setup/leave-policy": { section: "ADMIN", title: "Leave Policy" },
   "/content": { section: "CONTENT", title: "Library" },
   "/timetable": { section: "ADMIN", title: "Timetable" },
   "/timetable/templates": { section: "ADMIN", title: "Time Templates" },
@@ -26,6 +27,7 @@ const routeMeta: Record<string, { section: string; title: string }> = {
   "/timetable/holidays": { section: "ADMIN", title: "Holidays" },
   "/teacher": { section: "TEACHER", title: "Today" },
   "/teacher/attendance": { section: "TEACHER", title: "Attendance" },
+  "/teacher/leave": { section: "TEACHER", title: "Leave" },
 };
 
 function getRouteMeta(pathname: string) {

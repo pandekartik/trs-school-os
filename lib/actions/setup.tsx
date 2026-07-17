@@ -615,9 +615,10 @@ export async function createChapter(formData: FormData) {
   const name                = formData.get("name") as string;
   const allocated_periods   = parseInt(formData.get("allocated_periods") as string);
   const comments            = (formData.get("comments") as string) || null;
+  const effective_periods   = Math.ceil(allocated_periods * 1.3);
   const { error } = await db.from("chapter").insert({
     subject_id, academic_segment_id, chapter_number,
-    name, allocated_periods,
+    name, allocated_periods, effective_periods,
     comments,
   });
   if (error) return { error: error.message };
@@ -631,7 +632,7 @@ export async function createChapter(formData: FormData) {
       action: auditActions.setup.chapterCreated,
       entityType: "chapter",
       entityLabel: name,
-      newData: { subject_id, academic_segment_id, chapter_number, name, allocated_periods, comments },
+      newData: { subject_id, academic_segment_id, chapter_number, name, allocated_periods, effective_periods, comments },
     });
   }
 
@@ -645,12 +646,13 @@ export async function updateChapter(id: string, formData: FormData) {
   const allocated_periods = parseInt(formData.get("allocated_periods") as string);
   const comments          = (formData.get("comments") as string) || null;
   const chapter_number    = parseInt(formData.get("chapter_number") as string);
+  const effective_periods = Math.ceil(allocated_periods * 1.3);
 
   const { data: oldData } = await db.from("chapter").select("*").eq("id", id).single();
 
   const { error } = await db.from("chapter")
     .update({
-      name, allocated_periods,
+      name, allocated_periods, effective_periods,
       comments, chapter_number,
       updated_at: new Date().toISOString(),
     })
@@ -668,7 +670,7 @@ export async function updateChapter(id: string, formData: FormData) {
       entityId: id,
       entityLabel: name,
       oldData,
-      newData: { name, allocated_periods, comments, chapter_number },
+      newData: { name, allocated_periods, effective_periods, comments, chapter_number },
     });
   }
 
@@ -870,6 +872,96 @@ export async function createBranch(formData: FormData) {
   }
 
   revalidatePath("/admin/branches");
+  return { success: true };
+}
+
+// ── LEAVE POLICY ──────────────────────────
+
+export async function createLeavePolicy(formData: FormData) {
+  const db = await getDb();
+  const school_year_id     = formData.get("school_year_id") as string;
+  const leave_type         = formData.get("leave_type") as "sick" | "casual" | "emergency" | "official";
+  const name               = formData.get("name") as string;
+  const days_allowed       = parseInt(formData.get("days_allowed") as string);
+  const is_paid            = formData.get("is_paid") === "true";
+  const requires_document  = formData.get("requires_document") === "true";
+  const { error } = await db.from("leave_policy").insert({
+    school_year_id, leave_type, name, days_allowed, is_paid, requires_document,
+  });
+  if (error) return { error: error.message };
+
+  const profile = await getTeacherProfile();
+  if (profile) {
+    writeAuditLog({
+      userId: profile.id,
+      userName: profile.name,
+      userRole: profile.role,
+      action: auditActions.setup.leavePolicyCreated,
+      entityType: "leave_policy",
+      entityLabel: name,
+      newData: { school_year_id, leave_type, name, days_allowed, is_paid, requires_document },
+    });
+  }
+
+  revalidatePath("/setup/leave-policy");
+  return { success: true };
+}
+
+export async function updateLeavePolicy(id: string, formData: FormData) {
+  const db = await getDb();
+  const name              = formData.get("name") as string;
+  const days_allowed      = parseInt(formData.get("days_allowed") as string);
+  const is_paid           = formData.get("is_paid") === "true";
+  const requires_document = formData.get("requires_document") === "true";
+
+  const { data: oldData } = await db.from("leave_policy").select("*").eq("id", id).single();
+
+  const { error } = await db.from("leave_policy")
+    .update({ name, days_allowed, is_paid, requires_document, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { error: error.message };
+
+  const profile = await getTeacherProfile();
+  if (profile) {
+    writeAuditLog({
+      userId: profile.id,
+      userName: profile.name,
+      userRole: profile.role,
+      action: auditActions.setup.leavePolicyUpdated,
+      entityType: "leave_policy",
+      entityId: id,
+      entityLabel: name,
+      oldData,
+      newData: { name, days_allowed, is_paid, requires_document },
+    });
+  }
+
+  revalidatePath("/setup/leave-policy");
+  return { success: true };
+}
+
+export async function deleteLeavePolicy(id: string) {
+  const db = await getDb();
+  const { data: oldData } = await db.from("leave_policy").select("*").eq("id", id).single();
+
+  const { error } = await db.from("leave_policy").delete().eq("id", id);
+  if (error) return { error: error.message };
+
+  const profile = await getTeacherProfile();
+  if (profile && oldData) {
+    writeAuditLog({
+      userId: profile.id,
+      userName: profile.name,
+      userRole: profile.role,
+      action: auditActions.setup.leavePolicyDeleted,
+      entityType: "leave_policy",
+      entityId: id,
+      entityLabel: oldData.name,
+      oldData,
+    });
+  }
+
+  revalidatePath("/setup/leave-policy");
   return { success: true };
 }
 
