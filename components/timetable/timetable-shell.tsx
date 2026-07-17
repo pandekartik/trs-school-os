@@ -12,6 +12,8 @@ import type {
   TeacherAssignment,
   TimeTemplate,
   TimetableSlot,
+  AcademicSegment,
+  Chapter,
 } from "@/lib/types";
 import type { UserRole } from "@/lib/role-access";
 import {
@@ -55,6 +57,8 @@ type Props = {
   timetable_slots: TimetableSlot[];
   role?: UserRole | null;
   activeBranchId?: string | null;
+  segments?: AcademicSegment[];
+  chapters?: Chapter[];
 };
 
 export function TimetableShell({
@@ -69,6 +73,8 @@ export function TimetableShell({
   branches,
   timetable_slots,
   activeBranchId = null,
+  segments = [],
+  chapters = [],
 }: Props) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [selectedTimetable, setSelectedTimetable] = useState<typeof timetables[0] | null>(null);
@@ -334,6 +340,8 @@ export function TimetableShell({
               existingSlots={timetable_slots}
               branches={branches}
               activeBranchId={activeBranchId}
+              segments={segments}
+              chapters={chapters}
               onClose={handleClose}
               panelView={panelView}
             />
@@ -350,6 +358,8 @@ export function TimetableShell({
               existingSlots={timetable_slots}
               branches={branches}
               activeBranchId={activeBranchId}
+              segments={segments}
+              chapters={chapters}
               onClose={handleClose}
               panelView={panelView}
               schoolYears={school_years}
