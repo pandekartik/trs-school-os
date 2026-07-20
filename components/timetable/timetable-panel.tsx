@@ -38,6 +38,8 @@ import { Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ScheduleGenerator } from "./schedule-generator";
+import { exportTimetableGridToPdf } from "@/lib/utils/timetable-pdf";
+import { Download } from "lucide-react";
 
 type Props = {
   timetable: (Timetable & { timetable_division?: Array<{ division_id: string }>; timetable_day_template?: Array<{ day_of_week: string; template_id: string }> }) | null;
@@ -314,6 +316,25 @@ export function TimetablePanel({
       .sort((a: any, b: any) => a.display_order - b.display_order);
   };
 
+  const handleExportPdf = (divisionId: string) => {
+    const division = divisions.find((d) => d.id === divisionId);
+    const standard = standards.find((s) => s.id === division?.standard_id);
+    const divisionLabel = division ? `${standard?.name ?? ""} ${division.name}`.trim() : "Division";
+
+    exportTimetableGridToPdf({
+      divisionLabel,
+      timetableName: timetable?.name ?? "Timetable",
+      days: daysOfWeek.slice(0, 5),
+      getTemplateSlotsForDay: (day) => getTemplateSlots(getSelectedTemplate(day)),
+      getCell: (templateSlotId, day) => {
+        const slot = getSlotForCell(divisionId, templateSlotId, day);
+        return slot ? { subject_id: slot.subject_id, teacher_id: slot.teacher_id } : undefined;
+      },
+      getSubjectName: (subjectId) => subjects.find((s) => s.id === subjectId)?.name ?? "—",
+      getTeacherName: (teacherId) => teachers.find((t) => t.id === teacherId)?.name ?? "—",
+    });
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between border-b p-4">
@@ -469,7 +490,21 @@ export function TimetablePanel({
               )}
 
               {activeDivisionForGrid || selectedDivisions.size === 1 ? (
-                <SlotGrid
+                <>
+                  <div className="mb-3 flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() =>
+                        handleExportPdf(activeDivisionForGrid || Array.from(selectedDivisions)[0])
+                      }
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Export PDF
+                    </Button>
+                  </div>
+                  <SlotGrid
                   timetable={timetable}
                   divisions={divisions}
                   activeDivisionId={
@@ -484,7 +519,8 @@ export function TimetablePanel({
                   onSaveSlot={handleSaveSlot}
                   onClearSlot={handleClearSlot}
                   getSlotForCell={getSlotForCell}
-                />
+                  />
+                </>
               ) : (
                 <div className="text-center py-8 text-muted-foreground text-sm">
                   No divisions selected
@@ -593,6 +629,8 @@ function SlotGrid({
   onClearSlot,
   getSlotForCell,
 }: SlotGridProps) {
+  const activeDivisionStandardId = divisions.find((d) => d.id === activeDivisionId)?.standard_id;
+
   const daysWithTemplate = Object.entries(dayTemplates)
     .filter(([, templateId]) => templateId !== "none")
     .map(([day]) => day);
@@ -690,6 +728,7 @@ function SlotGrid({
                         subject={subject}
                         teacher={teacher}
                         subjects={subjects}
+                        standardId={activeDivisionStandardId}
                         teacherAssignments={teacherAssignments}
                         teachers={teachers}
                         onSave={onSaveSlot}
@@ -715,6 +754,7 @@ type SlotCellProps = {
   subject: Subject | undefined;
   teacher: Teacher | undefined;
   subjects: Subject[];
+  standardId: string | undefined;
   teacherAssignments: TeacherAssignment[];
   teachers: Teacher[];
   onSave: (divisionId: string, templateSlotId: string, dayOfWeek: string, subjectId: string, teacherId: string) => Promise<void>;
@@ -729,6 +769,7 @@ function SlotCell({
   subject,
   teacher,
   subjects,
+  standardId,
   teacherAssignments,
   teachers,
   onSave,
@@ -761,6 +802,10 @@ function SlotCell({
       </button>
     );
   }
+
+  const availableSubjects = standardId
+    ? subjects.filter((subj) => subj.standard_id === standardId)
+    : subjects;
 
   const availableTeachers = teacherAssignments
     .filter((a) => a.division_id === divisionId && a.subject_id === selectedSubject)
@@ -801,7 +846,7 @@ function SlotCell({
           <SelectValue placeholder="Subject" />
         </SelectTrigger>
         <SelectContent>
-          {subjects.map((subj) => (
+          {availableSubjects.map((subj) => (
             <SelectItem key={subj.id} value={subj.id}>
               {subj.name}
             </SelectItem>

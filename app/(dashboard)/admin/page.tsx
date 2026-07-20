@@ -67,6 +67,7 @@ export default async function AdminPage() {
     { data: academicSegments },
     { data: absencesThisWeek },
     { data: holidaysThisWeek },
+    { count: pendingLeaveRequestCount },
   ] = await Promise.all([
     admin.from("school_year").select("*").eq("is_active", true),
     teacherQuery.order("name"),
@@ -99,6 +100,7 @@ export default async function AdminPage() {
     admin.from("academic_segment").select("*"),
     absenceQuery,
     holidayQuery,
+    admin.from("leave_request").select("id", { count: "exact", head: true }).eq("status", "pending"),
   ]);
 
   return (
@@ -117,6 +119,7 @@ export default async function AdminPage() {
       academicSegments={academicSegments ?? []}
       absencesThisWeek={absencesThisWeek ?? []}
       holidaysThisWeek={holidaysThisWeek ?? []}
+      pendingLeaveRequestCount={pendingLeaveRequestCount ?? 0}
       weekStart={weekStart}
       today={new Date(today)}
     />

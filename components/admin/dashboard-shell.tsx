@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AlertCard } from "@/components/shared/alert-card";
+import { buttonVariants } from "@/components/ui/button";
 import { FlaggedPeriods } from "@/components/admin/flagged-periods";
 import { TeacherTable } from "@/components/admin/teacher-table";
 import { ChapterProgress } from "@/components/admin/chapter-progress";
@@ -50,6 +52,7 @@ interface DashboardShellProps {
   academicSegments: AcademicSegment[];
   absencesThisWeek: TeacherAbsence[];
   holidaysThisWeek: Holiday[];
+  pendingLeaveRequestCount: number;
   weekStart: Date;
   today: Date;
 }
@@ -275,6 +278,7 @@ export function DashboardShell({
   academicSegments,
   absencesThisWeek,
   holidaysThisWeek,
+  pendingLeaveRequestCount,
   weekStart,
   today,
 }: DashboardShellProps) {
@@ -468,6 +472,21 @@ export function DashboardShell({
           )}
         </DashboardPanel>
       </div>
+
+      {pendingLeaveRequestCount > 0 && (
+        <AlertCard
+          className="mb-4"
+          variant="warning"
+          title={`${pendingLeaveRequestCount} leave request${pendingLeaveRequestCount === 1 ? "" : "s"} awaiting approval`}
+          action={
+            <Link href="/teacher/leave" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+              Review requests
+            </Link>
+          }
+        >
+          Teachers are waiting on a decision before their substitution can be arranged.
+        </AlertCard>
+      )}
 
       {!activeSchoolYear && (
         <AlertCard className="mb-4" variant="warning" title="No active school year">

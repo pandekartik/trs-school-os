@@ -6,6 +6,10 @@ import { getLandingRoute, routeAccess } from "@/lib/role-access";
 const publicRoutes = ["/sign-in", "/reset-password"];
 
 export async function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname === "/api/health") {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(

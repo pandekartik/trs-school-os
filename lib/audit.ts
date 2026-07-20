@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase-admin";
 import type { UserRole } from "@/lib/role-access";
+import { getActiveBranch } from "@/lib/auth";
 
 export interface AuditLogEntry {
   userId: string;
@@ -11,11 +12,13 @@ export interface AuditLogEntry {
   entityLabel?: string;
   oldData?: Record<string, any> | null;
   newData?: Record<string, any> | null;
+  branchId?: string | null;
 }
 
 export async function writeAuditLog(entry: AuditLogEntry): Promise<void> {
   try {
     const admin = createAdminClient();
+    const branchId = entry.branchId !== undefined ? entry.branchId : (await getActiveBranch())?.id ?? null;
     await admin.from("audit_log").insert({
       user_id: entry.userId,
       user_name: entry.userName,
@@ -25,6 +28,7 @@ export async function writeAuditLog(entry: AuditLogEntry): Promise<void> {
       entity_label: entry.entityLabel,
       old_data: entry.oldData,
       new_data: entry.newData,
+      branch_id: branchId,
     });
   } catch (err) {
     // Silently fail - audit logging should never break the main operation

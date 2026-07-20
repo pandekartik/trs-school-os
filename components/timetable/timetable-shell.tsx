@@ -344,6 +344,7 @@ export function TimetableShell({
               chapters={chapters}
               onClose={handleClose}
               panelView={panelView}
+              schoolYears={school_years}
             />
           )}
           {panelOpen && !selectedTimetable && (

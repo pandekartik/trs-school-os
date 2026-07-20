@@ -102,6 +102,8 @@ export async function createTimetable(formData: FormData) {
   if (!name) return { error: "Timetable name is required" };
   if (!school_year_id) return { error: "School year is required" };
 
+  const display_id = `TT-${crypto.randomUUID().slice(0, 5).toUpperCase()}`;
+
   const { data, error } = await db
     .from("timetable")
     .insert({
@@ -109,6 +111,7 @@ export async function createTimetable(formData: FormData) {
       school_year_id,
       branch_id,
       status: "draft",
+      display_id,
     })
     .select("id")
     .single();
@@ -293,6 +296,7 @@ export async function saveTimetableSlot(formData: FormData) {
         school_year_id,
         branch_id,
         display_id,
+        period_number: templateSlot.display_order,
       },
       { onConflict: "timetable_id,template_slot_id,day_of_week,division_id" }
     );
@@ -350,13 +354,37 @@ export async function finalizeTimetable(
 
   // New signature: finalizeTimetable(timetableId, userId)
   if (maybeUserId === undefined) {
+    const timetableId = divisionIdOrTimetableId;
+
+    const { data: slots, error: slotsError } = await db
+      .from("timetable_slot")
+      .select("id")
+      .eq("timetable_id", timetableId);
+    if (slotsError) return { error: slotsError.message };
+
+    const slotIds = (slots ?? []).map((slot: any) => slot.id);
+    if (slotIds.length > 0) {
+      const { count, error: countError } = await db
+        .from("period_instance")
+        .select("id", { count: "exact", head: true })
+        .in("timetable_slot_id", slotIds);
+      if (countError) return { error: countError.message };
+
+      if (!count) {
+        return {
+          error:
+            "No period instances have been generated for this timetable yet. Use \"Generate Schedule\" on each division before finalizing.",
+        };
+      }
+    }
+
     const { error } = await db
       .from("timetable")
       .update({
         status: "finalized",
         finalized_at: new Date().toISOString(),
       })
-      .eq("id", divisionIdOrTimetableId);
+      .eq("id", timetableId);
 
     if (error) return { error: error.message };
 
@@ -594,6 +622,7 @@ export async function generateSchedule(
           logged_by: null,
           logged_at: null,
           display_id,
+          branch_id: (slot as any).branch_id ?? null,
         });
       } else {
         bufferCount += 1;
@@ -611,6 +640,7 @@ export async function generateSchedule(
           logged_by: null,
           logged_at: null,
           display_id,
+          branch_id: (slot as any).branch_id ?? null,
         });
       }
     }
