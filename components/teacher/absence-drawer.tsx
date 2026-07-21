@@ -193,11 +193,11 @@ export function AbsenceDrawer({
 
           {/* This week absences */}
           <div className="border-t pt-3">
-            <h4 className="text-xs font-medium uppercase mb-2 text-[hsl(var(--text-muted))]">
+            <h4 className="text-xs font-medium uppercase mb-2 text-[var(--text-muted)]">
               This week
             </h4>
             {relevantAbsences.length === 0 ? (
-              <p className="text-xs text-[hsl(var(--text-muted))]">
+              <p className="text-xs text-[var(--text-muted)]">
                 No absences this week
               </p>
             ) : (

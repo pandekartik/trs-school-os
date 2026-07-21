@@ -149,18 +149,18 @@ export function LogModal({
   };
 
   const buttonVariantMap: Record<string, string> = {
-    done: "bg-[hsl(var(--success))] hover:bg-[hsl(var(--success))] text-white",
-    partial: "bg-[hsl(var(--warning))] hover:bg-[hsl(var(--warning))] text-white",
-    not_done: "bg-[hsl(var(--error))] hover:bg-[hsl(var(--error))] text-white",
+    done: "bg-[var(--success)] hover:bg-[var(--success)] text-white",
+    partial: "bg-[var(--warning)] hover:bg-[var(--warning)] text-white",
+    not_done: "bg-[var(--error)] hover:bg-[var(--error)] text-white",
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-lg gap-0 p-0 rounded-b-none sm:rounded-b-lg sm:rounded-t-lg rounded-t-2xl sm:rounded-t-lg flex flex-col max-h-[95vh] sm:max-h-none">
         {/* Header */}
-        <div className="flex-shrink-0 border-b border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-6 py-4 sm:py-5">
-          <h2 className="text-lg font-semibold text-[hsl(var(--text-primary))]">Log Period</h2>
-          <p className="text-sm text-[hsl(var(--text-muted))] mt-1">
+        <div className="flex-shrink-0 border-b border-[var(--border)] bg-[var(--surface)] px-6 py-4 sm:py-5">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Log Period</h2>
+          <p className="text-sm text-[var(--text-muted)] mt-1">
             {subject?.name} • {division?.name} • Period {periodInstance.chapter_period_sequence} • {dateStr}
           </p>
         </div>
@@ -169,7 +169,7 @@ export function LogModal({
         <div className="flex-1 overflow-y-auto px-6 py-5 sm:py-6 space-y-6">
           {/* Status Selection */}
           <div>
-            <label className="text-sm font-semibold text-[hsl(var(--text-primary))] block mb-3">
+            <label className="text-sm font-semibold text-[var(--text-primary)] block mb-3">
               Period Outcome
             </label>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -177,30 +177,30 @@ export function LogModal({
                 const isSelected = status === option.value;
                 const Icon = option.icon;
 
-                let bgColor = "bg-[hsl(var(--surface-2))]";
-                let borderColor = "border-[hsl(var(--border))]";
-                let textColor = "text-[hsl(var(--text-secondary))]";
-                let iconBgColor = "bg-[hsl(var(--surface-3))]";
-                let iconColor = "text-[hsl(var(--text-muted))]";
+                let bgColor = "bg-[var(--surface-2)]";
+                let borderColor = "border-[var(--border)]";
+                let textColor = "text-[var(--text-secondary)]";
+                let iconBgColor = "bg-[var(--surface-3)]";
+                let iconColor = "text-[var(--text-muted)]";
 
                 if (isSelected) {
                   if (option.variantClass === "success") {
-                    bgColor = "bg-[hsl(var(--success-light))]";
-                    borderColor = "border-[hsl(var(--success-border))]";
-                    textColor = "text-[hsl(var(--text-primary))]";
-                    iconBgColor = "bg-[hsl(var(--success))]";
+                    bgColor = "bg-[var(--success-light)]";
+                    borderColor = "border-[var(--success-border)]";
+                    textColor = "text-[var(--text-primary)]";
+                    iconBgColor = "bg-[var(--success)]";
                     iconColor = "text-white";
                   } else if (option.variantClass === "warning") {
-                    bgColor = "bg-[hsl(var(--warning-light))]";
-                    borderColor = "border-[hsl(var(--warning-border))]";
-                    textColor = "text-[hsl(var(--text-primary))]";
-                    iconBgColor = "bg-[hsl(var(--warning))]";
+                    bgColor = "bg-[var(--warning-light)]";
+                    borderColor = "border-[var(--warning-border)]";
+                    textColor = "text-[var(--text-primary)]";
+                    iconBgColor = "bg-[var(--warning)]";
                     iconColor = "text-white";
                   } else if (option.variantClass === "error") {
-                    bgColor = "bg-[hsl(var(--error-light))]";
-                    borderColor = "border-[hsl(var(--error-border))]";
-                    textColor = "text-[hsl(var(--text-primary))]";
-                    iconBgColor = "bg-[hsl(var(--error))]";
+                    bgColor = "bg-[var(--error-light)]";
+                    borderColor = "border-[var(--error-border)]";
+                    textColor = "text-[var(--text-primary)]";
+                    iconBgColor = "bg-[var(--error)]";
                     iconColor = "text-white";
                   }
                 }
@@ -232,7 +232,7 @@ export function LogModal({
                       <div className={cn("text-sm font-semibold leading-tight", textColor)}>
                         {option.title}
                       </div>
-                      <div className="text-xs text-[hsl(var(--text-muted))] mt-0.5">
+                      <div className="text-xs text-[var(--text-muted)] mt-0.5">
                         {option.microcopy}
                       </div>
                     </div>
@@ -246,7 +246,7 @@ export function LogModal({
           {status && (
             <div className="space-y-2 animate-in fade-in duration-200">
               <div className="flex items-center gap-2">
-                <label className="text-sm font-semibold text-[hsl(var(--text-primary))]">
+                <label className="text-sm font-semibold text-[var(--text-primary)]">
                   {needsNote ? "Notes *" : "Notes"}
                 </label>
                 {needsNote && !hasNote && (
@@ -267,7 +267,7 @@ export function LogModal({
                 onChange={(e) => setCoverageNote(e.target.value)}
                 className="min-h-24 resize-none text-sm"
               />
-              <p className="text-xs text-[hsl(var(--text-muted))]">
+              <p className="text-xs text-[var(--text-muted)]">
                 {status === "done"
                   ? "Leave blank if nothing to add"
                   : "Please be specific"}
@@ -277,7 +277,7 @@ export function LogModal({
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] px-6 py-3 sm:py-4 flex gap-2 sm:gap-3">
+        <div className="flex-shrink-0 border-t border-[var(--border)] bg-[var(--surface-2)] px-6 py-3 sm:py-4 flex gap-2 sm:gap-3">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -295,9 +295,10 @@ export function LogModal({
             }
             className={cn(
               "flex-1 font-semibold text-white",
-              status === "done" && "bg-[hsl(var(--success))] hover:bg-[hsl(var(--success))]",
-              status === "partial" && "bg-[hsl(var(--warning))] hover:bg-[hsl(var(--warning))]",
-              status === "not_done" && "bg-[hsl(var(--error))] hover:bg-[hsl(var(--error))]",
+              status === "done" && "bg-[var(--success)] hover:bg-[var(--success)]",
+              status === "partial" && "bg-[var(--warning)] hover:bg-[var(--warning)]",
+              status === "not_done" && "bg-[var(--error)] hover:bg-[var(--error)]",
+              !status && "bg-[var(--brand)] hover:bg-[var(--brand)]",
               (!status || (needsNote && !hasNote)) && "opacity-50 cursor-not-allowed"
             )}
           >
