@@ -1,20 +1,27 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Check, AlertCircle, X, Loader2 } from "lucide-react";
+import { Check, AlertCircle, X, Loader2, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { logPeriod } from "@/lib/actions/teacher";
 import { cn } from "@/lib/utils";
 import { formatDateOnly } from "@/lib/utils/date";
 
-type StatusType = "done" | "partial" | "not_done";
+type StatusType = "done" | "partial" | "not_done" | "done_other";
 
 interface LogModalProps {
   open: boolean;
@@ -24,6 +31,7 @@ interface LogModalProps {
   division: any;
   standard: any;
   loggedBy: string;
+  chapters?: any[];
 }
 
 const STATUS_OPTIONS = [
@@ -48,6 +56,13 @@ const STATUS_OPTIONS = [
     variantClass: "error",
     microcopy: "Lesson could not be conducted",
   },
+  {
+    value: "done_other" as StatusType,
+    title: "Different Topic",
+    icon: BookOpen,
+    variantClass: "brand",
+    microcopy: "Taught a different chapter or period",
+  },
 ];
 
 export function LogModal({
@@ -58,9 +73,12 @@ export function LogModal({
   division,
   standard,
   loggedBy,
+  chapters = [],
 }: LogModalProps) {
   const [status, setStatus] = useState<StatusType | null>(null);
   const [coverageNote, setCoverageNote] = useState("");
+  const [taughtChapterId, setTaughtChapterId] = useState("");
+  const [taughtSequence, setTaughtSequence] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -72,6 +90,8 @@ export function LogModal({
         setStatus(null);
       }
       setCoverageNote(periodInstance.coverage_note ?? "");
+      setTaughtChapterId("");
+      setTaughtSequence("");
     }
   }, [open, periodInstance]);
 
@@ -83,6 +103,7 @@ export function LogModal({
       if (e.key === "1") setStatus("done");
       if (e.key === "2") setStatus("partial");
       if (e.key === "3") setStatus("not_done");
+      if (e.key === "4") setStatus("done_other");
       if (e.key === "Enter" && e.ctrlKey) handleSubmit();
     };
 
@@ -103,8 +124,13 @@ export function LogModal({
       return;
     }
 
-    if ((status === "partial" || status === "not_done") && !coverageNote.trim()) {
+    if ((status === "partial" || status === "not_done" || status === "done_other") && !coverageNote.trim()) {
       toast.error("Notes required for this status");
+      return;
+    }
+
+    if (status === "done_other" && (!taughtChapterId || !taughtSequence)) {
+      toast.error("Select the chapter and period you taught");
       return;
     }
 
@@ -112,9 +138,12 @@ export function LogModal({
     try {
       const result = await logPeriod(
         periodInstance.id,
-        status,
+        status === "done_other" ? "done" : status,
         coverageNote,
-        loggedBy
+        loggedBy,
+        status === "done_other"
+          ? { chapterId: taughtChapterId, sequence: parseInt(taughtSequence, 10) }
+          : undefined
       );
 
       if (result.error) {
@@ -133,13 +162,18 @@ export function LogModal({
   const dateStr = formatDateOnly(periodInstance.date, { month: "short", day: "numeric" }, "en-IN");
 
   const selectedStatusOption = STATUS_OPTIONS.find((opt) => opt.value === status);
-  const needsNote = status === "partial" || status === "not_done";
+  const needsNote = status === "partial" || status === "not_done" || status === "done_other";
   const hasNote = coverageNote.trim().length > 0;
+
+  const subjectChapters = chapters.filter((ch: any) => ch.subject_id === subject?.id);
+  const taughtChapter = subjectChapters.find((ch: any) => ch.id === taughtChapterId);
+  const taughtPeriodCount = taughtChapter?.effective_periods ?? taughtChapter?.allocated_periods ?? 0;
 
   const placeholders = {
     done: "Optional — any additional notes",
     partial: "What was covered and what remains?",
     not_done: "Why was the lesson not completed?",
+    done_other: "What did you teach and why the change?",
   };
 
   const statusVariantMap: Record<string, "success" | "warning" | "error"> = {
@@ -172,7 +206,7 @@ export function LogModal({
             <label className="text-sm font-semibold text-[var(--text-primary)] block mb-3">
               Period Outcome
             </label>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {STATUS_OPTIONS.map((option) => {
                 const isSelected = status === option.value;
                 const Icon = option.icon;
@@ -201,6 +235,12 @@ export function LogModal({
                     borderColor = "border-[var(--error-border)]";
                     textColor = "text-[var(--text-primary)]";
                     iconBgColor = "bg-[var(--error)]";
+                    iconColor = "text-white";
+                  } else if (option.variantClass === "brand") {
+                    bgColor = "bg-[var(--brand-light)]";
+                    borderColor = "border-[var(--brand-border)]";
+                    textColor = "text-[var(--text-primary)]";
+                    iconBgColor = "bg-[var(--brand)]";
                     iconColor = "text-white";
                   }
                 }
@@ -241,6 +281,55 @@ export function LogModal({
               })}
             </div>
           </div>
+
+          {/* Taught chapter/period selection */}
+          {status === "done_other" && (
+            <div className="space-y-3 animate-in fade-in duration-200">
+              <div>
+                <label className="text-sm font-semibold text-[var(--text-primary)] block mb-2">
+                  Chapter Taught *
+                </label>
+                <Select
+                  value={taughtChapterId}
+                  onValueChange={(value) => {
+                    setTaughtChapterId(value);
+                    setTaughtSequence("");
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select chapter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjectChapters.map((chapter: any) => (
+                      <SelectItem key={chapter.id} value={chapter.id}>
+                        {chapter.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {taughtChapterId && (
+                <div className="animate-in fade-in duration-200">
+                  <label className="text-sm font-semibold text-[var(--text-primary)] block mb-2">
+                    Period Taught *
+                  </label>
+                  <Select value={taughtSequence} onValueChange={setTaughtSequence}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: taughtPeriodCount }, (_, i) => i + 1).map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          Period {n} of {taughtPeriodCount}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Coverage Note */}
           {status && (
@@ -291,15 +380,19 @@ export function LogModal({
             disabled={
               isSubmitting ||
               !status ||
-              (needsNote && !hasNote)
+              (needsNote && !hasNote) ||
+              (status === "done_other" && (!taughtChapterId || !taughtSequence))
             }
             className={cn(
               "flex-1 font-semibold text-white",
               status === "done" && "bg-[var(--success)] hover:bg-[var(--success)]",
               status === "partial" && "bg-[var(--warning)] hover:bg-[var(--warning)]",
               status === "not_done" && "bg-[var(--error)] hover:bg-[var(--error)]",
-              !status && "bg-[var(--brand)] hover:bg-[var(--brand)]",
-              (!status || (needsNote && !hasNote)) && "opacity-50 cursor-not-allowed"
+              (!status || status === "done_other") && "bg-[var(--brand)] hover:bg-[var(--brand)]",
+              (!status ||
+                (needsNote && !hasNote) ||
+                (status === "done_other" && (!taughtChapterId || !taughtSequence))) &&
+                "opacity-50 cursor-not-allowed"
             )}
           >
             {isSubmitting ? (

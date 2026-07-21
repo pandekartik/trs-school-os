@@ -282,6 +282,7 @@ export function PeriodCard({
           division={division}
           standard={standard}
           loggedBy={loggedBy}
+          chapters={chapters}
         />
       )}
 

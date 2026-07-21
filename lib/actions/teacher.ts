@@ -15,7 +15,8 @@ export async function logPeriod(
   periodInstanceId: string,
   status: "done" | "partial" | "not_done",
   coverageNote: string,
-  loggedBy: string
+  loggedBy: string,
+  taught?: { chapterId: string; sequence: number }
 ) {
   const db = await getDb();
 
@@ -26,6 +27,10 @@ export async function logPeriod(
       coverage_note: coverageNote || null,
       logged_by: loggedBy,
       logged_at: new Date().toISOString(),
+      ...(taught && {
+        chapter_id: taught.chapterId,
+        chapter_period_sequence: taught.sequence,
+      }),
     })
     .eq("id", periodInstanceId);
 
