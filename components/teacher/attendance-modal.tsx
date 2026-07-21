@@ -151,9 +151,9 @@ export function AttendanceModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-lg gap-0 p-0 rounded-b-none sm:rounded-b-lg sm:rounded-t-lg rounded-t-2xl sm:rounded-t-lg flex flex-col max-h-[95vh] sm:max-h-none">
         {/* Header */}
-        <DialogHeader className="flex-shrink-0 border-b border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-6 py-4 sm:py-5 space-y-1">
-          <DialogTitle className="text-lg font-semibold text-[hsl(var(--text-primary))]">Mark Attendance</DialogTitle>
-          <DialogDescription className="text-sm text-[hsl(var(--text-muted))]">
+        <DialogHeader className="flex-shrink-0 border-b border-[var(--border)] bg-[var(--surface)] px-6 py-4 sm:py-5 space-y-1">
+          <DialogTitle className="text-lg font-semibold text-[var(--text-primary)]">Mark Attendance</DialogTitle>
+          <DialogDescription className="text-sm text-[var(--text-muted)]">
             {teacherName} • {dateStr}
           </DialogDescription>
         </DialogHeader>
@@ -162,7 +162,7 @@ export function AttendanceModal({
         <div className="flex-1 overflow-y-auto px-6 py-5 sm:py-6 space-y-6">
           {/* Status Selection */}
           <div className="space-y-3">
-            <label className="block text-sm font-semibold text-[hsl(var(--text-primary))]">
+            <label className="block text-sm font-semibold text-[var(--text-primary)]">
               Attendance Status
             </label>
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -171,28 +171,28 @@ export function AttendanceModal({
                 const Icon = option.icon;
                 const colorMap: Record<string, { bg: string; border: string; lightBg: string; lightBorder: string }> = {
                   success: {
-                    bg: "bg-[hsl(var(--success))]",
-                    border: "border-[hsl(var(--success-border))]",
-                    lightBg: "bg-[hsl(var(--success-light))]",
-                    lightBorder: "border-[hsl(var(--success-border))]",
+                    bg: "bg-[var(--success)]",
+                    border: "border-[var(--success-border)]",
+                    lightBg: "bg-[var(--success-light)]",
+                    lightBorder: "border-[var(--success-border)]",
                   },
                   error: {
-                    bg: "bg-[hsl(var(--error))]",
-                    border: "border-[hsl(var(--error-border))]",
-                    lightBg: "bg-[hsl(var(--error-light))]",
-                    lightBorder: "border-[hsl(var(--error-border))]",
+                    bg: "bg-[var(--error)]",
+                    border: "border-[var(--error-border)]",
+                    lightBg: "bg-[var(--error-light)]",
+                    lightBorder: "border-[var(--error-border)]",
                   },
                   warning: {
-                    bg: "bg-[hsl(var(--warning))]",
-                    border: "border-[hsl(var(--warning-border))]",
-                    lightBg: "bg-[hsl(var(--warning-light))]",
-                    lightBorder: "border-[hsl(var(--warning-border))]",
+                    bg: "bg-[var(--warning)]",
+                    border: "border-[var(--warning-border)]",
+                    lightBg: "bg-[var(--warning-light)]",
+                    lightBorder: "border-[var(--warning-border)]",
                   },
                   info: {
-                    bg: "bg-[hsl(var(--info))]",
-                    border: "border-[hsl(var(--info-border))]",
-                    lightBg: "bg-[hsl(var(--info-light))]",
-                    lightBorder: "border-[hsl(var(--info-border))]",
+                    bg: "bg-[var(--info)]",
+                    border: "border-[var(--info-border)]",
+                    lightBg: "bg-[var(--info-light)]",
+                    lightBorder: "border-[var(--info-border)]",
                   },
                 };
 
@@ -207,27 +207,27 @@ export function AttendanceModal({
                       "flex flex-col items-center justify-center gap-2 h-auto py-4 px-3 sm:px-4 transition-all duration-200",
                       isSelected
                         ? cn(colors.lightBg, "border-2", colors.lightBorder, "shadow-sm")
-                        : "border-[hsl(var(--border))]"
+                        : "border-[var(--border)]"
                     )}
                   >
                     <div
                       className={cn(
                         "rounded-full p-2 transition-colors",
-                        isSelected ? colors.bg : "bg-[hsl(var(--surface-3))]"
+                        isSelected ? colors.bg : "bg-[var(--surface-3)]"
                       )}
                     >
                       <Icon
                         className={cn(
                           "w-5 h-5",
-                          isSelected ? "text-white" : "text-[hsl(var(--text-muted))]"
+                          isSelected ? "text-white" : "text-[var(--text-muted)]"
                         )}
                       />
                     </div>
                     <div className="text-center">
-                      <div className={cn("text-sm font-semibold leading-tight", isSelected ? "text-[hsl(var(--text-primary))]" : "text-[hsl(var(--text-secondary))]")}>
+                      <div className={cn("text-sm font-semibold leading-tight", isSelected ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]")}>
                         {option.title}
                       </div>
-                      <div className="text-xs text-[hsl(var(--text-muted))]">
+                      <div className="text-xs text-[var(--text-muted)]">
                         {option.microcopy}
                       </div>
                     </div>
@@ -241,7 +241,7 @@ export function AttendanceModal({
           {status && (
             <div className="space-y-2 animate-in fade-in duration-200">
               <div className="flex items-center gap-2">
-                <label className="text-sm font-semibold text-[hsl(var(--text-primary))]">
+                <label className="text-sm font-semibold text-[var(--text-primary)]">
                   {needsReason ? "Reason *" : "Notes"}
                 </label>
                 {needsReason && !hasReason && (
@@ -262,7 +262,7 @@ export function AttendanceModal({
                 onChange={(e) => setReason(e.target.value)}
                 className="min-h-20 resize-none text-sm"
               />
-              <p className="text-xs text-[hsl(var(--text-muted))]">
+              <p className="text-xs text-[var(--text-muted)]">
                 {status === "present"
                   ? "Leave blank if nothing to add"
                   : "Please be specific"}
@@ -272,7 +272,7 @@ export function AttendanceModal({
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] px-6 py-3 sm:py-4 flex gap-2 sm:gap-3">
+        <div className="flex-shrink-0 border-t border-[var(--border)] bg-[var(--surface-2)] px-6 py-3 sm:py-4 flex gap-2 sm:gap-3">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -297,8 +297,8 @@ export function AttendanceModal({
             }
             className={cn(
               "flex-1 font-semibold",
-              status === "late" && "bg-[hsl(var(--warning))] hover:bg-[hsl(var(--warning))] text-white",
-              status === "half_day" && "bg-[hsl(var(--info))] hover:bg-[hsl(var(--info))] text-white"
+              status === "late" && "bg-[var(--warning)] hover:bg-[var(--warning)] text-white",
+              status === "half_day" && "bg-[var(--info)] hover:bg-[var(--info)] text-white"
             )}
           >
             {isSubmitting ? (

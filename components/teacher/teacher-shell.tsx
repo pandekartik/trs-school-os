@@ -98,7 +98,7 @@ export function TeacherShell({
   return (
     <div className="flex flex-col h-full w-full">
       {/* Header */}
-      <div className="border-b border-[hsl(var(--border))] bg-[hsl(var(--surface))] sticky top-0 z-40">
+      <div className="border-b border-[var(--border)] bg-[var(--surface)] sticky top-0 z-40">
         <div className="px-6 py-4 space-y-3">
           {/* Top row: Title + Actions */}
           <div className="flex items-center justify-between">
