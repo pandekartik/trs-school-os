@@ -23,7 +23,6 @@ const routeMeta: Record<string, { section: string; title: string }> = {
   "/content": { section: "CONTENT", title: "Library" },
   "/timetable": { section: "ADMIN", title: "Timetable" },
   "/timetable/templates": { section: "ADMIN", title: "Time Templates" },
-  "/timetable/builder": { section: "ADMIN", title: "Timetable" },
   "/timetable/holidays": { section: "ADMIN", title: "Holidays" },
   "/teacher": { section: "TEACHER", title: "Today" },
   "/teacher/attendance": { section: "TEACHER", title: "Attendance" },

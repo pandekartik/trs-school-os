@@ -58,8 +58,6 @@ async function fetchTeacherSchedule(
     { data: absences },
     { data: holidays },
     { data: academicSegments },
-    { data: divisionTemplates },
-    { data: timetableActivations },
     { data: periodOverrides },
   ] = await Promise.all([
     admin
@@ -94,11 +92,6 @@ async function fetchTeacherSchedule(
           .lte("date", endIso)
       : (async () => ({ data: [] }))(),
     admin.from("academic_segment").select("*"),
-    admin.from("division_template").select("*"),
-    admin
-      .from("timetable_activation")
-      .select("*")
-      .eq("status", "finalized"),
     admin
       .from("period_override")
       .select("*")
@@ -118,8 +111,6 @@ async function fetchTeacherSchedule(
     absences: absences || [],
     holidays: holidays || [],
     academicSegments: academicSegments || [],
-    divisionTemplates: divisionTemplates || [],
-    timetableActivations: timetableActivations || [],
     periodOverrides: periodOverrides || [],
   };
 }
