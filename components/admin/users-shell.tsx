@@ -14,7 +14,7 @@ import {
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Plus, Trash2, Key, Pencil, Users } from "lucide-react";
+import { Loader2, Plus, Trash2, Key, KeyRound, Pencil, Users } from "lucide-react";
 import { toast } from "sonner";
 import { UserPanel } from "./user-panel";
 import { cn } from "@/lib/utils";
@@ -60,7 +60,7 @@ type Props = {
 
 export function UsersShell({ teachers }: Props) {
   const [panelOpen, setPanelOpen] = useState(false);
-  const [panelMode, setPanelMode] = useState<"add" | "edit" | "password">("add");
+  const [panelMode, setPanelMode] = useState<"add" | "edit" | "password" | "invite">("add");
   const [selectedUser, setSelectedUser] = useState<Teacher | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<Teacher | null>(null);
@@ -81,6 +81,12 @@ export function UsersShell({ teachers }: Props) {
   function handleChangePassword(user: Teacher) {
     setSelectedUser(user);
     setPanelMode("password");
+    setPanelOpen(true);
+  }
+
+  function handleInviteUser(user: Teacher) {
+    setSelectedUser(user);
+    setPanelMode("invite");
     setPanelOpen(true);
   }
 
@@ -216,7 +222,7 @@ export function UsersShell({ teachers }: Props) {
                           >
                             <Pencil className="size-4" />
                           </Button>
-                          {teacher.auth_user_id && (
+                          {teacher.auth_user_id ? (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -225,6 +231,16 @@ export function UsersShell({ teachers }: Props) {
                               title="Change password"
                             >
                               <Key className="size-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="size-8 p-0"
+                              onClick={() => handleInviteUser(teacher)}
+                              title="Create login"
+                            >
+                              <KeyRound className="size-4" />
                             </Button>
                           )}
                           <Button

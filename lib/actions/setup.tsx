@@ -1,10 +1,11 @@
 "use server";
 
 import { createServerClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { revalidatePath } from "next/cache";
 import type { UserRole } from "@/lib/role-access";
 import { writeAuditLog, auditActions } from "@/lib/audit";
-import { getTeacherProfile, getActiveBranch } from "@/lib/auth";
+import { getTeacherProfile, getActiveBranch, getRole } from "@/lib/auth";
 
 async function getDb() {
   return await createServerClient();
@@ -483,18 +484,39 @@ export async function deleteSubject(id: string) {
 // ── TEACHERS ─────────────────────────────
 
 export async function createTeacher(formData: FormData) {
-  const db = await getDb();
+  const requesterRole = await getRole();
+  if (requesterRole !== "admin" && requesterRole !== "super_admin") {
+    return { error: "Unauthorized" };
+  }
 
-  const name  = formData.get("name") as string;
-  const email = formData.get("email") as string;
-  const phone = formData.get("phone") as string;
-  const role  = formData.get("role") as UserRole;
+  const name     = formData.get("name") as string;
+  const email    = formData.get("email") as string;
+  const phone    = formData.get("phone") as string;
+  const role     = formData.get("role") as UserRole;
+  const password = formData.get("password") as string;
   const activeBranch = await getActiveBranch();
 
-  const { error } = await db.from("teacher").insert({
-    name, email, phone, role, branch_id: activeBranch?.id ?? null,
+  if (!password) return { error: "Password is required" };
+
+  const admin = createAdminClient();
+
+  const { data: createdUser, error: authError } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
   });
-  if (error) return { error: error.message };
+  if (authError || !createdUser.user) {
+    return { error: authError?.message ?? "Failed to create login credentials" };
+  }
+
+  const { error } = await admin.from("teacher").insert({
+    name, email, phone, role, branch_id: activeBranch?.id ?? null,
+    auth_user_id: createdUser.user.id,
+  });
+  if (error) {
+    await admin.auth.admin.deleteUser(createdUser.user.id);
+    return { error: error.message };
+  }
 
   const profile = await getTeacherProfile();
   if (profile) {

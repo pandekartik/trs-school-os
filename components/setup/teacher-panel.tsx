@@ -61,12 +61,13 @@ export function TeacherPanel({ mode, teacher, onClose, activeSchoolYear }: Props
         return;
       }
 
-      // First create the teacher record (this will check for duplicate email)
+      // Creates both the login credentials and the teacher record atomically
       const formData = new FormData();
       formData.append("name", name);
       formData.append("email", email);
       formData.append("phone", phone);
       formData.append("role", "teacher");
+      formData.append("password", password);
 
       const result = await createTeacher(formData);
 
@@ -77,26 +78,6 @@ export function TeacherPanel({ mode, teacher, onClose, activeSchoolYear }: Props
         } else {
           toast.error("Add failed", { description: result.error });
         }
-        setLoading(false);
-        return;
-      }
-
-      // Only create auth account after teacher record is successfully created
-      const authResponse = await fetch("/api/admin/invite-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          phone: phone || undefined,
-          role: "teacher",
-          password,
-        }),
-      });
-
-      if (!authResponse.ok) {
-        const error = await authResponse.json();
-        toast.error("Account creation failed", { description: error.error });
         setLoading(false);
         return;
       }
