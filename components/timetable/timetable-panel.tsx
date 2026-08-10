@@ -350,7 +350,7 @@ export function TimetablePanel({
       <Tabs
         value={activeTab}
         onValueChange={(v) => setActiveTab(v as "details" | "days" | "slots" | "generate")}
-        className="flex-1 flex flex-col"
+        className="flex-1 flex flex-col min-h-0"
       >
         <TabsList className="m-4 w-fit">
           <TabsTrigger value="details">Details</TabsTrigger>
@@ -359,7 +359,7 @@ export function TimetablePanel({
           {!isNewTimetable && <TabsTrigger value="generate">Generate Schedule</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="details" className="flex-1 overflow-auto p-4 space-y-4 max-w-2xl">
+        <TabsContent value="details" className="flex-1 min-h-0 overflow-auto p-4 space-y-4 max-w-2xl">
           <div>
             <label className="text-sm font-medium">Timetable Name</label>
             <Input
@@ -437,7 +437,7 @@ export function TimetablePanel({
 
         {!isNewTimetable && (
           <>
-            <TabsContent value="days" className="flex-1 overflow-auto p-4 space-y-3 max-w-2xl">
+            <TabsContent value="days" className="flex-1 min-h-0 overflow-auto p-4 space-y-3 max-w-2xl">
               <p className="text-xs text-muted-foreground">
                 Assign a time template to each day. Days without a template have no classes scheduled.
               </p>
@@ -464,7 +464,7 @@ export function TimetablePanel({
               ))}
             </TabsContent>
 
-            <TabsContent value="slots" className="flex-1 overflow-auto p-4">
+            <TabsContent value="slots" className="flex-1 min-h-0 overflow-auto p-4">
               {selectedDivisions.size > 1 && (
                 <div className="mb-4 space-y-2">
                   <p className="text-xs font-medium">Select Division</p>
@@ -529,7 +529,7 @@ export function TimetablePanel({
               )}
             </TabsContent>
 
-            <TabsContent value="generate" className="flex-1 overflow-auto p-4">
+            <TabsContent value="generate" className="flex-1 min-h-0 overflow-auto p-4">
               {selectedDivisions.size > 1 && (
                 <div className="mb-4 space-y-2">
                   <p className="text-xs font-medium">Select Division</p>
