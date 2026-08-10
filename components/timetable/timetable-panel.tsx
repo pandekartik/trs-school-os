@@ -358,7 +358,7 @@ export function TimetablePanel({
           {!isNewTimetable && <TabsTrigger value="generate">Generate Schedule</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="details" className="flex-1 overflow-auto p-4 space-y-4">
+        <TabsContent value="details" className="flex-1 overflow-auto p-4 space-y-4 max-w-2xl">
           <div>
             <label className="text-sm font-medium">Timetable Name</label>
             <Input
@@ -436,7 +436,7 @@ export function TimetablePanel({
 
         {!isNewTimetable && (
           <>
-            <TabsContent value="days" className="flex-1 overflow-auto p-4 space-y-3">
+            <TabsContent value="days" className="flex-1 overflow-auto p-4 space-y-3 max-w-2xl">
               <p className="text-xs text-muted-foreground">
                 Assign a time template to each day. Days without a template have no classes scheduled.
               </p>
