@@ -8,8 +8,6 @@ function getDb() {
   return createAdminClient();
 }
 
-const TIMETABLE_DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
-
 // Helper functions for generating meaningful display IDs
 const DAY_MAP: Record<string, string> = {
   monday: "M",
@@ -38,59 +36,6 @@ function generateInstanceDisplayId(grade: number, divisionName: string, dayOfWee
   const [year, month, day] = date.split("-");
   const dateSuffix = `${month}${day}`;
   return `${grade}${divisionName}-${dayInitial}-P${periodPadded}-${dateSuffix}`;
-}
-
-export async function createTimetableSlot(formData: FormData) {
-  const db = getDb();
-
-  const school_year_id = String(formData.get("school_year_id") ?? "");
-  const division_id = String(formData.get("division_id") ?? "");
-  const subject_id = String(formData.get("subject_id") ?? "");
-  const teacher_id = String(formData.get("teacher_id") ?? "");
-  const day_of_week = String(formData.get("day_of_week") ?? "");
-  const period_number = parseInt(String(formData.get("period_number") ?? "0"), 10);
-
-  if (!TIMETABLE_DAYS.includes(day_of_week)) return { error: "Invalid day of week" };
-
-  const { data: existing } = await db
-    .from("timetable_slot")
-    .select("id")
-    .eq("division_id", division_id)
-    .eq("day_of_week", day_of_week)
-    .eq("period_number", period_number)
-    .maybeSingle();
-
-  if (existing) {
-    const { error: deleteError } = await db
-      .from("timetable_slot")
-      .delete()
-      .eq("id", existing.id);
-    if (deleteError) return { error: deleteError.message };
-  }
-
-  const { error } = await db.from("timetable_slot").insert({
-    school_year_id,
-    division_id,
-    subject_id,
-    teacher_id,
-    day_of_week,
-    period_number,
-  });
-
-  if (error) return { error: error.message };
-  revalidatePath("/timetable");
-  return { success: true };
-}
-
-export async function deleteTimetableSlot(id: string) {
-  const db = getDb();
-  const { error } = await db
-    .from("timetable_slot")
-    .delete()
-    .eq("id", id);
-  if (error) return { error: error.message };
-  revalidatePath("/timetable");
-  return { success: true };
 }
 
 export async function createTimetable(formData: FormData) {
@@ -308,35 +253,19 @@ export async function saveTimetableSlot(formData: FormData) {
 }
 
 export async function clearTimetableSlot(
-  timetableIdOrDivisionId: string,
-  templateSlotIdOrSlotId: string,
-  dayOfWeekOrDay: string,
-  divisionId?: string
+  timetableId: string,
+  templateSlotId: string,
+  dayOfWeek: string,
+  divisionId: string
 ) {
   const db = getDb();
 
-  // Old signature: clearTimetableSlot(divisionId, slotId, day)
-  if (divisionId === undefined) {
-    const { error } = await db
-      .from("timetable_slot")
-      .delete()
-      .eq("division_id", timetableIdOrDivisionId)
-      .eq("id", templateSlotIdOrSlotId)
-      .eq("day_of_week", dayOfWeekOrDay);
-
-    if (error) return { error: error.message };
-
-    revalidatePath("/timetable/builder");
-    return { success: true };
-  }
-
-  // New signature: clearTimetableSlot(timetableId, templateSlotId, dayOfWeek, divisionId)
   const { error } = await db
     .from("timetable_slot")
     .delete()
-    .eq("timetable_id", timetableIdOrDivisionId)
-    .eq("template_slot_id", templateSlotIdOrSlotId)
-    .eq("day_of_week", dayOfWeekOrDay)
+    .eq("timetable_id", timetableId)
+    .eq("template_slot_id", templateSlotId)
+    .eq("day_of_week", dayOfWeek)
     .eq("division_id", divisionId);
 
   if (error) return { error: error.message };
@@ -345,111 +274,55 @@ export async function clearTimetableSlot(
   return { success: true };
 }
 
-export async function finalizeTimetable(
-  divisionIdOrTimetableId: string,
-  segmentIdOrUserId: string,
-  maybeUserId?: string
-) {
+export async function finalizeTimetable(timetableId: string, _userId: string) {
   const db = getDb();
 
-  // New signature: finalizeTimetable(timetableId, userId)
-  if (maybeUserId === undefined) {
-    const timetableId = divisionIdOrTimetableId;
+  const { data: slots, error: slotsError } = await db
+    .from("timetable_slot")
+    .select("id")
+    .eq("timetable_id", timetableId);
+  if (slotsError) return { error: slotsError.message };
 
-    const { data: slots, error: slotsError } = await db
-      .from("timetable_slot")
-      .select("id")
-      .eq("timetable_id", timetableId);
-    if (slotsError) return { error: slotsError.message };
+  const slotIds = (slots ?? []).map((slot: any) => slot.id);
+  if (slotIds.length > 0) {
+    const { count, error: countError } = await db
+      .from("period_instance")
+      .select("id", { count: "exact", head: true })
+      .in("timetable_slot_id", slotIds);
+    if (countError) return { error: countError.message };
 
-    const slotIds = (slots ?? []).map((slot: any) => slot.id);
-    if (slotIds.length > 0) {
-      const { count, error: countError } = await db
-        .from("period_instance")
-        .select("id", { count: "exact", head: true })
-        .in("timetable_slot_id", slotIds);
-      if (countError) return { error: countError.message };
-
-      if (!count) {
-        return {
-          error:
-            "No period instances have been generated for this timetable yet. Use \"Generate Schedule\" on each division before finalizing.",
-        };
-      }
+    if (!count) {
+      return {
+        error:
+          "No period instances have been generated for this timetable yet. Use \"Generate Schedule\" on each division before finalizing.",
+      };
     }
-
-    const { error } = await db
-      .from("timetable")
-      .update({
-        status: "finalized",
-        finalized_at: new Date().toISOString(),
-      })
-      .eq("id", timetableId);
-
-    if (error) return { error: error.message };
-
-    revalidatePath("/timetable");
-    return { success: true };
   }
 
-  // Old signature: finalizeTimetable(divisionId, segmentId, userId)
-  const divisionId = divisionIdOrTimetableId;
-  const segmentId = segmentIdOrUserId;
-  const userId = maybeUserId;
+  const { error } = await db
+    .from("timetable")
+    .update({
+      status: "finalized",
+      finalized_at: new Date().toISOString(),
+    })
+    .eq("id", timetableId);
 
-  const { error: activationError } = await db
-    .from("timetable_activation")
-    .upsert(
-      {
-        division_id: divisionId,
-        segment_id: segmentId,
-        status: "finalized",
-        finalized_at: new Date().toISOString(),
-        finalized_by: userId,
-      },
-      { onConflict: "division_id,segment_id" }
-    );
+  if (error) return { error: error.message };
 
-  if (activationError) return { error: activationError.message };
-
-  // Get school year ID for schedule generation
-  const { data: segment } = await db
-    .from("academic_segment")
-    .select("school_year_id")
-    .eq("id", segmentId)
-    .single();
-
-  if (!segment?.school_year_id) return { error: "School year not found" };
-
-  revalidatePath("/timetable/builder");
-  revalidatePath("/teacher");
+  revalidatePath("/timetable");
   return { success: true };
 }
 
-export async function draftTimetable(divisionIdOrTimetableId: string, maybeSegmentId?: string) {
+export async function draftTimetable(timetableId: string) {
   const db = getDb();
 
-  // Old signature: draftTimetable(divisionId, segmentId)
-  if (maybeSegmentId !== undefined) {
-    const { error } = await db
-      .from("timetable_activation")
-      .update({ status: "draft" })
-      .eq("division_id", divisionIdOrTimetableId)
-      .eq("segment_id", maybeSegmentId);
-
-    if (error) return { error: error.message };
-    revalidatePath("/timetable/builder");
-    return { success: true };
-  }
-
-  // New signature: draftTimetable(timetableId)
   const { error } = await db
     .from("timetable")
     .update({
       status: "draft",
       finalized_at: null,
     })
-    .eq("id", divisionIdOrTimetableId);
+    .eq("id", timetableId);
 
   if (error) return { error: error.message };
 
@@ -715,136 +588,6 @@ export async function deletePeriodOverride(id: string) {
   return { success: true };
 }
 
-// Legacy functions for builder compatibility
-export async function assignDivisionTemplate(
-  divisionId: string,
-  templateId: string,
-  appliesTo: string
-) {
-  const db = getDb();
-  if (!divisionId || !templateId) return { error: "Division and template are required" };
-  if (appliesTo !== "weekday" && appliesTo !== "saturday") {
-    return { error: "Invalid template assignment type" };
-  }
-
-  const { error } = await db
-    .from("division_template")
-    .upsert(
-      {
-        division_id: divisionId,
-        template_id: templateId,
-        applies_to: appliesTo,
-      },
-      { onConflict: "division_id,applies_to" }
-    );
-
-  if (error) return { error: error.message };
-  revalidatePath("/timetable/builder");
-  return { success: true };
-}
-
-export async function randomlyAssignSlots(divisionId: string) {
-  const db = getDb();
-
-  const { data: division } = await db
-    .from("division")
-    .select("standard_id")
-    .eq("id", divisionId)
-    .single();
-
-  if (!division) return { error: "Division not found" };
-
-  const [{ data: activeSchoolYears }, { data: divisionTemplates }, { data: subjects }, { data: teacherAssignments }] = await Promise.all([
-    db
-      .from("school_year")
-      .select("id")
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1),
-    db
-      .from("division_template")
-      .select("template_id")
-      .eq("division_id", divisionId)
-      .eq("applies_to", "weekday"),
-    db
-      .from("subject")
-      .select("id, name")
-      .eq("standard_id", division.standard_id),
-    db
-      .from("teacher_assignment")
-      .select("*")
-      .eq("division_id", divisionId),
-  ]);
-
-  if (!activeSchoolYears?.[0]) return { error: "No active school year" };
-  if (!divisionTemplates?.[0]) return { error: "No template assigned" };
-  if (!subjects || subjects.length === 0) return { error: "No subjects found" };
-
-  const schoolYearId = activeSchoolYears[0].id;
-  const templateId = divisionTemplates[0].template_id;
-
-  const [{ data: template }, { data: templateSlots }] = await Promise.all([
-    db
-      .from("time_template")
-      .select("days")
-      .eq("id", templateId)
-      .single(),
-    db
-      .from("template_slot")
-      .select("*")
-      .eq("template_id", templateId)
-      .in("slot_type", ["period", "class"]),
-  ]);
-
-  if (!template?.days) return { error: "Template days not found" };
-
-  const slots = templateSlots || [];
-  const errors: string[] = [];
-
-  for (const slot of slots) {
-    for (const day of template.days) {
-      const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
-      const assignmentsForSubject = teacherAssignments?.filter(
-        (a: any) => a.subject_id === randomSubject.id
-      ) || [];
-
-      if (assignmentsForSubject.length === 0) {
-        errors.push(`No teacher assigned for ${randomSubject.name}`);
-        continue;
-      }
-
-      const randomAssignment = assignmentsForSubject[Math.floor(Math.random() * assignmentsForSubject.length)];
-
-      const { error } = await db
-        .from("timetable_slot")
-        .upsert(
-          {
-            school_year_id: schoolYearId,
-            division_id: divisionId,
-            template_slot_id: slot.id,
-            subject_id: randomSubject.id,
-            teacher_id: randomAssignment.teacher_id,
-            day_of_week: day,
-            period_number: slot.display_order,
-          },
-          { onConflict: "division_id,template_slot_id,day_of_week" }
-        );
-
-      if (error) {
-        errors.push(`Failed to assign ${slot.name} on ${day}: ${error.message}`);
-      }
-    }
-  }
-
-  revalidatePath("/timetable/builder");
-
-  if (errors.length > 0) {
-    return { success: true, warning: `Assigned with ${errors.length} error(s): ${errors.join("; ")}` };
-  }
-
-  return { success: true };
-}
-
 export async function createHoliday(formData: FormData) {
   const db = getDb();
 
@@ -1084,109 +827,4 @@ export async function deleteTemplateSlot(id: string) {
 
   revalidatePath("/timetable/templates");
   return { success: true };
-}
-
-export async function getPreflightCheck(divisionId: string, segmentId: string) {
-  const db = getDb();
-  const hard_blocks: Array<{ id: string; label: string; detail?: string }> = [];
-  const warnings: Array<{ id: string; label: string; detail?: string }> = [];
-
-  const [{ data: weekdayTemplate }, { data: segment }] = await Promise.all([
-    db
-      .from("division_template")
-      .select("template_id")
-      .eq("division_id", divisionId)
-      .eq("applies_to", "weekday")
-      .maybeSingle(),
-    db
-      .from("academic_segment")
-      .select("id, start_date, end_date")
-      .eq("id", segmentId)
-      .maybeSingle(),
-  ]);
-
-  if (!weekdayTemplate?.template_id) {
-    hard_blocks.push({
-      id: "template_assigned",
-      label: "Weekday template assigned",
-      detail: "Assign a weekday template before finalizing.",
-    });
-  }
-
-  if (!segment?.start_date || !segment?.end_date) {
-    hard_blocks.push({
-      id: "segment_dates",
-      label: "Segment has valid dates",
-      detail: "The selected segment needs both a start date and an end date.",
-    });
-  }
-
-  if (weekdayTemplate?.template_id) {
-    const [{ data: template }, { data: existingSlots }] = await Promise.all([
-      db
-        .from("time_template")
-        .select("days, template_slot(id, slot_type)")
-        .eq("id", weekdayTemplate.template_id)
-        .single(),
-      db
-        .from("timetable_slot")
-        .select("template_slot_id, day_of_week")
-        .eq("division_id", divisionId),
-    ]);
-
-    const days = (template?.days ?? []) as string[];
-    const templateSlots = ((template?.template_slot ?? []) as Array<{ id: string; slot_type: string }>)
-      .filter((slot) => slot.slot_type === "period" || slot.slot_type === "class");
-    const filled = new Set(
-      (existingSlots ?? []).map((slot) => `${slot.template_slot_id}:${slot.day_of_week}`)
-    );
-    const unfilled = templateSlots.reduce((count, slot) => {
-      return count + days.filter((day) => !filled.has(`${slot.id}:${day}`)).length;
-    }, 0);
-
-    if (unfilled > 0) {
-      warnings.push({
-        id: "slots_filled",
-        label: "All class slots filled",
-        detail: `${unfilled} slots unassigned`,
-      });
-    }
-  }
-
-  const { data: timetableSubjects } = await db
-    .from("timetable_slot")
-    .select("subject_id")
-    .eq("division_id", divisionId);
-
-  const subjectIds = [...new Set((timetableSubjects ?? []).map((slot: any) => slot.subject_id).filter(Boolean))];
-
-  if (subjectIds.length > 0) {
-    const [{ data: chapterRows }, { data: subjectRows }] = await Promise.all([
-      db
-        .from("chapter")
-        .select("subject_id")
-        .eq("academic_segment_id", segmentId)
-        .in("subject_id", subjectIds),
-      db
-        .from("subject")
-        .select("id, name, has_chapters")
-        .in("id", subjectIds),
-    ]);
-
-    const subjectIdsWithChapters = new Set((chapterRows ?? []).map((chapter: any) => chapter.subject_id));
-    const missingSubjects = (subjectRows ?? [])
-      .filter((subject: any) => subject.has_chapters)
-      .filter((subject: any) => !subjectIdsWithChapters.has(subject.id))
-      .map((subject: any) => subject.name);
-
-    if (missingSubjects.length > 0) {
-      hard_blocks.push({
-        id: "chapters_exist",
-        label: "Chapters defined for all subjects",
-        detail: `Missing chapters for: ${missingSubjects.join(", ")}`,
-      });
-    }
-  }
-
-  return { hard_blocks, warnings };
 }

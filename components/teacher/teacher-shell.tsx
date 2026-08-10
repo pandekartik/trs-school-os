@@ -32,8 +32,6 @@ interface TeacherData {
   absences: any[];
   holidays: any[];
   academicSegments: any[];
-  divisionTemplates: any[];
-  timetableActivations: any[];
   periodOverrides: any[];
 }
 
