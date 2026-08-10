@@ -108,7 +108,9 @@ export function TimetablePanel({
   // Slots tab state
   const [activeDivisionForGrid, setActiveDivisionForGrid] = useState<string | null>(null);
 
-  const daysOfWeek = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  // Lowercase to match the timetable_slot/timetable_day_template
+  // day_of_week check constraint; uppercase only for display.
+  const daysOfWeek = ["mon", "tue", "wed", "thu", "fri", "sat"];
 
   const getDivisionsWithStandard = () => {
     return divisions
@@ -199,9 +201,8 @@ export function TimetablePanel({
     if (!timetable) return;
 
     try {
-      const dayLower = dayOfWeek.toLowerCase();
       if (templateId === "none") {
-        const result = await removeDayTemplate(timetable.id, dayLower);
+        const result = await removeDayTemplate(timetable.id, dayOfWeek);
         if (result?.error) {
           toast.error(result.error);
         } else {
@@ -213,7 +214,7 @@ export function TimetablePanel({
           toast.success("Template removed");
         }
       } else {
-        const result = await saveDayTemplate(timetable.id, dayLower, templateId);
+        const result = await saveDayTemplate(timetable.id, dayOfWeek, templateId);
         if (result?.error) {
           toast.error(result.error);
         } else {
@@ -442,7 +443,7 @@ export function TimetablePanel({
               </p>
               {daysOfWeek.map((day) => (
                 <div key={day} className="flex items-center gap-2 p-2 border rounded">
-                  <span className="text-sm font-medium w-12">{day}</span>
+                  <span className="text-sm font-medium w-12">{day.toUpperCase()}</span>
                   <Select
                     value={getSelectedTemplate(day)}
                     onValueChange={(templateId) => handleSaveDayTemplate(day, templateId)}
@@ -676,7 +677,7 @@ function SlotGrid({
             </th>
             {daysWithTemplate.map((day) => (
               <th key={day} className="px-2 py-2 text-left text-xs font-medium min-w-32">
-                {day}
+                {day.toUpperCase()}
               </th>
             ))}
           </tr>

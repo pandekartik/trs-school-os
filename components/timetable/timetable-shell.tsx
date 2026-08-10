@@ -242,11 +242,11 @@ export function TimetableShell({
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {["MON", "TUE", "WED", "THU", "FRI", "SAT"].map(
+                          {["mon", "tue", "wed", "thu", "fri", "sat"].map(
                             (day) =>
                               daysWithTemplate.includes(day) && (
                                 <Badge key={day} variant="secondary" className="text-xs">
-                                  {day}
+                                  {day.toUpperCase()}
                                 </Badge>
                               )
                           )}
