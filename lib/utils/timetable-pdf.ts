@@ -38,7 +38,7 @@ export function exportTimetableGridToPdf(params: {
   const orderSet = new Set<number>();
   const dayLabels: Record<string, string> = {};
   for (const day of days) {
-    dayLabels[day] = day;
+    dayLabels[day] = day.toUpperCase();
     for (const slot of getTemplateSlotsForDay(day)) {
       orderSet.add(slot.display_order);
     }
