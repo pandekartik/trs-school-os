@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import type { Teacher } from "./users-shell";
 
 type Props = {
-  mode: "add" | "edit" | "password";
+  mode: "add" | "edit" | "password" | "invite";
   user: Teacher | null;
   onClose: () => void;
 };
@@ -33,7 +33,7 @@ export function UserPanel({ mode, user, onClose }: Props) {
   const [isActive, setIsActive] = useState(user?.is_active ?? true);
   const [loading, setLoading] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<"add" | "edit" | "password" | null>(null);
+  const [pendingAction, setPendingAction] = useState<"add" | "edit" | "password" | "invite" | null>(null);
 
   function validateAddUser(): boolean {
     if (!name || !email || !password || !confirmPassword) {
@@ -179,6 +179,42 @@ export function UserPanel({ mode, user, onClose }: Props) {
     setPendingAction("password");
   }
 
+  async function executeInviteUser() {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/admin/invite-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: user?.name,
+          email: user?.email,
+          phone: user?.phone,
+          role: user?.role,
+          password,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Login credentials created");
+        onClose();
+        window.location.reload();
+      } else {
+        const error = await response.json();
+        toast.error(error.error || "Failed to create login credentials");
+      }
+    } catch (err) {
+      toast.error("Error creating login credentials");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleInviteUser() {
+    if (!validateChangePassword()) return;
+    setConfirmDialogOpen(true);
+    setPendingAction("invite");
+  }
+
   async function handleConfirmAction() {
     if (pendingAction === "add") {
       await executeAddUser();
@@ -186,6 +222,8 @@ export function UserPanel({ mode, user, onClose }: Props) {
       await executeEditUser();
     } else if (pendingAction === "password") {
       await executeChangePassword();
+    } else if (pendingAction === "invite") {
+      await executeInviteUser();
     }
     setConfirmDialogOpen(false);
     setPendingAction(null);
@@ -208,6 +246,11 @@ export function UserPanel({ mode, user, onClose }: Props) {
           title: "Update Password",
           description: `Are you sure you want to change the password for ${user?.name}? This will require them to use the new password on next login.`,
         };
+      case "invite":
+        return {
+          title: "Create Login Credentials",
+          description: `Are you sure you want to create login credentials for ${user?.name}? They will be able to sign in immediately with the password below.`,
+        };
       default:
         return { title: "", description: "" };
     }
@@ -223,10 +266,13 @@ export function UserPanel({ mode, user, onClose }: Props) {
         <div className="flex items-center justify-between px-6 py-5 border-b border-border">
           <div className="flex-1">
             <h2 className="text-xl font-semibold tracking-tight">
-              {mode === "add" ? "Add user" : mode === "edit" ? "Edit user" : "Change Password"}
+              {mode === "add" ? "Add user" : mode === "edit" ? "Edit user" : mode === "invite" ? "Create login" : "Change Password"}
             </h2>
             {mode === "password" && (
               <p className="text-sm text-muted-foreground mt-1">Update login credentials securely.</p>
+            )}
+            {mode === "invite" && (
+              <p className="text-sm text-muted-foreground mt-1">Set a password to create login access for {user?.name}.</p>
             )}
           </div>
           <Button
@@ -240,7 +286,7 @@ export function UserPanel({ mode, user, onClose }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-          {mode === "password" ? (
+          {mode === "password" || mode === "invite" ? (
             <div className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">New password</Label>
@@ -402,7 +448,9 @@ export function UserPanel({ mode, user, onClose }: Props) {
                 ? handleAddUser
                 : mode === "edit"
                   ? handleEditUser
-                  : handleChangePassword
+                  : mode === "invite"
+                    ? handleInviteUser
+                    : handleChangePassword
             }
             disabled={loading}
             className="min-w-[120px]"
@@ -410,12 +458,14 @@ export function UserPanel({ mode, user, onClose }: Props) {
             {loading ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                {mode === "add" ? "Adding..." : mode === "edit" ? "Saving..." : "Updating..."}
+                {mode === "add" ? "Adding..." : mode === "edit" ? "Saving..." : mode === "invite" ? "Creating..." : "Updating..."}
               </>
             ) : mode === "add" ? (
               "Add user"
             ) : mode === "edit" ? (
               "Save changes"
+            ) : mode === "invite" ? (
+              "Create login"
             ) : (
               "Update password"
             )}
