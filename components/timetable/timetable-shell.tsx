@@ -324,7 +324,7 @@ export function TimetableShell({
       </div>
 
       <Sheet open={panelOpen} onOpenChange={setPanelOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl p-0">
+        <SheetContent side="full" showCloseButton={false} className="p-0">
           <SheetTitle className="sr-only">
             {selectedTimetable ? "Edit Timetable" : "Create Timetable"}
           </SheetTitle>
