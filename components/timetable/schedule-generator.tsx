@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,6 +64,7 @@ export function ScheduleGenerator({
 }: ScheduleGeneratorProps) {
   const router = useRouter();
   const [selectedSegmentId, setSelectedSegmentId] = useState("");
+  const [startDate, setStartDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResultState | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -88,6 +91,21 @@ export function ScheduleGenerator({
     }
   }, [segmentOptions, selectedSegmentId]);
 
+  // Default the generation start date to the segment's own start date
+  // whenever the selected segment changes.
+  const [startDateForSegment, setStartDateForSegment] = useState<string | null>(null);
+  if (selectedSegment && startDateForSegment !== selectedSegment.id) {
+    setStartDateForSegment(selectedSegment.id);
+    setStartDate(selectedSegment.start_date);
+  }
+
+  const startDateValid = Boolean(
+    selectedSegment &&
+      startDate &&
+      startDate >= selectedSegment.start_date &&
+      startDate <= selectedSegment.end_date
+  );
+
   const checklist = useMemo(() => {
     const slotCount = slots.length > 0;
     const chapterCount = Boolean(selectedSegment && chapters.some((chapter) => chapter.academic_segment_id === selectedSegment.id));
@@ -97,16 +115,23 @@ export function ScheduleGenerator({
       { label: "Timetable slots configured", ok: slotCount },
       { label: "Chapters exist for the selected segment", ok: chapterCount },
       { label: "Academic segment has valid dates", ok: segmentDates },
+      { label: "Start date is within the segment", ok: startDateValid },
     ];
-  }, [chapters, selectedSegment, slots]);
+  }, [chapters, selectedSegment, slots, startDateValid]);
 
   const canGenerate = checklist.every((item) => item.ok) && Boolean(division && schoolYear && selectedSegment);
 
   async function handleGenerate(confirmOverwrite = false) {
-    if (!division || !schoolYear || !selectedSegment) return;
+    if (!division || !schoolYear || !selectedSegment || !startDateValid) return;
     setLoading(true);
     try {
-      const response = await generateSchedule(division.id, selectedSegment.id, schoolYear.id, confirmOverwrite);
+      const response = await generateSchedule(
+        division.id,
+        selectedSegment.id,
+        schoolYear.id,
+        confirmOverwrite,
+        startDate
+      );
       if ("error" in response) {
         toast.error("Generate failed", { description: response.error });
         return;
@@ -176,6 +201,28 @@ export function ScheduleGenerator({
                 Filtered to {standard.name}
               </p>
             </div>
+
+            {selectedSegment && (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="generate-start-date" className="text-xs font-medium">
+                  Generate from
+                </Label>
+                <Input
+                  id="generate-start-date"
+                  type="date"
+                  value={startDate}
+                  min={selectedSegment.start_date}
+                  max={selectedSegment.end_date}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  {selectedSegment.name} runs {selectedSegment.start_date} to {selectedSegment.end_date}.
+                  Only defer this if the school started teaching later than planned — it doesn&apos;t
+                  change the segment&apos;s own dates.
+                </p>
+              </div>
+            )}
 
             <div className="rounded-xl border bg-secondary/20 px-3 py-3">
               <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">

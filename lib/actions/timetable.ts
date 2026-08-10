@@ -339,7 +339,8 @@ export async function generateSchedule(
   divisionId: string,
   segmentId: string,
   schoolYearId: string,
-  confirmOverwrite = false
+  confirmOverwrite = false,
+  startDate?: string
 ): Promise<ScheduleResult> {
   const db = getDb();
 
@@ -361,6 +362,14 @@ export async function generateSchedule(
     return { success: false, error: segmentError?.message ?? "Segment not found" };
   }
 
+  // Optional floor on when generated periods actually begin, without
+  // changing the segment's own (curriculum/reporting) date range.
+  const effectiveStartDate =
+    startDate && startDate > segment.start_date ? startDate : segment.start_date;
+  if (effectiveStartDate > segment.end_date) {
+    return { success: false, error: "Start date is after the segment's end date" };
+  }
+
   const { data: division, error: divisionError } = await db
     .from("division")
     .select("*, standard(grade)")
@@ -376,7 +385,7 @@ export async function generateSchedule(
     .from("holiday")
     .select("date")
     .eq("school_year_id", schoolYearId)
-    .gte("date", segment.start_date)
+    .gte("date", effectiveStartDate)
     .lte("date", segment.end_date)
     .or(`affects_all.eq.true,division_id.eq.${divisionId}`);
   if (holidayError) return { success: false, error: holidayError.message };
@@ -406,7 +415,7 @@ export async function generateSchedule(
       .from("period_instance")
       .select("id", { count: "exact", head: true })
       .in("timetable_slot_id", slotIds)
-      .gte("date", segment.start_date)
+      .gte("date", effectiveStartDate)
       .lte("date", segment.end_date);
     if (countError) return { success: false, error: countError.message };
     existingCount = count ?? 0;
@@ -421,7 +430,7 @@ export async function generateSchedule(
       .from("period_instance")
       .delete()
       .in("timetable_slot_id", slotIds)
-      .gte("date", segment.start_date)
+      .gte("date", effectiveStartDate)
       .lte("date", segment.end_date);
     if (deleteError) return { success: false, error: deleteError.message };
   }
@@ -455,7 +464,7 @@ export async function generateSchedule(
   const scheduledChapterIds = new Set<string>();
   let bufferCount = 0;
 
-  const start = new Date(`${segment.start_date}T00:00:00Z`);
+  const start = new Date(`${effectiveStartDate}T00:00:00Z`);
   const end = new Date(`${segment.end_date}T00:00:00Z`);
 
   for (let cursor = new Date(start); cursor <= end; cursor.setUTCDate(cursor.getUTCDate() + 1)) {
