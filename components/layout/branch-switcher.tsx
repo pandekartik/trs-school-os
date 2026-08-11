@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Select,
@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building2 } from "lucide-react";
+import { Building2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 type BranchOption = { id: string; name: string };
@@ -21,12 +21,14 @@ type Props = {
 
 export function BranchSwitcher({ branches, activeBranchId }: Props) {
   const router = useRouter();
-  const [switching, setSwitching] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const switching = posting || isPending;
 
   if (branches.length === 0) return null;
 
   async function handleChange(branchId: string) {
-    setSwitching(true);
+    setPosting(true);
     try {
       const res = await fetch("/api/set-branch", {
         method: "POST",
@@ -38,9 +40,11 @@ export function BranchSwitcher({ branches, activeBranchId }: Props) {
         toast.error("Could not switch branch", { description: body.error });
         return;
       }
-      router.refresh();
+      startTransition(() => {
+        router.refresh();
+      });
     } finally {
-      setSwitching(false);
+      setPosting(false);
     }
   }
 
@@ -48,7 +52,11 @@ export function BranchSwitcher({ branches, activeBranchId }: Props) {
     <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
       <Select value={activeBranchId ?? undefined} onValueChange={handleChange} disabled={switching}>
         <SelectTrigger className="h-8 text-xs gap-1.5">
-          <Building2 className="size-3.5 text-text-muted" />
+          {switching ? (
+            <Loader2 className="size-3.5 animate-spin text-text-muted" />
+          ) : (
+            <Building2 className="size-3.5 text-text-muted" />
+          )}
           <SelectValue placeholder="Select branch" />
         </SelectTrigger>
         <SelectContent>
