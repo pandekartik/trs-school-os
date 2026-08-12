@@ -383,14 +383,25 @@ export async function generateSchedule(
 
   const { data: holidays, error: holidayError } = await db
     .from("holiday")
-    .select("date")
+    .select("date, end_date")
     .eq("school_year_id", schoolYearId)
-    .gte("date", effectiveStartDate)
     .lte("date", segment.end_date)
+    .gte("end_date", effectiveStartDate)
     .or(`affects_all.eq.true,division_id.eq.${divisionId}`);
   if (holidayError) return { success: false, error: holidayError.message };
 
-  const holidaySet = new Set((holidays ?? []).map((holiday: any) => holiday.date));
+  const holidaySet = new Set<string>();
+  for (const holiday of (holidays ?? []) as any[]) {
+    const rangeStart = new Date(`${holiday.date}T00:00:00Z`);
+    const rangeEnd = new Date(`${holiday.end_date}T00:00:00Z`);
+    for (
+      let cursor = new Date(rangeStart);
+      cursor <= rangeEnd;
+      cursor.setUTCDate(cursor.getUTCDate() + 1)
+    ) {
+      holidaySet.add(cursor.toISOString().slice(0, 10));
+    }
+  }
 
   const { data: assignments, error: assignmentError } = await db
     .from("teacher_assignment")
@@ -602,15 +613,21 @@ export async function createHoliday(formData: FormData) {
 
   const school_year_id = String(formData.get("school_year_id") ?? "");
   const date = String(formData.get("date") ?? "");
+  const end_date = String(formData.get("end_date") ?? "") || date;
   const name = String(formData.get("name") ?? "").trim();
   const type = String(formData.get("type") ?? "school_event") as "national" | "school_event" | "exam" | "unplanned";
   const affects_all = String(formData.get("affects_all") ?? "") === "true";
   const division_id = affects_all ? null : String(formData.get("division_id") ?? "") || null;
   const activeBranch = await getActiveBranch();
 
+  if (end_date < date) {
+    return { error: "End date cannot be before the start date" };
+  }
+
   const { error } = await db.from("holiday").insert({
     school_year_id,
     date,
+    end_date,
     name,
     type,
     affects_all,
@@ -625,14 +642,19 @@ export async function createHoliday(formData: FormData) {
 export async function updateHoliday(id: string, formData: FormData) {
   const db = getDb();
   const date = String(formData.get("date") ?? "");
+  const end_date = String(formData.get("end_date") ?? "") || date;
   const name = String(formData.get("name") ?? "").trim();
   const type = String(formData.get("type") ?? "school_event") as "national" | "school_event" | "exam" | "unplanned";
   const affects_all = String(formData.get("affects_all") ?? "") === "true";
   const division_id = affects_all ? null : String(formData.get("division_id") ?? "") || null;
 
+  if (end_date < date) {
+    return { error: "End date cannot be before the start date" };
+  }
+
   const { error } = await db
     .from("holiday")
-    .update({ date, name, type, affects_all, division_id })
+    .update({ date, end_date, name, type, affects_all, division_id })
     .eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/timetable");

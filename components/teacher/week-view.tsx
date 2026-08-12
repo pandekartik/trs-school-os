@@ -128,7 +128,7 @@ export function WeekView({
     const today = new Date().toISOString().split("T")[0];
     const isToday = dateIso === today;
     const dayNum = date.getDate();
-    const holiday = holidays.find((h: any) => h.date === dateIso);
+    const holiday = holidays.find((h: any) => h.date <= dateIso && h.end_date >= dateIso);
     const allPeriodsCancelled = dayPeriods.length > 0 && dayPeriods.every(p => p.status === "cancelled");
     const isHoliday = allPeriodsCancelled || !!holiday;
 
@@ -250,7 +250,7 @@ export function WeekView({
           const today = new Date().toISOString().split("T")[0];
           const isToday = dateIso === today;
           const dayNum = date.getDate();
-          const holiday = holidays.find((h: any) => h.date === dateIso);
+          const holiday = holidays.find((h: any) => h.date <= dateIso && h.end_date >= dateIso);
           const allPeriodsCancelled = dayPeriods.length > 0 && dayPeriods.every(p => p.status === "cancelled");
           const isHoliday = allPeriodsCancelled || !!holiday;
           const hasClasses = dayPeriods.length > 0;
