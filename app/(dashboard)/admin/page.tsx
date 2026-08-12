@@ -49,8 +49,8 @@ export default async function AdminPage() {
   const holidayQuery = admin
     .from("holiday")
     .select("*")
-    .gte("date", weekStartIso)
-    .lte("date", weekEndIso);
+    .lte("date", weekEndIso)
+    .gte("end_date", weekStartIso);
 
   // Fetch all data in parallel
   const [

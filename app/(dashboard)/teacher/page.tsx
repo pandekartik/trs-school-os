@@ -88,8 +88,8 @@ async function fetchTeacherSchedule(
           .from("holiday")
           .select("*")
           .eq("school_year_id", schoolYearId)
-          .gte("date", startIso)
           .lte("date", endIso)
+          .gte("end_date", startIso)
       : (async () => ({ data: [] }))(),
     admin.from("academic_segment").select("*"),
     admin

@@ -54,6 +54,7 @@ export function HolidaysShell({
 
   const [formData, setFormData] = useState({
     date: "",
+    end_date: "",
     name: "",
     type: "school_event" as "national" | "school_event" | "exam" | "unplanned",
     affects_all: true,
@@ -69,11 +70,16 @@ export function HolidaysShell({
       toast.error("Please fill in all required fields");
       return;
     }
+    if (formData.end_date && formData.end_date < formData.date) {
+      toast.error("End date cannot be before the start date");
+      return;
+    }
 
     setLoading(true);
     const fd = new FormData();
     fd.set("school_year_id", activeSchoolYear.id);
     fd.set("date", formData.date);
+    fd.set("end_date", formData.end_date || formData.date);
     fd.set("name", formData.name);
     fd.set("type", formData.type);
     fd.set("affects_all", String(scopeType === "all"));
@@ -88,7 +94,7 @@ export function HolidaysShell({
       toast.error("Failed to add holiday", { description: result.error });
     } else {
       toast.success("Holiday added");
-      setFormData({ date: "", name: "", type: "school_event", affects_all: true, division_id: "" });
+      setFormData({ date: "", end_date: "", name: "", type: "school_event", affects_all: true, division_id: "" });
       setScopeType("all");
       setSelectedStandardId(null);
     }
@@ -134,9 +140,16 @@ export function HolidaysShell({
 
   const calendarMonthKey = `${calendarCursor.year}-${String(calendarCursor.month + 1).padStart(2, "0")}`;
   const holidaysByDay = new Map<number, Holiday[]>();
-  for (const h of groupedHolidays[calendarMonthKey] ?? []) {
-    const day = parseDateOnly(h.date).getDate();
-    holidaysByDay.set(day, [...(holidaysByDay.get(day) ?? []), h]);
+  for (const h of holidays) {
+    for (
+      let cursor = parseDateOnly(h.date);
+      cursor <= parseDateOnly(h.end_date);
+      cursor.setDate(cursor.getDate() + 1)
+    ) {
+      if (cursor.getFullYear() !== calendarCursor.year || cursor.getMonth() !== calendarCursor.month) continue;
+      const day = cursor.getDate();
+      holidaysByDay.set(day, [...(holidaysByDay.get(day) ?? []), h]);
+    }
   }
 
   const daysInMonth = new Date(calendarCursor.year, calendarCursor.month + 1, 0).getDate();
@@ -201,16 +214,38 @@ export function HolidaysShell({
             <CardTitle className="text-base">Add holiday</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-medium">DATE</Label>
-              <Input
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                disabled={loading}
-                className="h-8"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">START DATE</Label>
+                <Input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      date: e.target.value,
+                      end_date: formData.end_date && formData.end_date < e.target.value ? e.target.value : formData.end_date,
+                    })
+                  }
+                  disabled={loading}
+                  className="h-8"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">END DATE</Label>
+                <Input
+                  type="date"
+                  min={formData.date || undefined}
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  disabled={loading}
+                  className="h-8"
+                />
+              </div>
             </div>
+            <p className="text-[11px] text-gray-500 -mt-2">
+              Leave end date blank for a single-day holiday. For multi-day holidays like Diwali, set the last day it covers.
+            </p>
 
             <div className="space-y-2">
               <Label className="text-xs font-medium">HOLIDAY NAME</Label>
@@ -377,12 +412,23 @@ export function HolidaysShell({
                             className="h-11 px-5 py-3 border-b border-[#F5F5F5] hover:bg-[#FAFAFA] flex items-center justify-between group"
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <span className="text-xs font-semibold text-gray-900 w-12 shrink-0">
-                                {formatDateOnly(holiday.date)}
+                              <span className="text-xs font-semibold text-gray-900 w-24 shrink-0">
+                                {holiday.end_date && holiday.end_date !== holiday.date
+                                  ? `${formatDateOnly(holiday.date)} – ${formatDateOnly(holiday.end_date)}`
+                                  : formatDateOnly(holiday.date)}
                               </span>
                               <span className="text-sm font-medium text-gray-900">
                                 {holiday.name}
                               </span>
+                              {holiday.end_date && holiday.end_date !== holiday.date && (
+                                <Badge variant="outline" className="font-normal text-[10px]">
+                                  {Math.round(
+                                    (parseDateOnly(holiday.end_date).getTime() - parseDateOnly(holiday.date).getTime()) /
+                                      86400000
+                                  ) + 1}{" "}
+                                  days
+                                </Badge>
+                              )}
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0 ml-2">

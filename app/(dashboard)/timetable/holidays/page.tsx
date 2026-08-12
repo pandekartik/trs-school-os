@@ -34,6 +34,7 @@ export default async function HolidaysPage() {
       id,
       school_year_id,
       date,
+      end_date,
       name,
       type,
       affects_all,

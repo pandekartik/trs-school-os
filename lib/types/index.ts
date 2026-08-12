@@ -143,6 +143,7 @@ export type Holiday = {
   id: string;
   school_year_id: string;
   date: string;
+  end_date: string;
   name: string;
   type: "national" | "school_event" | "exam" | "unplanned";
   affects_all: boolean;

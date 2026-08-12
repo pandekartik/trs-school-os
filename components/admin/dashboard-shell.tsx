@@ -416,7 +416,7 @@ export function DashboardShell({
               const dayLogged = dayPeriods.filter((p) => p.status === "done" || p.status === "partial").length;
               const dayTotal = dayPeriods.length;
               const dayCoverage = dayTotal > 0 ? Math.round((dayLogged / dayTotal) * 100) : 0;
-              const dayHoliday = holidaysThisWeek.find((h) => h.date === dateIso);
+              const dayHoliday = holidaysThisWeek.find((h) => h.date <= dateIso && h.end_date >= dateIso);
               const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 
               return (
