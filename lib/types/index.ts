@@ -132,7 +132,7 @@ export type TimetableSlot = {
   school_year_id: string;
   division_id: string;
   subject_id: string;
-  teacher_id: string;
+  teacher_id: string | null;
   template_slot_id: string | null;
   day_of_week: string;
   period_number?: number;
@@ -157,7 +157,7 @@ export type PeriodInstance = {
   chapter_period_sequence: number | null;
   date: string;
   is_buffer: boolean;
-  teacher_id: string;
+  teacher_id: string | null;
   substitute_teacher_id: string | null;
   is_substituted: boolean;
   status: "scheduled" | "done" | "partial" | "not_done" | "cancelled" | "unlogged";

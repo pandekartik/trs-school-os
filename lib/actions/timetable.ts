@@ -192,13 +192,13 @@ export async function saveTimetableSlot(formData: FormData) {
   const timetable_id = String(formData.get("timetable_id") ?? "");
   const template_slot_id = String(formData.get("template_slot_id") ?? "");
   const subject_id = String(formData.get("subject_id") ?? "");
-  const teacher_id = String(formData.get("teacher_id") ?? "");
+  const teacher_id = String(formData.get("teacher_id") ?? "") || null;
   const day_of_week = String(formData.get("day_of_week") ?? "");
   const division_id = String(formData.get("division_id") ?? "");
   const school_year_id = String(formData.get("school_year_id") ?? "");
   const branch_id = String(formData.get("branch_id") ?? "") || null;
 
-  if (!timetable_id || !template_slot_id || !subject_id || !teacher_id || !day_of_week || !division_id) {
+  if (!timetable_id || !template_slot_id || !subject_id || !day_of_week || !division_id) {
     return { error: "All slot fields are required" };
   }
 
@@ -403,20 +403,17 @@ export async function generateSchedule(
     }
   }
 
-  const { data: assignments, error: assignmentError } = await db
-    .from("teacher_assignment")
-    .select("subject_id")
-    .eq("division_id", divisionId)
-    .eq("school_year_id", schoolYearId);
-  if (assignmentError) return { success: false, error: assignmentError.message };
-
-  const assignedSubjectIds = [...new Set((assignments ?? []).map((assignment: any) => assignment.subject_id))];
+  // Chapters are scheduled for every subject that has a slot on the grid,
+  // regardless of whether a teacher is currently allocated to it -- an
+  // unallocated slot still generates periods so a teacher can be assigned
+  // to them later.
+  const slotSubjectIds = [...new Set((activeSlots ?? []).map((slot: any) => slot.subject_id))];
 
   const { data: chapters, error: chapterError } = await db
     .from("chapter")
     .select("*")
     .eq("academic_segment_id", segmentId)
-    .in("subject_id", assignedSubjectIds.length ? assignedSubjectIds : [""]);
+    .in("subject_id", slotSubjectIds.length ? slotSubjectIds : [""]);
   if (chapterError) return { success: false, error: chapterError.message };
 
   const slotIds = (activeSlots ?? []).map((slot: any) => slot.id);

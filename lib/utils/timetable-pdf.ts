@@ -11,7 +11,7 @@ type TemplateSlot = {
 
 type SlotCell = {
   subject_id: string;
-  teacher_id: string;
+  teacher_id: string | null;
 } | undefined;
 
 export function exportTimetableGridToPdf(params: {
@@ -21,7 +21,7 @@ export function exportTimetableGridToPdf(params: {
   getTemplateSlotsForDay: (day: string) => TemplateSlot[];
   getCell: (templateSlotId: string, day: string) => SlotCell;
   getSubjectName: (subjectId: string) => string;
-  getTeacherName: (teacherId: string) => string;
+  getTeacherName: (teacherId: string | null) => string;
 }) {
   const {
     divisionLabel,
