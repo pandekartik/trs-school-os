@@ -776,9 +776,10 @@ function SlotCell({
   onSave,
   onClear,
 }: SlotCellProps) {
+  const UNALLOCATED = "unallocated";
   const [editMode, setEditMode] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(existingSlot?.subject_id ?? "");
-  const [selectedTeacher, setSelectedTeacher] = useState(existingSlot?.teacher_id ?? "");
+  const [selectedTeacher, setSelectedTeacher] = useState(existingSlot?.teacher_id ?? UNALLOCATED);
   const [saving, setSaving] = useState(false);
 
   if (!editMode && !existingSlot) {
@@ -814,14 +815,15 @@ function SlotCell({
     .filter(Boolean);
 
   const handleSave = async () => {
-    if (!selectedSubject || !selectedTeacher) {
-      toast.error("Select both subject and teacher");
+    if (!selectedSubject) {
+      toast.error("Select a subject");
       return;
     }
 
     setSaving(true);
     try {
-      await onSave(divisionId, templateSlotId, dayOfWeek, selectedSubject, selectedTeacher);
+      const teacherId = selectedTeacher === UNALLOCATED ? "" : selectedTeacher;
+      await onSave(divisionId, templateSlotId, dayOfWeek, selectedSubject, teacherId);
       setEditMode(false);
     } finally {
       setSaving(false);
@@ -834,7 +836,7 @@ function SlotCell({
       await onClear(divisionId, templateSlotId, dayOfWeek);
       setEditMode(false);
       setSelectedSubject("");
-      setSelectedTeacher("");
+      setSelectedTeacher(UNALLOCATED);
     } finally {
       setSaving(false);
     }
@@ -860,6 +862,7 @@ function SlotCell({
           <SelectValue placeholder="Teacher" />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value={UNALLOCATED}>Unallocated</SelectItem>
           {availableTeachers.map((t) => (
             <SelectItem key={t!.id} value={t!.id}>
               {t!.name}
@@ -896,7 +899,7 @@ function SlotCell({
           onClick={() => {
             setEditMode(false);
             setSelectedSubject(existingSlot?.subject_id ?? "");
-            setSelectedTeacher(existingSlot?.teacher_id ?? "");
+            setSelectedTeacher(existingSlot?.teacher_id ?? UNALLOCATED);
           }}
         >
           Cancel

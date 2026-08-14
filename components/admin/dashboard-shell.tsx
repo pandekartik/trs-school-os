@@ -210,7 +210,7 @@ function RecentActivity({
     .map((period) => ({
       id: period.id,
       tone: "success" as const,
-      title: `${teacherMap.get(period.teacher_id)?.name ?? "Teacher"} logged ${period.subject_id ? subjectMap.get(period.subject_id)?.name ?? "a period" : "a period"}`,
+      title: `${teacherMap.get(period.teacher_id ?? "")?.name ?? "Teacher"} logged ${period.subject_id ? subjectMap.get(period.subject_id)?.name ?? "a period" : "a period"}`,
       meta: new Date(period.logged_at).toLocaleTimeString("en-IN", {
         timeZone: "Asia/Kolkata",
         hour: "2-digit",
@@ -221,7 +221,7 @@ function RecentActivity({
   const flaggedActivity = unloggedPeriods.slice(0, 2).map((period) => ({
     id: period.id,
     tone: "brand" as const,
-    title: `${teacherMap.get(period.teacher_id)?.name ?? "Teacher"} has an unlogged period`,
+    title: `${teacherMap.get(period.teacher_id ?? "")?.name ?? "Teacher"} has an unlogged period`,
     meta: new Date(period.date).toLocaleDateString("en-IN", {
       timeZone: "Asia/Kolkata",
       month: "short",
@@ -301,7 +301,7 @@ export function DashboardShell({
       : 0;
 
   const activeTeachersThisWeek = new Set(
-    periodInstancesThisWeek.map((p) => p.teacher_id)
+    periodInstancesThisWeek.map((p) => p.teacher_id).filter((id): id is string => Boolean(id))
   ).size;
 
   const teacherMap = new Map(teachers.map((t) => [t.id, t]));
